@@ -110,25 +110,11 @@ class MLSHOP_Pay_Access
 
     /**
      * 金钱价：优先取对应等级的会员价，未设置则用执行价。
+     * （Phase 2 收敛：唯一实现在 Moonlight_Price_Calculator::paywall_price，本方法保留兼容入口。）
      */
     public static function get_price_for_user($post_id, $user_id = 0)
     {
-        $user_id = $user_id ? (int) $user_id : get_current_user_id();
-        $level   = class_exists('MLUC_Membership') ? MLUC_Membership::get_user_level($user_id) : 'free';
-
-        if ($level === 'diamond') {
-            $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_diamond', 0);
-            if ($price > 0) {
-                return $price;
-            }
-        }
-        if (in_array($level, array('gold', 'diamond'), true)) {
-            $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_gold', 0);
-            if ($price > 0) {
-                return $price;
-            }
-        }
-        return (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_sell', 0);
+        return Moonlight_Price_Calculator::paywall_price($post_id, $user_id);
     }
 
     /**
@@ -136,22 +122,7 @@ class MLSHOP_Pay_Access
      */
     public static function get_credit_price_for_user($post_id, $user_id = 0)
     {
-        $user_id = $user_id ? (int) $user_id : get_current_user_id();
-        $level   = class_exists('MLUC_Membership') ? MLUC_Membership::get_user_level($user_id) : 'free';
-
-        if ($level === 'diamond') {
-            $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price_diamond', 0);
-            if ($price > 0) {
-                return $price;
-            }
-        }
-        if (in_array($level, array('gold', 'diamond'), true)) {
-            $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price_gold', 0);
-            if ($price > 0) {
-                return $price;
-            }
-        }
-        return (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price', 0);
+        return Moonlight_Price_Calculator::paywall_credit_price($post_id, $user_id);
     }
 
     /* ---------- 解锁 ---------- */

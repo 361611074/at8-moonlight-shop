@@ -117,6 +117,10 @@ class MLSHOP_Download
 
     /**
      * 扣减库存（原子）。_mlshop_stock 为空或 0 视为不限量。
+     *
+     * 卡密商品的真实库存是池子（_mlshop_cardkeys，CAS 弹出保证不超发），
+     * 该计数器只是冗余显示：扣减失败（并发竞态）不「清零兜底」，保持原值即可，
+     * 由下单前的池行数预检拦截真实超卖。
      */
     private function decrease_stock($product_id, $qty)
     {
@@ -124,9 +128,7 @@ class MLSHOP_Download
         if ($stock <= 0) {
             return;
         }
-        if (!mlshop_atomic_decrement_post_meta($product_id, '_mlshop_stock', (int) $qty)) {
-            update_post_meta($product_id, '_mlshop_stock', 0);
-        }
+        mlshop_atomic_decrement_post_meta($product_id, '_mlshop_stock', (int) $qty);
     }
 
     /**

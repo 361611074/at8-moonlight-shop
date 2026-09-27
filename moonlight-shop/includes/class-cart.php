@@ -94,6 +94,11 @@ class MLSHOP_Cart
             if (!$product || $product->post_type !== 'mlshop_product') {
                 continue;
             }
+            // 只允许已发布商品留在购物车：下架/草稿商品随读随剔除，
+            // 防止伪造 Cookie 把下架商品带进结算（价格仍由服务端重算兜底）。
+            if ('publish' !== $product->post_status) {
+                continue;
+            }
             $price = (float) get_post_meta($product->ID, '_mlshop_price', true);
             $result[] = array(
                 'id'     => $product->ID,

@@ -69,10 +69,12 @@ final class Moonlight_DB_Migrator {
 |---|---|
 | `mluc_membership_level` / `mluc_membership_expires` | 会员等级/到期（0=永久）——**沿用不改名**（等级定义在会员中心，商城读取） |
 | `mlshop_pay_unlocks` / `mluc_pay_unlocks` | 付费墙解锁账本（迁移时合并为 `moonlight_unlocks`，旧键只读兼容） |
-| `mlshop_credit_balance` / `mlshop_credit_ledger` | 积分账本——唯一钱包之一 |
-| `_mlshop_balance` | **弃用**：余额网关迁移到积分账本（修复审计 H1 双账本串账；迁移步骤：`_mlshop_balance` 余额一次性并入 `mlshop_credit_balance` 并记流水） |
+| `mlshop_credit_balance` / `mlshop_credit_ledger` | 积分账本——充值/奖励专用（货币单位隔离） |
+| `_mlshop_balance` | 余额钱包（货币）。**修复 H1 后与积分账本严格隔离**：余额网关扣款与退款回补都写本账本；Phase 3 补充值入口激活 |
 | `moonlight_addresses`（新增） | 地址簿：数组（name/phone/region{province,city,district}/detail/is_default） |
 | `mluc_oauth_*` / `_mluc_avatar*` 等 | OAuth 绑定/头像，沿用 |
+
+> **修复批次修订（Phase 2 实施记录）**：H1 的最终修法比初稿更简单——余额/积分两账本单位不同（货币 vs 积分），**不合并**；余额扣款与退款回补统一写 `_mlshop_balance`（原子累加），Phase 3 为余额钱包增加充值订单类型。原 M4「余额数值迁移」步骤取消（无迁移风险面）。
 
 ### 3.4 设置（option，收敛为单一路径）
 

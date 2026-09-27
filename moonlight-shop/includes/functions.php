@@ -401,6 +401,55 @@ function mlshop_atomic_decrement_post_meta($post_id, $meta_key, $amount)
 }
 
 /**
+ * 原子增加数值型 post meta（库存回滚 / 退款回补等）。
+ *
+ * 与 mlshop_atomic_decrement_post_meta 对称：库存回滚也必须原子，
+ * 避免「读取 → 相加 → 写回」在并发退款/取消时丢失回补量。
+ * postmeta 无 (post_id, meta_key) 唯一索引，先 UPDATE，无行再 INSERT。
+ *
+ * @param int    $post_id
+ * @param string $meta_key
+ * @param float  $amount 需 > 0
+ * @return bool
+ */
+function mlshop_atomic_increment_post_meta($post_id, $meta_key, $amount)
+{
+    global $wpdb;
+    $post_id = (int) $post_id;
+    $amount  = (float) $amount;
+    if ($post_id <= 0 || $amount <= 0) {
+        return false;
+    }
+    $affected = $wpdb->query(
+        $wpdb->prepare(
+            "UPDATE {$wpdb->postmeta} SET meta_value = CAST(meta_value AS DECIMAL(20,4)) + %f
+             WHERE post_id = %d AND meta_key = %s",
+            $amount,
+            $post_id,
+            $meta_key
+        )
+    );
+    if (!$affected) {
+        $exists = $wpdb->get_var(
+            $wpdb->prepare(
+                "SELECT meta_id FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key = %s LIMIT 1",
+                $post_id,
+                $meta_key
+            )
+        );
+        if (!$exists) {
+            $wpdb->insert(
+                $wpdb->postmeta,
+                array('post_id' => $post_id, 'meta_key' => $meta_key, 'meta_value' => (string) $amount),
+                array('%d', '%s', '%s')
+            );
+        }
+    }
+    wp_cache_delete($post_id, 'post_meta');
+    return true;
+}
+
+/**
  * 原子扣减数值型 user meta（余额 / 积分等）。
  *
  * @param int    $user_id

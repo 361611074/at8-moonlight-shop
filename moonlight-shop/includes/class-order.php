@@ -586,40 +586,36 @@ class MLSHOP_Order
         if (empty($items)) {
             return new WP_Error('empty', __('购物车为空。', 'moonlight-shop'));
         }
-        $subtotal = $cart->get_total();
-        $total    = $subtotal;
+
+        // 统一报价（Moonlight_Price_Calculator：小计 → 优惠券 → 运费 → 合计）。
+        $quote = Moonlight_Price_Calculator::quote($items, $coupon_code);
+        $subtotal = $quote['subtotal'];
+        $total    = $quote['total'];
+        $shipping = $quote['shipping'];
+        $has_physical = $quote['has_physical'];
+
         $coupon_meta = array();
-        $shipping    = 0.0;
-        $has_physical = MLSHOP_Shipping::has_physical($items);
-
-        $coupon_code = trim((string) $coupon_code);
-        if ('' !== $coupon_code && class_exists('MLSHOP_Coupon')) {
-            $cid = MLSHOP_Coupon::validate($coupon_code, $subtotal, $items);
-            if (!is_wp_error($cid)) {
-                $discount = MLSHOP_Coupon::compute_discount($cid, $subtotal);
-                if ($discount > 0) {
-                    // 原子预留名额，防并发超发（两人同时用同一限次码时仅一人能预留成功）
-                    if (MLSHOP_Coupon::reserve($cid)) {
-                        $total = round($subtotal - $discount, 2);
-                        $coupon_meta = array(
-                            '_mlshop_coupon_code' => strtoupper(trim($coupon_code)),
-                            '_mlshop_coupon_discount' => $discount,
-                            '_mlshop_coupon_reserved' => '1',
-                        );
-                    }
-                    // 预留失败（名额已满）：不报错，按原价下单，避免阻断购买
-                }
+        if ($quote['coupon_valid'] && $quote['discount'] > 0) {
+            // 原子预留名额，防并发超发（两人同时用同一限次码时仅一人能预留成功）
+            if (Moonlight_Price_Calculator::reserve_coupon($quote['coupon_id'])) {
+                $coupon_meta = array(
+                    '_mlshop_coupon_code' => strtoupper(trim((string) $coupon_code)),
+                    '_mlshop_coupon_discount' => $quote['discount'],
+                    '_mlshop_coupon_reserved' => '1',
+                );
             }
+            // 预留失败（名额已满）：不报错，按原价下单，避免阻断购买
         }
 
-        // 实物商品運費：以「優惠前小計」判定免運門檻，與結算頁展示一致；
-        // 優惠券只減貨款，不影響運費，避免結算頁展示與實收金額不一致。
-        if ($has_physical && MLSHOP_Shipping::enabled()) {
-            $shipping = MLSHOP_Shipping::calc($subtotal, true);
-            $total    = round($total + $shipping, 2);
-        }
+        // 任一失败路径都要释放已预留的优惠券名额（修复审计 M1：名额泄漏）。
+        $release_coupon = function () use ($coupon_meta) {
+            if (!empty($coupon_meta['_mlshop_coupon_code']) && class_exists('MLSHOP_Coupon')) {
+                MLSHOP_Coupon::release($coupon_meta['_mlshop_coupon_code']);
+            }
+        };
 
         // 库存校验（下单前拦截超卖）：_mlshop_stock 为空或 0 视为不限量。
+        // 卡密商品以池内剩余条数为准（池是真实库存，计数器只是冗余显示）。
         foreach ($items as $it) {
             $chk_pid = isset($it['id']) ? (int) $it['id'] : 0;
             $chk_qty = isset($it['qty']) ? (int) $it['qty'] : 0;
@@ -627,12 +623,47 @@ class MLSHOP_Order
                 continue;
             }
             $chk_stock = (int) get_post_meta($chk_pid, '_mlshop_stock', true);
+            if ('cardkey' === get_post_meta($chk_pid, '_mlshop_type', true)) {
+                $pool = (string) get_post_meta($chk_pid, '_mlshop_cardkeys', true);
+                $pool_count = count(array_filter(array_map('trim', explode("\n", $pool))));
+                if ($pool_count > 0) {
+                    $chk_stock = ($chk_stock > 0) ? min($chk_stock, $pool_count) : $pool_count;
+                }
+            }
             if ($chk_stock > 0 && $chk_qty > $chk_stock) {
+                $release_coupon();
                 return new WP_Error(
                     'stock',
                     sprintf(__('「%s」库存不足，仅剩 %d 件。', 'moonlight-shop'), get_the_title($chk_pid), $chk_stock)
                 );
             }
+        }
+
+        // 库存原子扣减（fail-closed，修复审计 H2 超卖）：扣减失败（并发期间被买走）
+        // 必须拒绝下单并回滚本次已扣商品，不允许「清零兜底继续建单」。
+        // 实物 / 虚拟在此扣减；卡密由交付時 pop_cardkey 扣除，避免雙扣。
+        $decremented = array();
+        foreach ($items as $item) {
+            $pid = (int) $item['id'];
+            if (!$pid || 'cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
+                continue;
+            }
+            $stock = (int) get_post_meta($pid, '_mlshop_stock', true);
+            if ($stock <= 0) {
+                continue; // 0 / -1 / 空 = 不限量
+            }
+            if (mlshop_atomic_decrement_post_meta($pid, '_mlshop_stock', (int) $item['qty'])) {
+                $decremented[] = array($pid, (int) $item['qty']);
+                continue;
+            }
+            foreach ($decremented as $d) {
+                mlshop_atomic_increment_post_meta($d[0], '_mlshop_stock', $d[1]);
+            }
+            $release_coupon();
+            return new WP_Error(
+                'stock',
+                sprintf(__('「%s」库存不足，仅剩 %d 件。', 'moonlight-shop'), get_the_title($pid), $stock - 1)
+            );
         }
 
         $order_id = wp_insert_post(array(
@@ -642,13 +673,21 @@ class MLSHOP_Order
             'post_author' => $user_id,
         ));
         if (is_wp_error($order_id)) {
+            // 建单失败：回滚已扣库存 + 释放优惠券（修复审计 M1）
+            foreach ($decremented as $d) {
+                mlshop_atomic_increment_post_meta($d[0], '_mlshop_stock', $d[1]);
+            }
+            $release_coupon();
             return $order_id;
         }
 
+        update_post_meta($order_id, '_mlshop_order_no', Moonlight_Migrations::generate_order_no());
+        update_post_meta($order_id, '_mlshop_customer', (int) $user_id);
         update_post_meta($order_id, '_mlshop_user_id', $user_id);
         update_post_meta($order_id, '_mlshop_items', $items);
         update_post_meta($order_id, '_mlshop_subtotal', $subtotal);
         update_post_meta($order_id, '_mlshop_total', $total);
+        update_post_meta($order_id, '_mlshop_discount', $quote['discount']);
         update_post_meta($order_id, '_mlshop_shipping', $shipping);
         update_post_meta($order_id, '_mlshop_has_physical', $has_physical ? '1' : '0');
         if ($has_physical && is_array($shipping_address) && !empty($shipping_address)) {
@@ -660,21 +699,6 @@ class MLSHOP_Order
         update_post_meta($order_id, '_mlshop_created', current_time('mysql'));
         foreach ($coupon_meta as $k => $v) {
             update_post_meta($order_id, $k, $v);
-        }
-
-        // 库存扣减（实物 / 虚拟；卡密由交付時 pop_cardkey 扣除，避免雙扣）
-        foreach ($items as $item) {
-            $pid = (int) $item['id'];
-            if ('cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
-                continue;
-            }
-            $stock = (int) get_post_meta($pid, '_mlshop_stock', true);
-            if ($stock > 0) {
-                // 原子扣减：并发下单时由数据库保证不超卖；扣减失败（期间被他人买走）则清零兜底。
-                if (!mlshop_atomic_decrement_post_meta($pid, '_mlshop_stock', (int) $item['qty'])) {
-                    update_post_meta($pid, '_mlshop_stock', 0);
-                }
-            }
         }
 
         $cart->clear();
@@ -706,21 +730,8 @@ class MLSHOP_Order
             return new WP_Error('not_paywalled', __('该内容未启用付费。', 'moonlight-shop'));
         }
 
-        // 按会员等级取价（与 MLSHOP_Pay_Access::get_price_for_user 同源逻辑，这里就近计算避免跨类依赖）
-        $level = class_exists('MLUC_Membership') ? MLUC_Membership::get_user_level($user_id) : 'free';
-        $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_sell', 0);
-        if (in_array($level, array('gold', 'diamond'), true)) {
-            $g = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_gold', 0);
-            if ($g > 0) {
-                $price = $g;
-            }
-        }
-        if ('diamond' === $level) {
-            $d = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_diamond', 0);
-            if ($d > 0) {
-                $price = $d;
-            }
-        }
+        // 按会员等级取价：统一走 Moonlight_Price_Calculator（修复审计「取价逻辑三处分散」）
+        $price = Moonlight_Price_Calculator::paywall_price($post_id, $user_id);
         if ($price <= 0) {
             return new WP_Error('noprice', __('价格未设置。', 'moonlight-shop'));
         }
@@ -999,6 +1010,9 @@ class MLSHOP_Order
 
     /**
      * 回滚订单商品的库存（仅作用于 mlshop_product 且有库存配置的商品）。
+     *
+     * 修复审计 M2：回滚改为原子累加（与扣减对称），并发退款不丢回补量；
+     * 无限量商品（'' 或负数）不回滚（原本会错误地把 -1 加成 0、把空值变成有限库存）。
      */
     private static function restore_stock($order_id)
     {
@@ -1017,14 +1031,19 @@ class MLSHOP_Order
             if ('cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
                 continue; // 卡密库存由交付時管理，回滾不在此處
             }
-            $stock = (int) get_post_meta($pid, '_mlshop_stock', true);
-            update_post_meta($pid, '_mlshop_stock', $stock + (int) $item['qty']);
+            $raw = get_post_meta($pid, '_mlshop_stock', true);
+            if ('' === $raw || (int) $raw < 0) {
+                continue; // 不限量
+            }
+            mlshop_atomic_increment_post_meta($pid, '_mlshop_stock', (int) $item['qty']);
         }
     }
 
     /**
      * 退款 / 已付款后取消时回退资金（幂等），防止资损：
-     *  - 余额支付订单：把已扣钱包余额回补给用户；
+     *  - 余额支付订单：把已扣钱包余额回补到同一账本 _mlshop_balance
+     *    （修复审计 H1「双账本串账」：余额扣的是 _mlshop_balance，
+     *    回补必须回到同一账本，禁止写进积分账本 mlshop_credit_balance）；
      *  - 充值订单：回收已入账的积分（用户已花掉则记录告警，不重复回退）。
      * 未实际付款的 pending 取消（无 payment_id）不触发余额回补。
      */
@@ -1040,7 +1059,8 @@ class MLSHOP_Order
         if ('balance' === $gateway && $uid > 0 && get_post_meta($order_id, '_mlshop_payment_id', true)) {
             $total = (float) get_post_meta($order_id, '_mlshop_total', true);
             if ($total > 0) {
-                MLSHOP_Credit::add($uid, $total, sprintf(__('订单 #%d 退款回补余额', 'moonlight-shop'), $order_id));
+                // 回补到余额钱包本身（原子累加），与扣款账本一致
+                mlshop_atomic_increment_user_meta($uid, '_mlshop_balance', $total);
             }
         }
 
