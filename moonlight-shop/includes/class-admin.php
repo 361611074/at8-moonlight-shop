@@ -111,6 +111,11 @@ class MLSHOP_Admin
             'paypal_client_id'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'paypal_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'paypal_webhook_id'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'alipay_enabled'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            'alipay_mode'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'alipay_app_id'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'alipay_private_key'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'alipay_public_key'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'pay_enabled'             => array('type' => 'integer', 'sanitize' => 'absint'),
             'credit_name'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'pay_popup_default_title' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
@@ -170,7 +175,7 @@ class MLSHOP_Admin
         register_setting($group, 'mlshop_enabled_gateways', array(
             'type'              => 'array',
             'sanitize_callback' => array($this, 'sanitize_enabled_gateways'),
-            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal'),
+            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay'),
         ));
     }
 
@@ -199,6 +204,10 @@ class MLSHOP_Admin
         }
         $webhook_url = home_url('/?mlshop_stripe_webhook=1');
         $paypal_return = home_url('/?gateway=paypal&action=capture');
+        // 支付宝异步通知地址（REST，构建下单请求时自动携带 notify_url）。
+        $alipay_notify_url = class_exists('MLSHOP_Gateway_Alipay')
+            ? MLSHOP_Gateway_Alipay::notify_url()
+            : rest_url('mlshop/v1/alipay/notify');
         ?>
         <div class="wrap mlshop-admin-settings mlshop-settings-layout">
             <h1><?php esc_html_e('漫步白月光電子商城 設定', 'moonlight-shop'); ?></h1>
@@ -219,6 +228,7 @@ class MLSHOP_Admin
                     <li><a href="#mlshop-sec-stripe"><?php esc_html_e('Stripe 支付', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-pmethods"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-paypal"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-alipay"><?php esc_html_e('支付寶支付', 'moonlight-shop'); ?></a></li>
                 </ul>
             </nav>
             <form method="post" action="options.php">
@@ -702,7 +712,7 @@ class MLSHOP_Admin
                 $enabled = get_option('mlshop_enabled_gateways', null);
                 if (!is_array($enabled)) {
                     // 第一次进入设置页或尚未保存：默认全部内建网关为启用。
-                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal');
+                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay');
                 }
                 // 用支付管理器拉出全量候选（含第三方扩展），便于管理员按需开启。
                 $all_gateways = array();
@@ -717,6 +727,7 @@ class MLSHOP_Admin
                             new MLSHOP_Gateway_Manual(),
                             new MLSHOP_Gateway_Stripe(),
                             new MLSHOP_Gateway_PayPal(),
+                            new MLSHOP_Gateway_Alipay(),
                         )
                     );
                 }
@@ -787,6 +798,55 @@ class MLSHOP_Admin
                     <?php esc_html_e('PayPal 回跳 URL（用於 return_url，可在 PayPal 應用設定中登記）：', 'moonlight-shop'); ?>
                     <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($paypal_return); ?></code>
                 </p>
+
+                <h2 id="mlshop-sec-alipay" class="mlshop-card-title"><?php esc_html_e('支付寶支付', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('啟用支付寶', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_alipay_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_alipay_enabled" value="1" <?php checked((int) mlshop_get_option('alipay_enabled', 0), 1); ?>> <?php esc_html_e('啟用（AppID、應用私鑰、支付寶公鑰齊全後前台可用）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('支付寶僅支持人民幣（CNY）計價：商城貨幣代碼非 CNY 時，支付寶在前台不會出現。需伺服器啟用 PHP OpenSSL 擴展（RSA2 簽名）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_alipay_mode"><?php esc_html_e('環境模式', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $alipay_mode = mlshop_get_option('alipay_mode', 'sandbox'); ?>
+                            <select id="mlshop_alipay_mode" name="mlshop_alipay_mode">
+                                <option value="sandbox" <?php selected($alipay_mode, 'sandbox'); ?>><?php esc_html_e('沙盒（Sandbox，不會真實扣款）', 'moonlight-shop'); ?></option>
+                                <option value="production" <?php selected($alipay_mode, 'production'); ?>><?php esc_html_e('正式（生產環境）', 'moonlight-shop'); ?></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_alipay_app_id"><?php esc_html_e('AppID（應用編號）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_alipay_app_id" name="mlshop_alipay_app_id" value="<?php echo esc_attr(mlshop_get_option('alipay_app_id', '')); ?>" class="regular-text" placeholder="2021xxxxxxxxxxxx">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_alipay_private_key"><?php esc_html_e('應用私鑰', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_alipay_private_key" name="mlshop_alipay_private_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上應用私鑰（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）', 'moonlight-shop'); ?>"></textarea>
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('alipay_private_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_alipay_public_key"><?php esc_html_e('支付寶公鑰', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_alipay_public_key" name="mlshop_alipay_public_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上支付寶公鑰（非應用公鑰）', 'moonlight-shop'); ?>"></textarea>
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('alipay_public_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('異步通知 URL', 'moonlight-shop'); ?></th>
+                        <td>
+                            <p class="description"><?php esc_html_e('構建支付請求時會自動攜帶 notify_url，無需在支付寶後台另行登記；如需在開放平台除錯可用以下地址：', 'moonlight-shop'); ?></p>
+                            <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($alipay_notify_url); ?></code>
+                        </td>
+                    </tr>
+                </table>
 
                 <?php submit_button(); ?>
             </form>

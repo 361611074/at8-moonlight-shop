@@ -30,6 +30,7 @@ $single_keys = array(
     'stripe_test_mode', 'stripe_test_publishable', 'stripe_test_secret',
     'stripe_publishable', 'stripe_secret', 'stripe_webhook_secret',
     'paypal_sandbox', 'paypal_client_id', 'paypal_secret', 'paypal_webhook_id',
+    'alipay_enabled', 'alipay_mode', 'alipay_app_id', 'alipay_private_key', 'alipay_public_key',
 );
 foreach ($single_keys as $k) {
     delete_option('mlshop_' . $k);

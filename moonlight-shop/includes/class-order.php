@@ -445,6 +445,7 @@ class MLSHOP_Order
             'manual'   => __('线下转账', 'moonlight-shop'),
             'stripe'   => __('Stripe', 'moonlight-shop'),
             'paypal'   => __('PayPal', 'moonlight-shop'),
+            'alipay'   => __('支付寶', 'moonlight-shop'),
         );
         return isset($map[$gw]) ? $map[$gw] : ($gw ?: '—');
     }

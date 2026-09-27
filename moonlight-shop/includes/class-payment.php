@@ -27,6 +27,15 @@ class MLSHOP_Payment
         add_action('wp_ajax_mlshop_place_order', array($this, 'ajax_place_order'));
         add_action('wp_ajax_nopriv_mlshop_place_order', array($this, 'ajax_place_order'));
         add_action('init', array($this, 'maybe_handle_return'), 5);
+        // 支付宝异步 notify（REST）：网关类为自动加载懒加载，必须由常驻的支付管理器
+        // 在 rest_api_init 挂载，否则 notify 请求到达时该类从未被引用、路由注册不生效。
+        // permission_callback 恒真，安全由 MLSHOP_Gateway_Alipay::handle_notify 的
+        // RSA2 验签 + app_id + 订单号 + 金额四重校验保证。
+        add_action('rest_api_init', function () {
+            if (class_exists('MLSHOP_Gateway_Alipay')) {
+                MLSHOP_Gateway_Alipay::register_notify();
+            }
+        });
     }
 
     /**
@@ -45,6 +54,7 @@ class MLSHOP_Payment
             new MLSHOP_Gateway_Manual(),
             new MLSHOP_Gateway_Stripe(),
             new MLSHOP_Gateway_PayPal(),
+            new MLSHOP_Gateway_Alipay(),
         );
         $gateways = apply_filters('mlshop_payment_gateways', $gateways);
         $stored   = get_option('mlshop_enabled_gateways', null);
@@ -72,7 +82,7 @@ class MLSHOP_Payment
     public function get_enabled_gateway_ids()
     {
         $stored = get_option('mlshop_enabled_gateways', null);
-        $builtin = array('cod', 'balance', 'manual', 'stripe', 'paypal');
+        $builtin = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay');
         if (null === $stored) {
             return $builtin;
         }
@@ -262,6 +272,27 @@ class MLSHOP_Payment
             if ($saved && $saved === $session_id) {
                 // 等 webhook 标记 paid；这里做兜底：若 webhook 未到，主动查询 session 状态
                 $this->maybe_confirm_stripe_session($order_id, $session_id);
+            }
+            wp_safe_redirect($this->order_url($order_id));
+            exit;
+        }
+        // 支付宝回跳：?mlshop_order=ID&gateway=alipay（支付寶同步回跳附帶簽名參數）。
+        // 验签 + 服务端 alipay.trade.query 复核 + 金额比对都在网关 confirm_return() 内完成，
+        // 浏览器回跳参数绝不直接作为开通依据。
+        if (isset($_GET['mlshop_order'], $_GET['gateway']) && 'alipay' === $_GET['gateway']) {
+            $order_id = (int) $_GET['mlshop_order'];
+            if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+                return;
+            }
+            // 归属校验：仅订单所有者（或管理员）可触发回跳确认（对齐 PayPal / Stripe 分支）
+            if (!current_user_can('edit_posts')
+                && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+                wp_safe_redirect($this->order_url($order_id));
+                exit;
+            }
+            $gateway = $this->get_gateway('alipay');
+            if ($gateway && method_exists($gateway, 'confirm_return')) {
+                $gateway->confirm_return($order_id);
             }
             wp_safe_redirect($this->order_url($order_id));
             exit;
