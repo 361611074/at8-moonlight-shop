@@ -21,6 +21,11 @@ require __DIR__ . '/../moonlight-shop/includes/class-order.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-migrations.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-card-stock.php';
 require __DIR__ . '/../moonlight-shop/includes/class-statistics.php';
+// 售后退款（Refund_Service）+ 网关退款参数构造（Stripe / PayPal）
+require __DIR__ . '/../moonlight-shop/includes/core/class-refund-service.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-stripe.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-paypal.php';
 
 $pass = 0;
 $fail = 0;
@@ -733,6 +738,292 @@ check('非实物订单不动（仍 paid）', 'paid' === MLSHOP_Order::get_status
 $wrong = __test_make_order('pending', array('_mlshop_has_physical' => '1'));
 $inst->transition_physical($wrong);
 check('未付款订单不动（仍 pending）', 'pending' === MLSHOP_Order::get_status($wrong));
+
+/* ===================== 售后退款（Refund_Service，PAYMENT.md 第五节） =====================
+ * 规则闸矩阵 / apply / process（全额·部分·失败·仅标记·balance）/ Stripe·PayPal 退款参数构造。
+ * 网关依赖通过子类覆盖 gateway_refund 注入（与卡密测试同一「子类接桩」模式）；
+ * 卡密售出行查询通过覆盖 find_card_sold_rows 注入；HTTP 由 wp-stubs 的 wp_remote_* 桩捕获。
+ */
+
+/** 测试用 Refund_Service：gateway_refund 注入预设结果（null = 走生产分发器）。 */
+class Moonlight_Refund_Service_Test extends Moonlight_Refund_Service
+{
+    public static $gateway_result = null;
+    public static $gateway_calls = array();
+
+    protected static function find_card_sold_rows($product_id, $order_id)
+    {
+        return array(); // 测试环境无 $wpdb 行查询，卡密售出行交给交付 meta / 专用子类验证
+    }
+
+    public static function gateway_refund($order_id, $amount, $reason = '')
+    {
+        self::$gateway_calls[] = array('order_id' => (int) $order_id, 'amount' => (float) $amount, 'reason' => (string) $reason);
+        if (is_array(self::$gateway_result)) {
+            return self::$gateway_result;
+        }
+        return parent::gateway_refund($order_id, $amount, $reason);
+    }
+}
+
+/** 卡密售出行恒命中桩：验证交付 meta 缺失时 _mlshop_card_s(o=订单) 兜底拦截。 */
+class Moonlight_Refund_Service_SoldRow extends Moonlight_Refund_Service
+{
+    protected static function find_card_sold_rows($product_id, $order_id)
+    {
+        return array(array('meta_id' => 99));
+    }
+}
+
+echo "== 售后退款：apply（申请售后） ==\n";
+__test_reset_card_env();
+update_option('admin_email', 'admin@test.local');
+$ap = __test_make_order('paid');
+check('apply 状态合法 → 成功', true === Moonlight_Refund_Service::apply($ap, 1, '商品有问题'));
+$reqs = Moonlight_Refund_Service::requests($ap);
+check('申请入列 {user_id, reason, at, status=pending}', 1 === count($reqs)
+    && 1 === (int) $reqs[0]['user_id'] && '商品有问题' === $reqs[0]['reason']
+    && 'pending' === $reqs[0]['status'] && '' !== (string) $reqs[0]['at']);
+check('moonlight_refund_requested 钩子触发', 1 === count($GLOBALS['__test_actions']['moonlight_refund_requested'])
+    && $ap === (int) $GLOBALS['__test_actions']['moonlight_refund_requested'][0][0]);
+check('邮件桩被调（主题含订单号，正文含原因）', 1 === count($GLOBALS['__test_mails'])
+    && false !== strpos($GLOBALS['__test_mails'][0]['subject'], (string) get_the_title($ap))
+    && false !== strpos($GLOBALS['__test_mails'][0]['body'], '商品有问题'));
+check('重复申请（已有 pending）拒绝', is_wp_error(Moonlight_Refund_Service::apply($ap, 1, '再来一次')));
+check('空原因拒绝', is_wp_error(Moonlight_Refund_Service::apply(__test_make_order('paid'), 1, '   ')));
+check('pending 状态订单申请拒绝', is_wp_error(Moonlight_Refund_Service::apply(__test_make_order('pending'), 1, 'r')));
+check('refunded 订单申请拒绝', is_wp_error(Moonlight_Refund_Service::apply(__test_make_order('refunded'), 1, 'r')));
+
+echo "== 售后退款：规则闸 can_refund 矩阵 ==\n";
+__test_reset_card_env();
+check('pending 订单拒绝退款', is_wp_error(Moonlight_Refund_Service::can_refund(__test_make_order('pending'))));
+check('refunded 订单拒绝退款', is_wp_error(Moonlight_Refund_Service::can_refund(__test_make_order('refunded'))));
+update_post_meta(301, '_mlshop_type', 'virtual');
+$v1 = __test_make_order('paid', array('_mlshop_items' => array(array('id' => 301, 'qty' => 1, 'price' => 10.0))));
+check('virtual 无下载记录 → 允许', true === Moonlight_Refund_Service::can_refund($v1));
+update_post_meta($v1, '_mlshop_download_log', array(array('at' => '2026-09-27 10:00:00', 'user_id' => 1, 'product' => 301, 'token' => 'abcd1234')));
+check('virtual 已产生下载 → 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($v1)));
+update_post_meta(302, '_mlshop_type', 'cardkey');
+$c1 = __test_make_order('paid', array('_mlshop_items' => array(array('id' => 302, 'qty' => 1, 'price' => 10.0))));
+check('cardkey 未发卡 → 允许', true === Moonlight_Refund_Service::can_refund($c1));
+update_post_meta($c1, '_mlshop_delivery', array(array('product_id' => 302, 'type' => 'cardkey', 'key' => 'XXXX-YYYY')));
+check('cardkey 已交付（_mlshop_delivery）→ 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($c1)));
+$c2 = __test_make_order('paid', array('_mlshop_items' => array(array('id' => 302, 'qty' => 1, 'price' => 10.0))));
+check('cardkey 无交付无售出行 → 允许（生产类，售出行 SQL 空集）', true === Moonlight_Refund_Service::can_refund($c2));
+check('cardkey 售出行命中也拒绝（交付 meta 缺失兜底）', is_wp_error(Moonlight_Refund_Service_SoldRow::can_refund($c2)));
+update_post_meta(303, '_mlshop_type', 'physical');
+$ph1 = __test_make_order('paid', array('_mlshop_items' => array(array('id' => 303, 'qty' => 1, 'price' => 10.0))));
+check('physical 未发货 → 允许', true === Moonlight_Refund_Service::can_refund($ph1));
+$ph2 = __test_make_order('awaiting_shipment', array('_mlshop_items' => array(array('id' => 303, 'qty' => 1, 'price' => 10.0))));
+MLSHOP_Shipping::create_shipment($ph2, array('company' => '顺丰速运', 'tracking_no' => 'RF100'));
+check('physical 已有发货单 → 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($ph2)));
+$m1 = __test_make_order('paid', array('_mlshop_type' => 'membership', '_mlshop_membership_target' => 'gold', '_mlshop_items' => array(array('title' => 'gold', 'qty' => 1))));
+check('membership 未授予 → 允许', true === Moonlight_Refund_Service::can_refund($m1));
+update_post_meta($m1, '_mlshop_membership_granted', current_time('mysql'));
+check('membership 授予 24h 内 → 允许', true === Moonlight_Refund_Service::can_refund($m1));
+update_post_meta($m1, '_mlshop_membership_granted', date('Y-m-d H:i:s', current_time('timestamp') - 25 * HOUR_IN_SECONDS));
+check('membership 授予超 24h → 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($m1)));
+$pw1 = __test_make_order('paid', array('_mlshop_paywall_post' => 55, '_mlshop_items' => array(array('id' => 55, 'qty' => 1, 'price' => 20.0))));
+check('paywall 未授予 → 允许', true === Moonlight_Refund_Service::can_refund($pw1));
+update_post_meta($pw1, '_mlshop_paywall_granted', date('Y-m-d H:i:s', current_time('timestamp') - 25 * HOUR_IN_SECONDS));
+check('paywall 授予超 24h → 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($pw1)));
+$rc1 = __test_make_order('paid', array('_mlshop_type' => 'recharge', '_mlshop_recharge_granted' => current_time('mysql')));
+check('recharge 已入账未消费 → 允许', true === Moonlight_Refund_Service::can_refund($rc1));
+update_post_meta($rc1, '_mlshop_recharge_revoke_short', 100);
+check('recharge 积分已花掉（revoke_short 留痕）→ 拒绝', is_wp_error(Moonlight_Refund_Service::can_refund($rc1)));
+
+echo "== 售后退款：process 全额（stub 网关成功） ==\n";
+__test_reset_card_env();
+$p610 = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => '退款测试实物'));
+update_post_meta($p610, '_mlshop_type', 'physical');
+update_post_meta($p610, '_mlshop_stock', 5);
+$of = __test_make_order('paid', array(
+    '_mlshop_total'           => 100.0,
+    '_mlshop_currency'        => 'HK$',
+    '_mlshop_items'           => array(array('id' => $p610, 'qty' => 2, 'price' => 50.0, 'subtotal' => 100.0)),
+    '_mlshop_payment_gateway' => 'stripe',
+    '_mlshop_payment_id'      => 'pi_full_1',
+));
+Moonlight_Refund_Service_Test::apply($of, 1, '商品损坏');
+Moonlight_Refund_Service_Test::$gateway_result = array('success' => true, 'refund_id' => 're_full_1', 'message' => 'ok');
+check('process 全额成功', true === Moonlight_Refund_Service_Test::process($of, 0, '商品损坏', 7));
+check('状态 → refunded', 'refunded' === MLSHOP_Order::get_status($of));
+check('库存回滚 5+2=7', abs((float) get_post_meta($p610, '_mlshop_stock', true) - 7.0) < 0.001);
+check('资金回补幂等标记 _mlshop_funds_reversed', '1' === (string) get_post_meta($of, '_mlshop_funds_reversed', true));
+check('申请记录标 approved', 'approved' === Moonlight_Refund_Service::requests($of)[0]['status']);
+check('refunded_total = 100', abs(Moonlight_Refund_Service::refunded_total($of) - 100.0) < 0.001);
+check('processed_total = 100（与 refunded_total 分开记录）', abs((float) get_post_meta($of, '_mlshop_refund_processed_total', true) - 100.0) < 0.001);
+$flog = Moonlight_Refund_Service::refund_log($of);
+check('退款日志 1 条（全额 / 网关退款号 / 操作者）', 1 === count($flog) && false === $flog[0]['partial']
+    && 're_full_1' === $flog[0]['gateway_refund_id'] && 7 === (int) $flog[0]['actor'] && abs((float) $flog[0]['amount'] - 100.0) < 0.001);
+check('网关调用一次且全额 amount=0', 1 === count(Moonlight_Refund_Service_Test::$gateway_calls)
+    && abs(Moonlight_Refund_Service_Test::$gateway_calls[0]['amount']) < 0.001
+    && $of === Moonlight_Refund_Service_Test::$gateway_calls[0]['order_id']);
+check('moonlight_refund_processed 触发（order, amount, true）', !empty($GLOBALS['__test_actions']['moonlight_refund_processed'])
+    && $of === (int) $GLOBALS['__test_actions']['moonlight_refund_processed'][0][0]
+    && abs((float) $GLOBALS['__test_actions']['moonlight_refund_processed'][0][1] - 100.0) < 0.001
+    && true === $GLOBALS['__test_actions']['moonlight_refund_processed'][0][2]);
+check('状态机钩子 mlshop_order_refunded 触发', !empty($GLOBALS['__test_actions']['mlshop_order_refunded']));
+check('已退款订单再次 process 拒绝', is_wp_error(Moonlight_Refund_Service_Test::process($of, 0, '再退', 7)));
+
+echo "== 售后退款：process 网关失败 → 状态不变 ==\n";
+__test_reset_card_env();
+$o_fail = __test_make_order('paid', array(
+    '_mlshop_total'           => 80.0,
+    '_mlshop_items'           => array(array('id' => 0, 'qty' => 1, 'price' => 80.0, 'subtotal' => 80.0)),
+    '_mlshop_payment_gateway' => 'stripe',
+    '_mlshop_payment_id'      => 'pi_fail_1',
+));
+Moonlight_Refund_Service_Test::$gateway_result = array('success' => false, 'message' => '网关拒绝退款');
+check('网关失败 → WP_Error', is_wp_error(Moonlight_Refund_Service_Test::process($o_fail, 0, '不想要了', 7)));
+check('失败后状态不变（仍 paid）', 'paid' === MLSHOP_Order::get_status($o_fail));
+check('失败不记 refunded_total', '' === (string) get_post_meta($o_fail, '_mlshop_refunded_total', true));
+check('失败不写退款日志', array() === Moonlight_Refund_Service::refund_log($o_fail));
+check('失败不触发 moonlight_refund_processed', empty($GLOBALS['__test_actions']['moonlight_refund_processed']));
+check('失败后可改用仅标记收尾', true === Moonlight_Refund_Service_Test::process($o_fail, 0, '人工退款完成', 7, true)
+    && 'refunded' === MLSHOP_Order::get_status($o_fail));
+
+echo "== 售后退款：process 部分退款 → 累计达总额自动收尾 ==\n";
+__test_reset_card_env();
+$o_part = __test_make_order('paid', array(
+    '_mlshop_total'           => 100.0,
+    '_mlshop_items'           => array(array('id' => 0, 'qty' => 1, 'price' => 100.0, 'subtotal' => 100.0)),
+    '_mlshop_payment_gateway' => 'stripe',
+    '_mlshop_payment_id'      => 'pi_part_1',
+));
+Moonlight_Refund_Service_Test::$gateway_result = array('success' => true, 'refund_id' => 're_p1', 'message' => 'ok');
+check('部分退款 50/100 成功', true === Moonlight_Refund_Service_Test::process($o_part, 50, '部分损坏', 7));
+check('refunded_total = 50', abs(Moonlight_Refund_Service::refunded_total($o_part) - 50.0) < 0.001);
+check('状态不变（仍 paid）', 'paid' === MLSHOP_Order::get_status($o_part));
+$plog = Moonlight_Refund_Service::refund_log($o_part);
+check('退款日志 1 条（partial=true + 网关退款号）', 1 === count($plog) && true === $plog[0]['partial'] && 're_p1' === $plog[0]['gateway_refund_id']);
+check('部分退款后未达总额仍可继续退', true === Moonlight_Refund_Service::can_refund($o_part));
+Moonlight_Refund_Service_Test::$gateway_result = array('success' => true, 'refund_id' => 're_p2', 'message' => 'ok');
+check('再退 50 → 成功', true === Moonlight_Refund_Service_Test::process($o_part, 50, '补足剩余', 7));
+check('累计达总额自动终态 refunded', 'refunded' === MLSHOP_Order::get_status($o_part));
+check('refunded_total 收敛为 100', abs(Moonlight_Refund_Service::refunded_total($o_part) - 100.0) < 0.001);
+check('退款日志累计 2 条', 2 === count(Moonlight_Refund_Service::refund_log($o_part)));
+check('已全额退款后再 process 拒绝', is_wp_error(Moonlight_Refund_Service_Test::process($o_part, 10, '还退', 7)));
+
+echo "== 售后退款：防抖 / 仅标记 / balance 网关 ==\n";
+__test_reset_card_env();
+$o_dup = __test_make_order('paid', array(
+    '_mlshop_total'           => 100.0,
+    '_mlshop_items'           => array(array('id' => 0, 'qty' => 1, 'price' => 100.0, 'subtotal' => 100.0)),
+    '_mlshop_payment_gateway' => 'stripe',
+    '_mlshop_payment_id'      => 'pi_dup_1',
+));
+Moonlight_Refund_Service_Test::$gateway_result = array('success' => true, 'refund_id' => 're_d1', 'message' => 'ok');
+check('首次部分退款 30 成功', true === Moonlight_Refund_Service_Test::process($o_dup, 30, '同原因', 7));
+check('同秒同额同因重复提交 → 防抖拒绝', is_wp_error(Moonlight_Refund_Service_Test::process($o_dup, 30, '同原因', 7)));
+check('防抖不重复记账（仍 30）', abs(Moonlight_Refund_Service::refunded_total($o_dup) - 30.0) < 0.001);
+check('同秒同额不同原因放行（非同一请求）', true === Moonlight_Refund_Service_Test::process($o_dup, 30, '不同原因', 7));
+check('balance/cod/manual 网关跳过 API（生产分发器 skipped）', true === Moonlight_Refund_Service::gateway_refund(__test_make_order('paid', array('_mlshop_payment_gateway' => 'balance')), 0)['skipped']);
+check('未知网关不支持在线退款', false === Moonlight_Refund_Service::gateway_refund(__test_make_order('paid', array('_mlshop_payment_gateway' => 'bogus')), 0)['success']);
+__test_reset_card_env();
+$o_skip = __test_make_order('paid', array(
+    '_mlshop_total'           => 60.0,
+    '_mlshop_items'           => array(array('id' => 0, 'qty' => 1, 'price' => 60.0, 'subtotal' => 60.0)),
+    '_mlshop_payment_gateway' => 'stripe',
+    '_mlshop_payment_id'      => 'pi_skip_1',
+));
+check('仅标记全额退款成功', true === Moonlight_Refund_Service::process($o_skip, 0, '网关后台已手动退款', 7, true));
+check('仅标记未发起任何网关 HTTP', empty($GLOBALS['__test_http_calls']));
+check('仅标记状态 refunded', 'refunded' === MLSHOP_Order::get_status($o_skip));
+check('仅标记台账 refunded_total=60', abs(Moonlight_Refund_Service::refunded_total($o_skip) - 60.0) < 0.001);
+__test_reset_card_env();
+update_user_meta(1, '_mlshop_balance', 20.0);
+$o_bal = __test_make_order('paid', array(
+    '_mlshop_total'            => 40.0,
+    '_mlshop_items'            => array(array('id' => 0, 'qty' => 1, 'price' => 40.0, 'subtotal' => 40.0)),
+    '_mlshop_payment_gateway'  => 'balance',
+    '_mlshop_payment_id'       => 'bal_txn_1',
+));
+check('balance 全额退款成功（跳过网关 API）', true === Moonlight_Refund_Service::process($o_bal, 0, '余额原路退回', 7));
+check('balance 未发起任何 HTTP 调用', empty($GLOBALS['__test_http_calls']));
+check('balance 钱包回补 20+40=60（单账本 _mlshop_balance）', abs((float) get_user_meta(1, '_mlshop_balance', true) - 60.0) < 0.001);
+check('balance 状态 refunded', 'refunded' === MLSHOP_Order::get_status($o_bal));
+check('balance 记录资金回补幂等标记', '1' === (string) get_post_meta($o_bal, '_mlshop_funds_reversed', true));
+
+echo "== 售后退款：Stripe refund 参数构造 ==\n";
+__test_reset_card_env();
+$s_order = __test_make_order('paid', array('_mlshop_total' => 100.0, '_mlshop_payment_gateway' => 'stripe', '_mlshop_payment_id' => 'pi_test_1'));
+__test_set_option('stripe_test_secret', 'sk_test_123');
+$stub_refund = array('response' => array('code' => 200), 'body' => wp_json_encode(array('id' => 're_test_1', 'object' => 'refund', 'status' => 'succeeded')));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) use ($stub_refund) {
+    return $stub_refund;
+};
+$stripe = new MLSHOP_Gateway_Stripe();
+$r_part = $stripe->refund($s_order, 50);
+check('Stripe 部分退款成功并返回 refund_id', !empty($r_part['success']) && 're_test_1' === $r_part['refund_id']);
+check('Stripe 请求 POST https://api.stripe.com/v1/refunds', 1 === count($GLOBALS['__test_http_calls'])
+    && 'POST' === $GLOBALS['__test_http_calls'][0]['method']
+    && false !== strpos($GLOBALS['__test_http_calls'][0]['url'], 'https://api.stripe.com/v1/refunds'));
+parse_str((string) $GLOBALS['__test_http_calls'][0]['args']['body'], $sent);
+check('Stripe 部分退款 body 含 payment_intent', isset($sent['payment_intent']) && 'pi_test_1' === $sent['payment_intent']);
+check('Stripe 部分退款 body amount=5000（to_minor_units）', isset($sent['amount']) && '5000' === $sent['amount']);
+check('Stripe body reason=requested_by_customer', isset($sent['reason']) && 'requested_by_customer' === $sent['reason']);
+$r_full = $stripe->refund($s_order, 0);
+parse_str((string) $GLOBALS['__test_http_calls'][1]['args']['body'], $sent_full);
+check('Stripe 全额退款省略 amount', !isset($sent_full['amount']) && isset($sent_full['payment_intent']));
+$s_none = $stripe->refund(__test_make_order('paid', array('_mlshop_total' => 10.0)), 0);
+check('Stripe 缺 payment_id → 拒绝', empty($s_none['success']));
+
+echo "== 售后退款：PayPal refund 参数构造 ==\n";
+__test_reset_card_env();
+$p_order = __test_make_order('paid', array('_mlshop_total' => 100.0, '_mlshop_payment_gateway' => 'paypal', '_mlshop_payment_id' => 'PP-ORDER-9'));
+__test_set_option('paypal_client_id', 'cid');
+__test_set_option('paypal_secret', 'sec');
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if (false !== strpos($url, '/v1/oauth2/token')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array('access_token' => 'TESTTOKEN', 'expires_in' => 3600)));
+    }
+    if (false !== strpos($url, '/v2/checkout/orders/PP-ORDER-9')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array(
+            'id'             => 'PP-ORDER-9',
+            'purchase_units' => array(array(
+                'payments' => array('captures' => array(array('id' => 'CAP-77'))),
+            )),
+        )));
+    }
+    if (false !== strpos($url, '/v2/payments/captures/CAP-77/refund')) {
+        return array('response' => array('code' => 201), 'body' => wp_json_encode(array('id' => 'REF-42', 'status' => 'COMPLETED')));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$paypal = new MLSHOP_Gateway_PayPal();
+$pp = $paypal->refund($p_order, 30);
+check('PayPal 部分退款成功并返回 refund_id', !empty($pp['success']) && 'REF-42' === $pp['refund_id']);
+$pp_order_call = null;
+$pp_refund_calls = array();
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v2/checkout/orders/PP-ORDER-9')) {
+        $pp_order_call = $c;
+    }
+    if (false !== strpos($c['url'], '/v2/payments/captures/CAP-77/refund')) {
+        $pp_refund_calls[] = $c;
+    }
+}
+check('PayPal GET /v2/checkout/orders/{id} 提取 capture id', is_array($pp_order_call) && 'GET' === $pp_order_call['method'] && !empty($pp_refund_calls));
+$pp_body = json_decode((string) $pp_refund_calls[0]['args']['body'], true);
+check('PayPal 部分退款 body amount=30.00/HKD', isset($pp_body['amount']['value'], $pp_body['amount']['currency_code'])
+    && '30.00' === $pp_body['amount']['value'] && 'HKD' === $pp_body['amount']['currency_code']);
+$token_calls = 0;
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v1/oauth2/token')) {
+        $token_calls++;
+    }
+}
+check('PayPal access_token 只请求一次（transient 缓存复用）', 1 === $token_calls);
+$pp2 = $paypal->refund($p_order, 0);
+check('PayPal 全额退款成功', !empty($pp2['success']) && 'REF-42' === $pp2['refund_id']);
+$pp_refund_calls = array();
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v2/payments/captures/CAP-77/refund')) {
+        $pp_refund_calls[] = $c;
+    }
+}
+check('PayPal 全额退款 body 为空 JSON {}（省略 amount）', 2 === count($pp_refund_calls) && '{}' === (string) $pp_refund_calls[1]['args']['body']);
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

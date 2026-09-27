@@ -268,6 +268,56 @@ class MLSHOP_Gateway_Stripe extends MLSHOP_Gateway
     }
 
     /**
+     * Stripe 退款（Refunds API）。
+     *
+     * 依据订单 `_mlshop_payment_id`（payment_intent，由 webhook 完单时写入）发起：
+     *   POST https://api.stripe.com/v1/refunds
+     *   body: payment_intent + reason=requested_by_customer（+ amount=最小单位，仅部分退款）
+     * 全额退款省略 amount（Stripe 默认退回全部可退金额）；部分退款传
+     * to_minor_units($amount)。密钥读取沿用本类现有模式（test/live）。
+     *
+     * @param int    $order_id 订单 ID。
+     * @param float  $amount   退款金额（0 = 全额退）。
+     * @param string $reason   退款原因（当前仅留本地日志用途；API 固定 reason=requested_by_customer）。
+     * @return array {success:bool, refund_id?:string, message:string}
+     */
+    public function refund($order_id, $amount = 0, $reason = '')
+    {
+        $order_id = (int) $order_id;
+        $payment_intent = (string) get_post_meta($order_id, '_mlshop_payment_id', true);
+        if ('' === $payment_intent) {
+            return array('success' => false, 'message' => __('訂單缺少 Stripe Payment Intent，無法退款。', 'moonlight-shop'));
+        }
+        $secret = $this->get_secret_key();
+        if (!$secret) {
+            return array('success' => false, 'message' => __('Stripe 尚未配置，無法退款。', 'moonlight-shop'));
+        }
+
+        $params = array(
+            'payment_intent' => $payment_intent,
+            'reason'         => 'requested_by_customer',
+        );
+        $amount = (float) $amount;
+        if ($amount > 0) {
+            // 部分退款：金额以最小单位（分）传递；全额退款省略 amount
+            $params['amount'] = (string) self::to_minor_units($amount);
+        }
+
+        $response = $this->api_request('refunds', $params, $secret);
+        if (is_wp_error($response)) {
+            return array('success' => false, 'message' => $response->get_error_message());
+        }
+        if (empty($response['id'])) {
+            return array('success' => false, 'message' => __('Stripe 退款失敗（未返回退款 ID）。', 'moonlight-shop'));
+        }
+        return array(
+            'success'   => true,
+            'refund_id' => (string) $response['id'],
+            'message'   => __('退款成功。', 'moonlight-shop'),
+        );
+    }
+
+    /**
      * 校验 Stripe Webhook 签名。
      */
     private function verify_webhook_signature($payload, $sig_header, $secret)

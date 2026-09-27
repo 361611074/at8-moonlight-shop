@@ -105,6 +105,8 @@ class MLSHOP_Assets
             'select_gallery'      => __('选择商品相册', 'moonlight-shop'),
             'confirm_album'       => __('确认相册', 'moonlight-shop'),
             'confirm_delivery'    => __('确定已收到商品？确认后订单将完成。', 'moonlight-shop'),
+            'apply_refund_confirm' => __('确定提交售后申请？提交后请等待管理员处理。', 'moonlight-shop'),
+            'refund_reason_required' => __('请填写售后原因。', 'moonlight-shop'),
         ));
     }
 

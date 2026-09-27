@@ -824,4 +824,33 @@
             window.alert(res && res.message ? res.message : mlshop_i18n.network_error);
         });
     });
+    /**
+     * 售后退款：用户申请售后（订单详情页「申请售后」按钮）。
+     * 提交 mlshop_apply_refund，成功后刷新页面展示「售后处理中」状态。
+     */
+    $(document).on('click', '.mlshop-apply-refund', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        if ($btn.prop('disabled')) {
+            return;
+        }
+        var $box = $btn.closest('.mlshop-refund-apply');
+        var reason = $.trim(($box.find('.mlshop-refund-reason').val() || ''));
+        if (!reason) {
+            window.alert(mlshop_i18n.refund_reason_required || '请填写售后原因。');
+            return;
+        }
+        if (!window.confirm(mlshop_i18n.apply_refund_confirm || '确定提交售后申请？提交后请等待管理员处理。')) {
+            return;
+        }
+        $btn.prop('disabled', true);
+        post('mlshop_apply_refund', { order_id: $btn.data('order'), reason: reason }, function (res) {
+            if (res && res.success) {
+                location.reload();
+                return;
+            }
+            $btn.prop('disabled', false);
+            window.alert(res && res.message ? res.message : mlshop_i18n.network_error);
+        });
+    });
 })(jQuery);

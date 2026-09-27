@@ -74,6 +74,8 @@ function wp_json_encode($data, $flags = 0) { return json_encode($data, $flags); 
 function wp_salt($scheme = 'auth') { return 'mlshop-test-salt-fixed-string'; }
 function current_user_can($cap, ...$args) { return !empty($GLOBALS['__test_user_can']); }
 function wp_cache_delete(...$args) { return true; }
+function get_userdata($user_id) { return null; } // 售后邮件「用户行」测试环境无用户表，回退 #id
+function get_bloginfo($show = '') { return 'Test Blog'; }
 function wp_mail($to, $subject, $body, $headers = array(), $attachments = array()) {
     $GLOBALS['__test_mails'][] = array('to' => $to, 'subject' => $subject, 'body' => $body);
     return true;
@@ -156,8 +158,70 @@ class __Test_wpdb
             }
             return $this->rows_affected;
         }
+        // 原子算术 UPDATE postmeta（mlshop_atomic_increment/decrement_post_meta，
+        // 库存回滚 / 退款回补走这里）：按行模型对当前值做 +/-，条件不满足（扣减透支）不改行。
+        // 行缺失时增量视为「新建该行」（对齐生产 UPDATE 0 行 → INSERT 兜底语义）。
+        if (preg_match("/UPDATE\s+`?\w*postmeta`?\s+SET\s+meta_value\s*=\s*CAST\(meta_value\s+AS\s+DECIMAL\(20,4\)\)\s*(\+|-)\s*([\d.]+)\s+WHERE\s+post_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'((?:[^']|\\')*)'(?:\s+AND\s+CAST\(meta_value\s+AS\s+DECIMAL\(20,4\)\)\s*>=\s*([\d.]+))?\s*$/i", $sql, $m)) {
+            $op  = $m[1];
+            $amt = (float) $m[2];
+            $pid = (int) $m[3];
+            $key = stripslashes($m[4]);
+            $this->rows_affected = 0;
+            $rows = find_meta_rows($pid, $key);
+            if (empty($rows)) {
+                if ('+' === $op) {
+                    __test_add_meta_row($pid, $key, (string) $amt);
+                    $this->rows_affected = 1;
+                }
+                return $this->rows_affected;
+            }
+            foreach ($rows as $row) {
+                $cur = (float) $row['meta_value'];
+                if ('-' === $op) {
+                    if ($cur < $amt) { continue; } // 透支：条件不满足，行不动（rows_affected=0 → 上层返回 false）
+                    $new = $cur - $amt;
+                } else {
+                    $new = $cur + $amt;
+                }
+                $this->set_meta_row_value((int) $row['meta_id'], (string) $new);
+                $this->rows_affected++;
+            }
+            return $this->rows_affected;
+        }
+        // 原子算术 UPDATE usermeta（mlshop_atomic_increment/decrement_user_meta，
+        // 余额回补 / 积分回收走这里）：单值模型，行缺失时增量直接落值。
+        if (preg_match("/UPDATE\s+`?\w*usermeta`?\s+SET\s+meta_value\s*=\s*CAST\(meta_value\s+AS\s+DECIMAL\(20,4\)\)\s*(\+|-)\s*([\d.]+)\s+WHERE\s+user_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'((?:[^']|\\')*)'(?:\s+AND\s+CAST\(meta_value\s+AS\s+DECIMAL\(20,4\)\)\s*>=\s*([\d.]+))?\s*$/i", $sql, $m)) {
+            $op  = $m[1];
+            $amt = (float) $m[2];
+            $uid = (int) $m[3];
+            $key = stripslashes($m[4]);
+            $cur = (float) (isset($GLOBALS['__test_user_meta'][$uid][$key]) ? $GLOBALS['__test_user_meta'][$uid][$key] : 0);
+            if ('-' === $op) {
+                if ($cur < $amt) {
+                    $this->rows_affected = 0;
+                    return 0;
+                }
+                $GLOBALS['__test_user_meta'][$uid][$key] = $cur - $amt;
+            } else {
+                $GLOBALS['__test_user_meta'][$uid][$key] = $cur + $amt;
+            }
+            $this->rows_affected = 1;
+            return 1;
+        }
         $this->rows_affected = 0;
         return 0;
+    }
+
+    /** 行模型辅助：按 meta_id 改写 meta_value。 */
+    private function set_meta_row_value($meta_id, $value)
+    {
+        foreach (array_keys($GLOBALS['__test_meta_rows']) as $i) {
+            if ((int) $GLOBALS['__test_meta_rows'][$i]['meta_id'] === $meta_id) {
+                $GLOBALS['__test_meta_rows'][$i]['meta_value'] = $value;
+                return true;
+            }
+        }
+        return false;
     }
 
     public function get_var($sql = null) { return null; }
@@ -350,6 +414,39 @@ function __test_reset_card_env()
     $GLOBALS['__test_user_meta'] = array();
     $GLOBALS['__test_user_can'] = false;
     $GLOBALS['__test_user_id'] = 0;
+    $GLOBALS['__test_http_calls'] = array();
+    unset($GLOBALS['__test_http_handler']);
+    unset($GLOBALS['__test_http_response']);
+}
+
+/* ---------------- HTTP（wp_remote_post / wp_remote_get 桩，网关退款参数构造测试） ----------------
+ *
+ * 记录每次调用（method/url/args）到 __test_http_calls；返回值由
+ * __test_http_handler 回调（function ($method, $url, $args) → response array）决定，
+ * 未设置 handler 时回退 __test_http_response（默认 200 + '{}'）。
+ */
+
+function wp_remote_post($url, $args = array()) { return __test_http('POST', $url, $args); }
+function wp_remote_get($url, $args = array()) { return __test_http('GET', $url, $args); }
+
+function __test_http($method, $url, $args)
+{
+    $GLOBALS['__test_http_calls'][] = array('method' => $method, 'url' => (string) $url, 'args' => $args);
+    $handler = isset($GLOBALS['__test_http_handler']) ? $GLOBALS['__test_http_handler'] : null;
+    if (is_callable($handler)) {
+        return call_user_func($handler, $method, (string) $url, $args);
+    }
+    return isset($GLOBALS['__test_http_response']) ? $GLOBALS['__test_http_response'] : array('body' => '{}', 'response' => array('code' => 200));
+}
+
+function wp_remote_retrieve_response_code($response)
+{
+    return isset($response['response']['code']) ? (int) $response['response']['code'] : 200;
+}
+
+function wp_remote_retrieve_body($response)
+{
+    return isset($response['body']) ? (string) $response['body'] : '';
 }
 
 // ---- Test-scoped plugin stubs (behavior mirrors production semantics) ----

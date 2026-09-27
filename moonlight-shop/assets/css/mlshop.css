@@ -1667,3 +1667,11 @@
     background: #fff;
 }
 
+
+
+/* ===================== 售后退款（Refund_Service）：申请入口 / 处理中 / 已退款提示 ===================== */
+.mlshop-refund-apply { margin-top: 18px; border-top: 1px solid #eef0f3; padding-top: 16px; max-width: 520px; }
+.mlshop-refund-apply h3 { font-size: 15px; margin: 0 0 8px; }
+.mlshop-refund-apply textarea { width: 100%; border: 1px solid #dee2e6; border-radius: 8px; padding: 8px 10px; font-family: inherit; resize: vertical; }
+.mlshop-refund-apply .mlshop-btn { margin-top: 8px; }
+.mlshop-refund-note { margin-top: 18px; border-top: 1px solid #eef0f3; padding-top: 14px; color: #8a6d00; font-size: 14px; }

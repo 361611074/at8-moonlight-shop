@@ -243,6 +243,95 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
     }
 
     /**
+     * PayPal 退款（Payments API v2）。
+     *
+     * 依据订单 `_mlshop_payment_id`（PayPal order id，回跳 capture 完单时写入；
+     * 兜底回退 `_mlshop_paypal_order`）：
+     *   1) GET  /v2/checkout/orders/{id} 取 purchase_units[0].payments.captures[0].id；
+     *   2) POST /v2/payments/captures/{capture_id}/refund
+     *      body 部分退款含 {amount:{value:"x.xx", currency_code:商城货币}}（全额省略 amount）。
+     * access token 复用本类现有 get_access_token()。
+     *
+     * @param int    $order_id 订单 ID。
+     * @param float  $amount   退款金额（0 = 全额退）。
+     * @param string $reason   退款原因（备注用途，不进 API body）。
+     * @return array {success:bool, refund_id?:string, message:string}
+     */
+    public function refund($order_id, $amount = 0, $reason = '')
+    {
+        $order_id = (int) $order_id;
+        $pp_order = (string) get_post_meta($order_id, '_mlshop_payment_id', true);
+        if ('' === $pp_order) {
+            $pp_order = (string) get_post_meta($order_id, '_mlshop_paypal_order', true);
+        }
+        if ('' === $pp_order) {
+            return array('success' => false, 'message' => __('訂單缺少 PayPal 訂單號，無法退款。', 'moonlight-shop'));
+        }
+        $token = $this->get_access_token();
+        if (is_wp_error($token)) {
+            return array('success' => false, 'message' => $token->get_error_message());
+        }
+
+        // 1) 查询 PayPal order，提取 capture id（退款必须针对 capture 而非 order）。
+        $response = wp_remote_get($this->api_base() . '/v2/checkout/orders/' . rawurlencode($pp_order), array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => 'application/json',
+            ),
+            'timeout' => 30,
+        ));
+        if (is_wp_error($response)) {
+            return array('success' => false, 'message' => $response->get_error_message());
+        }
+        $code = wp_remote_retrieve_response_code($response);
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+        $capture_id = '';
+        if ($code >= 200 && $code < 300
+            && isset($data['purchase_units'][0]['payments']['captures'][0]['id'])) {
+            $capture_id = (string) $data['purchase_units'][0]['payments']['captures'][0]['id'];
+        }
+        if ('' === $capture_id) {
+            return array('success' => false, 'message' => __('未找到 PayPal 收款記錄（capture），無法退款。', 'moonlight-shop'));
+        }
+
+        // 2) 发起退款：全额省略 amount；部分退款带金额（商城货币，两位小数）。
+        $amount = (float) $amount;
+        if ($amount > 0) {
+            $body = array(
+                'amount' => array(
+                    'currency_code' => strtoupper((string) mlshop_get_option('currency', 'HKD')),
+                    'value'         => number_format($amount, 2, '.', ''),
+                ),
+            );
+        } else {
+            $body = new stdClass(); // 全额退款：空 JSON 对象 {}
+        }
+        $res2 = wp_remote_post($this->api_base() . '/v2/payments/captures/' . rawurlencode($capture_id) . '/refund', array(
+            'method'  => 'POST',
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type'  => 'application/json',
+            ),
+            'body'    => wp_json_encode($body),
+            'timeout' => 30,
+        ));
+        if (is_wp_error($res2)) {
+            return array('success' => false, 'message' => $res2->get_error_message());
+        }
+        $code2 = wp_remote_retrieve_response_code($res2);
+        $data2 = json_decode(wp_remote_retrieve_body($res2), true);
+        if ($code2 < 200 || $code2 >= 300 || empty($data2['id'])) {
+            $msg = isset($data2['message']) ? (string) $data2['message'] : sprintf(__('PayPal 退款失敗（HTTP %d）', 'moonlight-shop'), $code2);
+            return array('success' => false, 'message' => $msg);
+        }
+        return array(
+            'success'   => true,
+            'refund_id' => (string) $data2['id'],
+            'message'   => __('退款成功。', 'moonlight-shop'),
+        );
+    }
+
+    /**
      * PayPal Webhook 兜底：即使用户付款後未回跳，也能標記訂單為已付款。
      * 端點：?mlshop_paypal_webhook=1
      */

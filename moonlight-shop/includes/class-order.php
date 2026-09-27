@@ -122,6 +122,15 @@ class MLSHOP_Order
             'side',
             'default'
         );
+        // 售后与退款（Refund_Service）：售后申请列表 + 退款操作表单 + 退款日志
+        add_meta_box(
+            'mlshop_order_refund',
+            __('售后与退款', 'moonlight-shop'),
+            array($this, 'render_meta_box_refund'),
+            'mlshop_order',
+            'normal',
+            'default'
+        );
     }
 
     /**
@@ -515,6 +524,137 @@ class MLSHOP_Order
     }
 
     /* === meta box 辅助函数 === */
+
+    /**
+     * meta box #4：售后与退款（售后申请列表 + 退款操作表单 + 退款日志）。
+     *
+     * 退款入口（admin_post mlshop_order_refund）链路：manage_options + nonce +
+     * 规则闸 can_refund + Moonlight_Refund_Service::process()；结果走
+     * mlshop_admin_notice_{uid} transient 通知（与发货单/状态变更同一模式）。
+     */
+    public function render_meta_box_refund($post)
+    {
+        if ($post->post_type !== 'mlshop_order') {
+            return;
+        }
+        $order_id = (int) $post->ID;
+        if (!class_exists('Moonlight_Refund_Service')) {
+            echo '<p style="color:#9ca3af;">' . esc_html__('（售后模块不可用。）', 'moonlight-shop') . '</p>';
+            return;
+        }
+        $status     = MLSHOP_Order::get_status($order_id);
+        $currency   = (string) get_post_meta($order_id, '_mlshop_currency', true);
+        $total      = (float) get_post_meta($order_id, '_mlshop_total', true);
+        $refunded   = Moonlight_Refund_Service::refunded_total($order_id);
+        $requests   = Moonlight_Refund_Service::requests($order_id);
+        $log        = Moonlight_Refund_Service::refund_log($order_id);
+        $gate       = Moonlight_Refund_Service::can_refund($order_id);
+        $req_labels = array(
+            'pending'  => __('待处理', 'moonlight-shop'),
+            'approved' => __('已批准', 'moonlight-shop'),
+            'rejected' => __('已拒绝', 'moonlight-shop'),
+        );
+
+        if ($refunded > 0) {
+            echo '<p>' . sprintf(
+                esc_html__('已退款累计：%1$s %2$s / %3$s %4$s', 'moonlight-shop'),
+                esc_html($currency),
+                esc_html(number_format($refunded, 2)),
+                esc_html($currency),
+                esc_html(number_format($total, 2))
+            ) . '</p>';
+        }
+
+        // ---- 售后申请列表 ----
+        echo '<p><strong>' . esc_html__('售后申请', 'moonlight-shop') . '</strong></p>';
+        if (empty($requests)) {
+            echo '<p style="color:#9ca3af;">' . esc_html__('（暂无售后申请）', 'moonlight-shop') . '</p>';
+        } else {
+            echo '<table class="widefat striped"><thead><tr>'
+                . '<th>' . esc_html__('用户', 'moonlight-shop') . '</th>'
+                . '<th>' . esc_html__('原因', 'moonlight-shop') . '</th>'
+                . '<th style="width:140px;">' . esc_html__('时间', 'moonlight-shop') . '</th>'
+                . '<th style="width:80px;">' . esc_html__('状态', 'moonlight-shop') . '</th>'
+                . '</tr></thead><tbody>';
+            foreach ($requests as $r) {
+                $uid  = isset($r['user_id']) ? (int) $r['user_id'] : 0;
+                $user = $uid ? get_userdata($uid) : null;
+                $rstatus = isset($r['status']) ? (string) $r['status'] : 'pending';
+                echo '<tr>'
+                    . '<td>' . esc_html($user ? sprintf('%s (#%d)', $user->display_name, $uid) : sprintf('#%d', $uid)) . '</td>'
+                    . '<td>' . esc_html(isset($r['reason']) ? (string) $r['reason'] : '') . '</td>'
+                    . '<td>' . esc_html(isset($r['at']) ? (string) $r['at'] : '') . '</td>'
+                    . '<td>' . esc_html(isset($req_labels[$rstatus]) ? $req_labels[$rstatus] : $rstatus) . '</td>'
+                    . '</tr>';
+            }
+            echo '</tbody></table>';
+        }
+
+        // ---- 退款日志（含全额/部分，已退款订单亦展示）----
+        if (!empty($log)) {
+            echo '<p style="margin-top:14px;"><strong>' . esc_html__('退款日志', 'moonlight-shop') . '</strong></p>';
+            echo '<table class="widefat striped"><thead><tr>'
+                . '<th style="width:140px;">' . esc_html__('时间', 'moonlight-shop') . '</th>'
+                . '<th style="width:80px;">' . esc_html__('操作者', 'moonlight-shop') . '</th>'
+                . '<th style="width:100px;">' . esc_html__('金额', 'moonlight-shop') . '</th>'
+                . '<th style="width:110px;">' . esc_html__('网关退款号', 'moonlight-shop') . '</th>'
+                . '<th style="width:70px;">' . esc_html__('类型', 'moonlight-shop') . '</th>'
+                . '<th>' . esc_html__('原因', 'moonlight-shop') . '</th>'
+                . '</tr></thead><tbody>';
+            foreach ($log as $entry) {
+                $actor = isset($entry['actor']) ? (int) $entry['actor'] : 0;
+                echo '<tr>'
+                    . '<td>' . esc_html(isset($entry['at']) ? (string) $entry['at'] : '') . '</td>'
+                    . '<td>' . esc_html($actor ? '#' . $actor : '—') . '</td>'
+                    . '<td>' . esc_html($currency . ' ' . number_format((float) (isset($entry['amount']) ? $entry['amount'] : 0), 2)) . '</td>'
+                    . '<td><code>' . esc_html(isset($entry['gateway_refund_id']) && '' !== $entry['gateway_refund_id'] ? $entry['gateway_refund_id'] : '—') . '</code></td>'
+                    . '<td>' . esc_html(!empty($entry['partial']) ? __('部分', 'moonlight-shop') : __('全额', 'moonlight-shop')) . '</td>'
+                    . '<td>' . esc_html(isset($entry['reason']) ? (string) $entry['reason'] : '') . '</td>'
+                    . '</tr>';
+            }
+            echo '</tbody></table>';
+        }
+
+        // ---- 退款操作表单（规则闸通过才显示；拒绝原因给管理员提示）----
+        if (is_wp_error($gate)) {
+            echo '<p class="description" style="margin-top:12px;">'
+                . esc_html(sprintf(__('当前订单不可通过本表单退款：%s。如需协商退款，可使用上方「更新状态」改为已退款（仅标记，不调网关）。', 'moonlight-shop'), $gate->get_error_message()))
+                . '</p>';
+            return;
+        }
+
+        echo '<hr style="margin:14px 0 10px;">';
+        echo '<p><strong>' . esc_html__('执行退款', 'moonlight-shop') . '</strong></p>';
+        ?>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+            <?php wp_nonce_field('mlshop_order_refund'); ?>
+            <input type="hidden" name="action" value="mlshop_order_refund">
+            <input type="hidden" name="order_id" value="<?php echo (int) $order_id; ?>">
+            <p>
+                <label for="mlshop_refund_amount"><?php esc_html_e('退款金额', 'moonlight-shop'); ?></label>
+                <?php echo esc_html($currency); ?>
+                <input type="text" id="mlshop_refund_amount" name="refund_amount" class="small-text" placeholder="<?php echo esc_attr(number_format($total, 2)); ?>">
+                <span class="description"><?php echo esc_html(sprintf(__('留空 = 全额（%s %s）', 'moonlight-shop'), $currency, number_format($total, 2))); ?></span>
+            </p>
+            <p>
+                <label for="mlshop_refund_reason"><?php esc_html_e('退款原因', 'moonlight-shop'); ?></label><br>
+                <textarea id="mlshop_refund_reason" name="refund_reason" rows="2" class="widefat"></textarea>
+            </p>
+            <p>
+                <label>
+                    <input type="checkbox" name="skip_gateway" value="1">
+                    <?php esc_html_e('已在网关后台手动退款（仅标记，跳过网关 API）', 'moonlight-shop'); ?>
+                </label>
+            </p>
+            <p>
+                <button type="submit" class="button button-primary"><?php esc_html_e('执行退款', 'moonlight-shop'); ?></button>
+            </p>
+            <p class="description">
+                <?php esc_html_e('全额退款成功后订单转为「已退款」，自动回滚库存、回补余额/回收充值积分、释放优惠券名额；卡密不回滚。余额网关订单不调网关 API，由状态机回补钱包。', 'moonlight-shop'); ?>
+            </p>
+        </form>
+        <?php
+    }
 
     private static function type_label_zh($raw)
     {

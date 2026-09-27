@@ -29,6 +29,7 @@ class MLSHOP_Admin
         add_action('admin_post_mlshop_test_paypal', array($this, 'test_paypal'));
         add_action('admin_post_mlshop_test_order_email', array($this, 'test_order_email'));
         add_action('admin_post_mlshop_order_set_status', array($this, 'order_set_status'));
+        add_action('admin_post_mlshop_order_refund', array($this, 'order_refund'));
         add_action('admin_post_mlshop_card_batch_status', array($this, 'card_batch_status'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin'));
     }
@@ -1216,6 +1217,58 @@ class MLSHOP_Admin
                     'message' => sprintf(__('訂單狀態已更新為「%s」。', 'moonlight-shop'), mlshop_get_order_status_label($new)),
                 ), 60);
             }
+        }
+        wp_safe_redirect($redirect);
+        exit;
+    }
+
+    /**
+     * 执行退款（admin_post mlshop_order_refund，订单编辑页「售后与退款」表单）。
+     *
+     * 校验链：manage_options + check_admin_referer + 规则闸 can_refund + 
+     * Moonlight_Refund_Service::process()（网关退款 / 仅标记 / 部分退款）。
+     * 结果经 mlshop_admin_notice_{uid} transient + PRG 跳转提示（与状态变更同一模式）。
+     */
+    public function order_refund()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('mlshop_order_refund')) {
+            wp_die(esc_html__('權限不足或校验失敗。', 'moonlight-shop'));
+        }
+        $order_id = isset($_POST['order_id']) ? (int) $_POST['order_id'] : 0;
+        $redirect = wp_get_referer() ?: admin_url('post.php?post=' . $order_id . '&action=edit');
+
+        $amount = isset($_POST['refund_amount']) ? mlshop_sanitize_float(wp_unslash($_POST['refund_amount'])) : 0.0;
+        $reason = isset($_POST['refund_reason']) ? sanitize_textarea_field(wp_unslash($_POST['refund_reason'])) : '';
+        $skip   = !empty($_POST['skip_gateway']);
+
+        $res = null;
+        if (!$order_id || !class_exists('Moonlight_Refund_Service')) {
+            $res = new WP_Error('moonlight_refund_order', __('订单不存在或售后模块不可用。', 'moonlight-shop'));
+        } else {
+            // 规则闸：拒绝（如已下载/已发卡/已发货/授予超窗）时不执行退款，
+            // 提示走协商；过滤器 moonlight_refund_allowed 可在闸内放行。
+            $gate = Moonlight_Refund_Service::can_refund($order_id);
+            if (is_wp_error($gate)) {
+                $res = $gate;
+            } else {
+                $res = Moonlight_Refund_Service::process($order_id, $amount, $reason, get_current_user_id(), $skip);
+            }
+        }
+
+        if (is_wp_error($res)) {
+            set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                'gateway' => 'REFUND',
+                'success' => false,
+                'message' => $res->get_error_message(),
+            ), 60);
+        } else {
+            set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                'gateway' => 'REFUND',
+                'success' => true,
+                'message' => $amount > 0
+                    ? sprintf(__('已处理退款 %s。', 'moonlight-shop'), number_format($amount, 2, '.', ''))
+                    : __('全额退款已处理，订单已标记为已退款。', 'moonlight-shop'),
+            ), 60);
         }
         wp_safe_redirect($redirect);
         exit;

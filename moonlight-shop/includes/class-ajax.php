@@ -41,6 +41,8 @@ class MLSHOP_Ajax
         add_action('wp_ajax_mlshop_address_list', array($this, 'address_list'));
         // 物流第二批：用户确认收货（delivered → completed）
         add_action('wp_ajax_mlshop_confirm_delivery', array($this, 'confirm_delivery'));
+        // 售后退款：用户申请售后（订单详情页「申请售后」按钮）
+        add_action('wp_ajax_mlshop_apply_refund', array($this, 'apply_refund'));
     }
 
     public function add_to_cart()
@@ -289,5 +291,40 @@ class MLSHOP_Ajax
             mlshop_send_json(false, $res->get_error_message());
         }
         mlshop_send_json(true, __('已确认收货，感谢您的购买！', 'moonlight-shop'));
+    }
+
+    /* ===================== 售后退款：用户申请 ===================== */
+
+    /**
+     * 用户申请售后（登录 + mlshop_nonce + 属主）。
+     *
+     * 入参：order_id + reason。规则闸（已下载/已发卡/已发货等）只在管理员执行
+     * 退款时拦截；用户侧申请仅受「状态合法 + 无 pending 申请 + 未退款」限制，
+     * 让管理员掌握全部售后诉求。写入逻辑与邮件通知由 Moonlight_Refund_Service::apply 完成。
+     */
+    public function apply_refund()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!is_user_logged_in()) {
+            mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
+        }
+        if (!class_exists('Moonlight_Refund_Service')) {
+            mlshop_send_json(false, __('售后模块不可用。', 'moonlight-shop'));
+        }
+        $order_id = isset($_POST['order_id']) ? (int) $_POST['order_id'] : 0;
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+            mlshop_send_json(false, __('订单不存在。', 'moonlight-shop'));
+        }
+        // 属主校验：仅订单所有者（或管理员）可申请售后
+        if (!current_user_can('edit_posts')
+            && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
+        }
+        $reason = isset($_POST['reason']) ? sanitize_textarea_field(wp_unslash($_POST['reason'])) : '';
+        $res = Moonlight_Refund_Service::apply($order_id, get_current_user_id(), $reason);
+        if (is_wp_error($res)) {
+            mlshop_send_json(false, $res->get_error_message());
+        }
+        mlshop_send_json(true, __('售后申请已提交，管理员会尽快处理。', 'moonlight-shop'));
     }
 }

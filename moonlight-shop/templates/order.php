@@ -192,6 +192,43 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
         </div>
     <?php endif; ?>
 
+    <?php
+    // 售后退款（Refund_Service）：可退款状态展示「申请售后」；已申请显示处理中；
+    // 已退款显示状态说明。规则闸（已下载/已发卡/已发货/授予超窗）不过关时不出现申请入口。
+    $refund_states   = array('paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed');
+    $refund_service  = class_exists('Moonlight_Refund_Service');
+    $refund_requests = $refund_service ? Moonlight_Refund_Service::requests($order_id) : array();
+    $refund_pending  = false;
+    foreach ($refund_requests as $r) {
+        if (is_array($r) && isset($r['status']) && 'pending' === $r['status']) {
+            $refund_pending = true;
+            break;
+        }
+    }
+    $refund_can_apply = $refund_service
+        && is_user_logged_in()
+        && in_array($status, $refund_states, true)
+        && !$refund_pending
+        && true === Moonlight_Refund_Service::can_refund($order_id);
+    ?>
+    <?php if ('refunded' === $status) : ?>
+        <div class="mlshop-refund-note">
+            <?php esc_html_e('该订单已退款，退款金额将按原支付方式退回，如有疑问请联系站长。', 'moonlight-shop'); ?>
+        </div>
+    <?php elseif ($refund_pending) : ?>
+        <div class="mlshop-refund-note">
+            <?php esc_html_e('售后申请处理中，管理员会尽快与您联系。', 'moonlight-shop'); ?>
+        </div>
+    <?php elseif ($refund_can_apply) : ?>
+        <div class="mlshop-refund-apply">
+            <h3><?php esc_html_e('申请售后', 'moonlight-shop'); ?></h3>
+            <textarea class="mlshop-refund-reason" rows="3" placeholder="<?php esc_attr_e('请填写售后原因（必填）', 'moonlight-shop'); ?>"></textarea>
+            <button type="button" class="mlshop-btn mlshop-apply-refund" data-order="<?php echo (int) $order_id; ?>">
+                <?php esc_html_e('申请售后', 'moonlight-shop'); ?>
+            </button>
+        </div>
+    <?php endif; ?>
+
     <?php if (is_array($delivery) && $delivery) : ?>
         <div class="mlshop-delivery">
             <h3><?php esc_html_e('交付内容', 'moonlight-shop'); ?></h3>
