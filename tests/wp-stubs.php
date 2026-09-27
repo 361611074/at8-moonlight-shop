@@ -264,6 +264,7 @@ function __test_reset_card_env()
     $GLOBALS['__test_mails'] = array();
     $GLOBALS['__test_actions'] = array();
     $GLOBALS['__test_transients'] = array();
+    $GLOBALS['__test_user_meta'] = array();
     $GLOBALS['__test_user_can'] = false;
     $GLOBALS['__test_user_id'] = 0;
 }
@@ -290,28 +291,50 @@ class MLSHOP_Product_Pay_Meta
     }
 }
 
-class MLSHOP_Shipping
+/* ---------------- usermeta（单值模型，地址簿等用） ---------------- */
+
+$GLOBALS['__test_user_meta'] = array(); // uid => [key => value]
+
+function get_user_meta($user_id, $key = '', $single = false)
 {
-    public static bool $enabled = true;
-    public static float $free_threshold = 400.0;
-    public static float $flat_fee = 50.0;
-    public static function has_physical($items)
-    {
-        foreach ((array) $items as $it) {
-            if (!isset($it['type']) || 'cardkey' === $it['type']) {
-                if (isset($it['type']) && 'cardkey' === $it['type']) { continue; }
-                return true; // 未设类型默认按实物（生产语义）
-            }
-            if ('physical' === $it['type']) { return true; }
-        }
-        return false;
+    $user_id = (int) $user_id;
+    if (!isset($GLOBALS['__test_user_meta'][$user_id][$key])) {
+        return '';
     }
-    public static function enabled() { return self::$enabled; }
-    public static function calc($subtotal, $ignore = false)
-    {
-        if ($subtotal >= self::$free_threshold) { return 0.0; }
-        return self::$flat_fee;
+    return $GLOBALS['__test_user_meta'][$user_id][$key];
+}
+
+function update_user_meta($user_id, $meta_key, $meta_value, $prev_value = '')
+{
+    $GLOBALS['__test_user_meta'][(int) $user_id][$meta_key] = $meta_value;
+    return true;
+}
+
+function delete_user_meta($user_id, $meta_key, $meta_value = '')
+{
+    $deleted = isset($GLOBALS['__test_user_meta'][(int) $user_id][$meta_key]);
+    unset($GLOBALS['__test_user_meta'][(int) $user_id][$meta_key]);
+    return $deleted;
+}
+
+/**
+ * 插件配置读取（镜像生产 includes/functions.php 同名函数语义）：
+ * 先读独立 option mlshop_$key，再回退 mlshop_options 数组，最后默认值。
+ */
+function mlshop_get_option($key, $default = '')
+{
+    $val = get_option('mlshop_' . $key, null);
+    if (null !== $val) {
+        return $val;
     }
+    $options = get_option('mlshop_options', array());
+    return isset($options[$key]) ? $options[$key] : $default;
+}
+
+/** 测试专用：设置商城配置（mlshop_get_option 能读到的独立 option 形态）。 */
+function __test_set_option($key, $value)
+{
+    $GLOBALS['__test_options']['mlshop_' . $key] = $value;
 }
 
 class MLSHOP_Coupon

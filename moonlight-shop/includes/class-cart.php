@@ -135,14 +135,14 @@ class MLSHOP_Cart
     }
 
     /**
-     * 計算運費（含實物商品且未達免運門檻時收取固定運費）。
+     * 計算運費（模板感知：有模板走 template_calc，否則全局固定運費 + 滿額包郵）。
      */
     public function get_shipping()
     {
         if (!MLSHOP_Shipping::enabled() || !$this->has_physical()) {
             return 0.0;
         }
-        return MLSHOP_Shipping::calc($this->get_total(), true);
+        return MLSHOP_Shipping::calc_for_items($this->get_items(), $this->get_total());
     }
 
     public function shortcode_cart()

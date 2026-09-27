@@ -64,6 +64,13 @@ $wpdb->query(
 // 3) 审计日志 option（含解密查看记录，一并清除）。
 delete_option('_mlshop_card_audit');
 
+// 5) 物流第一批：运费模板 option + 到店自提开关 + 用户地址簿 usermeta。
+delete_option('moonlight_shipping_templates');
+delete_option('mlshop_pickup_enabled');
+$wpdb->query(
+    "DELETE FROM {$wpdb->usermeta} WHERE meta_key = 'moonlight_addresses'"
+);
+
 // 4) 卡密库存预警防重复 transient（_transient_ 与 _transient_timeout_ 成对删除）。
 $wpdb->query(
     "DELETE FROM {$wpdb->options}

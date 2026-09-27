@@ -69,6 +69,133 @@ class MLSHOP_Shipping
     }
 
     /**
+     * 到店自提是否開啟（設置頁「運費設定」）。
+     *
+     * 開啟後結算頁實物訂單可選「到店自提」：免運費，地址表單收起為提貨人姓名 + 手機號。
+     */
+    public static function pickup_enabled()
+    {
+        return (bool) mlshop_get_option('pickup_enabled', 0);
+    }
+
+    /**
+     * 運費模板列表。
+     *
+     * 存儲：option `moonlight_shipping_templates` = 數組 of
+     *   ['id','name','mode'=>'fixed'|'piece','flat_fee','free_threshold','first_item_fee','extra_item_fee']
+     * 空數組 = 未配置，全站回退「全局固定運費 + 滿額包郵」（完全向後兼容）。
+     *
+     * @return array
+     */
+    public static function templates()
+    {
+        $templates = get_option('moonlight_shipping_templates', array());
+        $templates = is_array($templates) ? $templates : array();
+        /**
+         * 替換 / 擴展運費模板（與 moonlight_regions 同風格的數據源過濾器）。
+         *
+         * @param array $templates
+         */
+        $filtered = apply_filters('moonlight_shipping_templates', $templates);
+        return is_array($filtered) ? $filtered : $templates;
+    }
+
+    /**
+     * 按 id 查找模板。
+     *
+     * @param array  $templates
+     * @param string $id
+     * @return array|null
+     */
+    public static function find_template($templates, $id)
+    {
+        $id = (string) $id;
+        if ('' === $id || !is_array($templates)) {
+            return null;
+        }
+        foreach ($templates as $tpl) {
+            if (is_array($tpl) && isset($tpl['id']) && (string) $tpl['id'] === $id) {
+                return $tpl;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 按購物車條目計運費：模板感知的統一入口。
+     *
+     * 有任何商品掛了運費模板 → 走 template_calc（掛模板的逐商品按模板計費，
+     * 未掛模板的合併後仍按全局規則計一次）；否則走原全局 calc()。
+     *
+     * @param array $items    Cart::get_items() 結構
+     * @param float $subtotal 商品小計（用於全局規則的滿額門檻判斷）
+     * @return float
+     */
+    public static function calc_for_items($items, $subtotal)
+    {
+        if (!self::enabled() || !self::has_physical($items)) {
+            return 0.0;
+        }
+        $templates = self::templates();
+        if (!empty($templates)) {
+            return (float) self::template_calc($items, $templates);
+        }
+        return (float) self::calc($subtotal, true);
+    }
+
+    /**
+     * 運費模板計價引擎：逐商品按其模板計費求和。
+     *
+     * 規則（free_threshold 僅在 > 0 時生效，0/空 = 不享受免郵）：
+     *   - fixed：該商品小計達其 free_threshold → 免運費；否則收 flat_fee；
+     *   - piece：該商品小計達其 free_threshold → 免運費；
+     *     否則 first_item_fee + (qty - 1) * extra_item_fee（按該商品自身件數）。
+     *   - 未掛模板 / 模板已刪除的商品：小計累加後按「全局固定運費 + 滿額包郵」
+     *     統一計一次（避免雙重收費）。
+     *
+     * @param array $items     Cart::get_items() 結構（需含 id / qty / subtotal）
+     * @param array $templates self::templates() 結構
+     * @return float
+     */
+    public static function template_calc($items, $templates)
+    {
+        $fee  = 0.0;
+        $rest = 0.0; // 未掛模板商品的小計，走全局規則
+        foreach ((array) $items as $it) {
+            $qty = isset($it['qty']) ? (int) $it['qty'] : 0;
+            $sub = isset($it['subtotal'])
+                ? (float) $it['subtotal']
+                : ((float) (isset($it['price']) ? $it['price'] : 0) * $qty);
+            $pid = isset($it['id']) ? (int) $it['id'] : 0;
+            $tid = $pid ? (string) get_post_meta($pid, '_mlshop_shipping_template', true) : '';
+            $tpl = self::find_template($templates, $tid);
+            if (!$tpl) {
+                $rest += $sub;
+                continue;
+            }
+            $threshold = isset($tpl['free_threshold']) ? (float) $tpl['free_threshold'] : 0.0;
+            if ($threshold > 0 && $sub >= $threshold) {
+                continue; // 達到該模板的免郵門檻，該商品免運費
+            }
+            $mode = isset($tpl['mode']) ? (string) $tpl['mode'] : 'fixed';
+            if ('piece' === $mode) {
+                if ($qty <= 0) {
+                    continue;
+                }
+                $first = isset($tpl['first_item_fee']) ? (float) $tpl['first_item_fee'] : 0.0;
+                $extra = isset($tpl['extra_item_fee']) ? (float) $tpl['extra_item_fee'] : 0.0;
+                $fee += $first + ($qty - 1) * $extra;
+            } else {
+                $fee += isset($tpl['flat_fee']) ? (float) $tpl['flat_fee'] : 0.0;
+            }
+        }
+        if ($rest > 0) {
+            $fee += (float) self::calc($rest, true);
+        }
+        return round($fee, 2);
+    }
+
+    /**
      * 購物車/訂單條目是否含實物商品。
      *
      * @param array $items MLSHOP_Cart::get_items() 或 _mlshop_items 結構

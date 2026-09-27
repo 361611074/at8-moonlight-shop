@@ -28,6 +28,8 @@ class MLSHOP_Account_Tab
             add_filter('mluc_account_tabs', array($this, 'add_tab'));
         }
         add_shortcode('mlshop_orders', array($this, 'shortcode_orders'));
+        // 用户中心未启用时的地址簿回退短代码
+        add_shortcode('mlshop_address', array($this, 'shortcode_address'));
     }
 
     public function add_tab($tabs)
@@ -36,6 +38,11 @@ class MLSHOP_Account_Tab
             'title'    => __('我的订单', 'moonlight-shop'),
             'icon'     => 'dashicons-cart',
             'callback' => array($this, 'render_tab'),
+        );
+        $tabs['addresses'] = array(
+            'title'    => __('收货地址', 'moonlight-shop'),
+            'icon'     => 'dashicons-location',
+            'callback' => array($this, 'render_addresses'),
         );
         if (class_exists('MLSHOP_Download')) {
             $tabs['downloads'] = array(
@@ -76,6 +83,32 @@ class MLSHOP_Account_Tab
             MLSHOP_Order::maybe_expire($o->ID);
         }
         mlshop_get_template('account-orders', array('orders' => $orders));
+    }
+
+    /**
+     * 收货地址 Tab（用户中心挂载 + [mlshop_address] 短代码共用渲染）。
+     */
+    public function render_addresses()
+    {
+        if (!is_user_logged_in()) {
+            echo '<p class="mlshop-message">' . esc_html__('请先登录管理收货地址。', 'moonlight-shop') . '</p>';
+            return;
+        }
+        mlshop_get_template('account-addresses', array(
+            'addresses' => class_exists('Moonlight_Address_Book')
+                ? Moonlight_Address_Book::get_list(get_current_user_id())
+                : array(),
+        ));
+    }
+
+    /**
+     * [mlshop_address] 短代码：用户中心未启用时的地址簿回退入口。
+     */
+    public function shortcode_address()
+    {
+        ob_start();
+        $this->render_addresses();
+        return ob_get_clean();
     }
 
     /**

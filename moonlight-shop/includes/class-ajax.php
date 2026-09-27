@@ -35,6 +35,10 @@ class MLSHOP_Ajax
         add_action('wp_ajax_mlshop_get_counts', array($this, 'get_counts'));
         add_action('wp_ajax_nopriv_mlshop_get_favorites_widget_fragment', array($this, 'get_favorites_widget_fragment'));
         add_action('wp_ajax_mlshop_get_favorites_widget_fragment', array($this, 'get_favorites_widget_fragment'));
+        // 收货地址簿（仅登录用户；属主恒为当前用户，不接受客户端传 uid）
+        add_action('wp_ajax_mlshop_address_save', array($this, 'address_save'));
+        add_action('wp_ajax_mlshop_address_delete', array($this, 'address_delete'));
+        add_action('wp_ajax_mlshop_address_list', array($this, 'address_list'));
     }
 
     public function add_to_cart()
@@ -125,9 +129,9 @@ class MLSHOP_Ajax
         }
         $discount = MLSHOP_Coupon::compute_discount($cid, $subtotal);
         $after    = round($subtotal - $discount, 2);
-        // 優惠後重新計算運費（可能跌破免運門檻）
+        // 優惠後重新計算運費（可能跌破免運門檻）；模板感知（有模板走 template_calc）
         $has_physical = MLSHOP_Shipping::has_physical($items);
-        $shipping     = ($has_physical && MLSHOP_Shipping::enabled()) ? MLSHOP_Shipping::calc($after, true) : 0.0;
+        $shipping     = ($has_physical && MLSHOP_Shipping::enabled()) ? MLSHOP_Shipping::calc_for_items($items, $after) : 0.0;
         $final        = round($after + $shipping, 2);
         mlshop_send_json(true, __('优惠码已应用。', 'moonlight-shop'), array(
             'code'          => strtoupper(trim($code)),
@@ -167,6 +171,85 @@ class MLSHOP_Ajax
         mlshop_send_json(true, '', array(
             'html'  => mlshop_render_favorites_widget_inner(),
             'count' => mlshop_favorite_count(),
+        ));
+    }
+
+    /* ===================== 收货地址簿 ===================== */
+
+    /**
+     * 新增 / 编辑收货地址（登录 + mlshop_nonce）。
+     *
+     * 入参：id（可选，带 id = 编辑）、name、phone、province、city、detail、is_default。
+     * 属主恒为 get_current_user_id()；区码必须能被 Region Provider resolve。
+     */
+    public function address_save()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!is_user_logged_in()) {
+            mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
+        }
+        if (!class_exists('Moonlight_Address_Book')) {
+            mlshop_send_json(false, __('地址簿模块不可用。', 'moonlight-shop'));
+        }
+        $uid = get_current_user_id();
+        $in  = array(
+            'id'         => isset($_POST['id']) ? sanitize_text_field($_POST['id']) : '',
+            'name'       => isset($_POST['name']) ? wp_unslash($_POST['name']) : '',
+            'phone'      => isset($_POST['phone']) ? sanitize_text_field($_POST['phone']) : '',
+            'province'   => isset($_POST['province']) ? sanitize_text_field($_POST['province']) : '',
+            'city'       => isset($_POST['city']) ? sanitize_text_field($_POST['city']) : '',
+            'detail'     => isset($_POST['detail']) ? wp_unslash($_POST['detail']) : '',
+            'is_default' => !empty($_POST['is_default']),
+        );
+        $saved = Moonlight_Address_Book::save($uid, $in);
+        if (is_wp_error($saved)) {
+            mlshop_send_json(false, $saved->get_error_message());
+        }
+        mlshop_send_json(true, __('地址已保存。', 'moonlight-shop'), array(
+            'address' => $saved,
+            'list'    => Moonlight_Address_Book::get_list($uid),
+        ));
+    }
+
+    /**
+     * 删除收货地址（登录 + mlshop_nonce；仅能删自己的）。
+     */
+    public function address_delete()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!is_user_logged_in()) {
+            mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
+        }
+        if (!class_exists('Moonlight_Address_Book')) {
+            mlshop_send_json(false, __('地址簿模块不可用。', 'moonlight-shop'));
+        }
+        $uid = get_current_user_id();
+        $id  = isset($_POST['id']) ? sanitize_text_field($_POST['id']) : '';
+        if ('' === $id) {
+            mlshop_send_json(false, __('缺少地址 ID。', 'moonlight-shop'));
+        }
+        if (!Moonlight_Address_Book::delete($uid, $id)) {
+            mlshop_send_json(false, __('地址不存在或已删除。', 'moonlight-shop'));
+        }
+        mlshop_send_json(true, __('地址已删除。', 'moonlight-shop'), array(
+            'list' => Moonlight_Address_Book::get_list($uid),
+        ));
+    }
+
+    /**
+     * 返回当前用户地址列表（结算页 / 账户中心刷新用）。
+     */
+    public function address_list()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!is_user_logged_in()) {
+            mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
+        }
+        if (!class_exists('Moonlight_Address_Book')) {
+            mlshop_send_json(false, __('地址簿模块不可用。', 'moonlight-shop'));
+        }
+        mlshop_send_json(true, '', array(
+            'list' => Moonlight_Address_Book::get_list(get_current_user_id()),
         ));
     }
 }

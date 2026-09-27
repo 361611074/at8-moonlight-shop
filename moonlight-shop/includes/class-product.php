@@ -412,6 +412,38 @@ class MLSHOP_Product
                 <input type="number" name="mlshop_stock" value="<?php echo esc_attr($stock); ?>" class="widefat">
             </label>
         </p>
+        <?php
+        // 運費模板下拉（僅在後台配置了模板時顯示；實物商品按模板計運費）
+        $ship_templates = class_exists('MLSHOP_Shipping') ? MLSHOP_Shipping::templates() : array();
+        if (!empty($ship_templates)) :
+            $ship_tpl = (string) get_post_meta($post->ID, '_mlshop_shipping_template', true);
+            ?>
+            <p>
+                <label><?php esc_html_e('運費模板（實物商品）', 'moonlight-shop'); ?><br>
+                    <select name="mlshop_shipping_template" class="widefat">
+                        <option value="" <?php selected($ship_tpl, ''); ?>><?php esc_html_e('默認全局運費（固定運費 + 滿額包郵）', 'moonlight-shop'); ?></option>
+                        <?php foreach ($ship_templates as $tpl) :
+                            if (!is_array($tpl) || empty($tpl['id'])) { continue; }
+                            $mode_label = (isset($tpl['mode']) && 'piece' === $tpl['mode'])
+                                ? sprintf(__('按件（首件 %s / 續件 %s）', 'moonlight-shop'), (float) $tpl['first_item_fee'], (float) $tpl['extra_item_fee'])
+                                : sprintf(__('固定 %s', 'moonlight-shop'), (float) $tpl['flat_fee']);
+                            ?>
+                            <option value="<?php echo esc_attr($tpl['id']); ?>" <?php selected($ship_tpl, (string) $tpl['id']); ?>>
+                                <?php
+                                $label = esc_html($tpl['name']) . '（' . esc_html($mode_label);
+                                $threshold = isset($tpl['free_threshold']) ? (float) $tpl['free_threshold'] : 0;
+                                if ($threshold > 0) {
+                                    $label .= sprintf(esc_html__('，滿 %s 免郵', 'moonlight-shop'), $threshold);
+                                }
+                                echo $label . '）';
+                                ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <span class="description"><?php esc_html_e('在「商城設定 → 運費設定 → 運費模板」配置；留空按默認全局運費計算。', 'moonlight-shop'); ?></span>
+                </label>
+            </p>
+        <?php endif; ?>
         <p>
             <label><?php esc_html_e('商品相册（可多选，第一张作主图）', 'moonlight-shop'); ?><br>
                 <input type="hidden" name="mlshop_gallery" id="mlshop_gallery" value="<?php echo esc_attr(mlshop_gallery_to_csv($gallery)); ?>">
@@ -513,6 +545,7 @@ class MLSHOP_Product
             'mlshop_type'            => 'text',
             'mlshop_sku'             => 'text',
             'mlshop_stock'           => 'int',
+            'mlshop_shipping_template' => 'text',
             'mlshop_file'            => 'int',
             'mlshop_download_limit'  => 'int',
             'mlshop_download_count'  => 'int',

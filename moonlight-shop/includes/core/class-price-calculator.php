@@ -120,10 +120,12 @@ class Moonlight_Price_Calculator
      *
      * 计算序列（计划书第十六节）：商品小计 → 优惠券折扣 → 运费 → 合计。
      * 运费按「优惠前小计」判免邮门槛（与结算页展示一致的历史取舍，见 order.php 注释）。
+     * 运费模板：任一商品挂了模板 → 按模板逐商品计费（MLSHOP_Shipping::calc_for_items），
+     * 否则回退全局固定运费 + 满额包邮；到店自提（shipping_mode=pickup）运费按 0。
      *
      * @param array  $items       Cart::get_items() 结构
      * @param string $coupon_code 优惠码（可空）
-     * @param array  $args        ['free_shipping_override'=>bool]
+     * @param array  $args        ['free_shipping_override'=>bool, 'shipping_mode'=>'ship'|'pickup']
      * @return array{subtotal:float,discount:float,coupon_id:int,coupon_valid:bool,shipping:float,has_physical:bool,total:float}
      */
     public static function quote($items, $coupon_code = '', $args = array())
@@ -152,8 +154,10 @@ class Moonlight_Price_Calculator
 
         $has_physical = MLSHOP_Shipping::has_physical($items);
         $shipping     = 0.0;
-        if ($has_physical && MLSHOP_Shipping::enabled()) {
-            $shipping = (float) MLSHOP_Shipping::calc($subtotal, true);
+        $mode         = isset($args['shipping_mode']) ? (string) $args['shipping_mode'] : 'ship';
+        if ('pickup' !== $mode && $has_physical && MLSHOP_Shipping::enabled()) {
+            // 模板感知：有模板走 template_calc，无模板回退全局 calc（门槛按优惠前小计）
+            $shipping = (float) MLSHOP_Shipping::calc_for_items($items, $subtotal);
         }
 
         $total = round(max(0, $subtotal - $discount) + $shipping, 2);

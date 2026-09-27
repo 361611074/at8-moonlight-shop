@@ -214,6 +214,77 @@
             });
         });
 
+        // 省市联动：选省后只显示该省的城市（optgroups 渐进增强，无 JS 时全部可见）
+        function mlshop_filter_cities($prov) {
+            var $city = $prov.closest('.mlshop-field, .mlshop-address-form, form, body').find('.mlshop-region-city').first();
+            if (!$city.length) {
+                $city = $prov.siblings('.mlshop-region-city').first();
+            }
+            if (!$city.length) {
+                return;
+            }
+            var p = $prov.val();
+            $city.find('optgroup').each(function () {
+                var show = $(this).attr('data-province') === p;
+                $(this).toggle(show);
+                $(this).find('option').prop('disabled', !show);
+            });
+            var $sel = $city.find('option:selected');
+            if (!$sel.length || $sel.prop('disabled') || ($sel.val() && p && $sel.closest('optgroup').attr('data-province') !== p)) {
+                $city.val('');
+            }
+        }
+        $(document).on('change', '.mlshop-region-province', function () {
+            mlshop_filter_cities($(this));
+        });
+        // 初始过滤一次（带预选省份的回填场景）
+        $(function () {
+            $('.mlshop-region-province').each(function () {
+                if ($(this).val()) {
+                    mlshop_filter_cities($(this));
+                }
+            });
+        });
+
+        // 结算页：地址簿选择 → 填充收件表单
+        $(document).on('change', '.mlshop-address-select', function () {
+            var $opt = $(this).find('option:selected');
+            if (!$(this).val() || !$opt.attr('data-province')) {
+                return;
+            }
+            $('.mlshop-ship-name').val($opt.attr('data-name') || '');
+            $('.mlshop-ship-phone').val($opt.attr('data-phone') || '');
+            $('.mlshop-ship-address').val($opt.attr('data-detail') || '');
+            var $prov = $('.mlshop-region-province').first();
+            $prov.val($opt.attr('data-province')).trigger('change');
+            $('.mlshop-region-city').first().val($opt.attr('data-city') || '');
+        });
+
+        // 结算页：快递配送 / 到店自提切换
+        $(document).on('change', 'input[name="mlshop_shipping_mode"]', function () {
+            var pickup = $('input[name="mlshop_shipping_mode"]:checked').val() === 'pickup';
+            $('.mlshop-ship-fields').toggle(!pickup);
+            $('.mlshop-pickup-fields').toggle(pickup);
+            // 自提免运费：同步运费行展示
+            if (pickup) {
+                $('.mlshop-checkout-shipping').data('mlshop-orig', $('.mlshop-checkout-shipping-text').text());
+                $('.mlshop-checkout-shipping-text').text(mlshop_i18n.pickup_free);
+                $('.mlshop-shipping-note').text(mlshop_i18n.pickup_note);
+            } else {
+                var orig = $('.mlshop-checkout-shipping').data('mlshop-orig');
+                if (orig) {
+                    $('.mlshop-checkout-shipping-text').text(orig);
+                }
+                $('.mlshop-shipping-note').text(mlshop_i18n.shipping_note_orig || '');
+            }
+        });
+        // 记住服务端初始运费文案，切换回「快递配送」时还原
+        $(function () {
+            if ($('.mlshop-checkout-shipping').length) {
+                mlshop_i18n.shipping_note_orig = $('.mlshop-shipping-note').first().text();
+            }
+        });
+
         // 提交订单
         $(document).on('submit', '.mlshop-checkout-form', function (e) {
             e.preventDefault();
@@ -228,20 +299,42 @@
                 payload.coupon_code = code;
             }
 
-            // 實物訂單：收集並校驗收件資料
+            // 實物訂單：收集並校驗收件資料（服務端仍會完整強制校驗）
+            var $mode = $('input[name="mlshop_shipping_mode"]:checked');
             if ($('.mlshop-shipping-box').length) {
-                var shipName = $.trim($('.mlshop-ship-name').val());
-                var shipPhone = $.trim($('.mlshop-ship-phone').val());
-                var shipAddr = $.trim($('.mlshop-ship-address').val());
-                if (!shipName || !shipPhone || !shipAddr) {
-                    $btn.prop('disabled', false);
-                    $('.mlshop-shipping-msg').removeClass('mlshop-ok').addClass('mlshop-error').text(mlshop_i18n.address_required).show();
-                    return;
+                if ($mode.length && $mode.val() === 'pickup') {
+                    var pkName = $.trim($('.mlshop-pickup-name').val());
+                    var pkPhone = $.trim($('.mlshop-pickup-phone').val());
+                    if (!pkName || !pkPhone) {
+                        $btn.prop('disabled', false);
+                        $('.mlshop-shipping-msg').removeClass('mlshop-ok').addClass('mlshop-error').text(mlshop_i18n.pickup_required).show();
+                        return;
+                    }
+                    payload.shipping_mode = 'pickup';
+                    payload.pickup_name = pkName;
+                    payload.pickup_phone = pkPhone;
+                } else {
+                    var shipName = $.trim($('.mlshop-ship-name').val());
+                    var shipPhone = $.trim($('.mlshop-ship-phone').val());
+                    var shipAddr = $.trim($('.mlshop-ship-address').val());
+                    var shipProvince = $.trim($('.mlshop-region-province').first().val());
+                    var shipCity = $.trim($('.mlshop-region-city').first().val());
+                    if (!shipName || !shipPhone || !shipAddr || !shipProvince || !shipCity) {
+                        $btn.prop('disabled', false);
+                        $('.mlshop-shipping-msg').removeClass('mlshop-ok').addClass('mlshop-error').text(mlshop_i18n.address_required).show();
+                        return;
+                    }
+                    payload.shipping_name = shipName;
+                    payload.shipping_phone = shipPhone;
+                    payload.shipping_province = shipProvince;
+                    payload.shipping_city = shipCity;
+                    payload.shipping_address = shipAddr;
+                    payload.shipping_note = $.trim($('.mlshop-ship-note').val());
+                    var addrId = $.trim($('.mlshop-address-select').val() || '');
+                    if (addrId) {
+                        payload.address_id = addrId;
+                    }
                 }
-                payload.shipping_name = shipName;
-                payload.shipping_phone = shipPhone;
-                payload.shipping_address = shipAddr;
-                payload.shipping_note = $.trim($('.mlshop-ship-note').val());
             }
 
             post('mlshop_place_order', payload, function (res) {
@@ -249,6 +342,77 @@
                 $msg.removeClass('mlshop-ok mlshop-error').addClass(res.success ? 'mlshop-ok' : 'mlshop-error').text(res.message).show();
                 if (res.success && res.data && res.data.redirect) {
                     setTimeout(function () { window.location.href = res.data.redirect; }, 800);
+                }
+            });
+        });
+
+        /* ===================== 账户中心 / [mlshop_address] 地址簿 ===================== */
+
+        // 编辑：把条目回填进表单（data-* 由模板输出）
+        $(document).on('click', '.mlshop-addr-edit', function (e) {
+            e.preventDefault();
+            var $b = $(this);
+            var $form = $('.mlshop-address-form');
+            $form.find('.mlshop-addr-id').val($b.data('id') || '');
+            $form.find('.mlshop-addr-name').val($b.data('name') || '');
+            $form.find('.mlshop-addr-phone').val($b.data('phone') || '');
+            $form.find('.mlshop-addr-detail').val($b.data('detail') || '');
+            $form.find('.mlshop-addr-default').prop('checked', !!$b.data('default'));
+            $form.find('.mlshop-region-province').val($b.data('province') || '').trigger('change');
+            $form.find('.mlshop-region-city').val($b.data('city') || '');
+            $form.find('.mlshop-addr-submit').text(mlshop_i18n.addr_update);
+            $form.trigger('mlshop:addr-editing');
+        });
+
+        // 删除
+        $(document).on('click', '.mlshop-addr-del', function (e) {
+            e.preventDefault();
+            if (!window.confirm(mlshop_i18n.addr_confirm_delete)) {
+                return;
+            }
+            var $btn = $(this);
+            $btn.prop('disabled', true);
+            post('mlshop_address_delete', { id: $btn.data('id') }, function (res) {
+                $btn.prop('disabled', false);
+                if (res.success) {
+                    location.reload();
+                } else {
+                    alert(res.message);
+                }
+            });
+        });
+
+        // 新增 / 编辑保存（成功后整页刷新以重新渲染列表）
+        $(document).on('submit', '.mlshop-address-form', function (e) {
+            e.preventDefault();
+            var $form = $(this);
+            var $msg = $form.find('.mlshop-addr-msg');
+            var name = $.trim($form.find('.mlshop-addr-name').val());
+            var phone = $.trim($form.find('.mlshop-addr-phone').val());
+            var province = $.trim($form.find('.mlshop-region-province').val());
+            var city = $.trim($form.find('.mlshop-region-city').val());
+            var detail = $.trim($form.find('.mlshop-addr-detail').val());
+            if (!name || !phone || !province || !city || !detail) {
+                $msg.removeClass('mlshop-ok').addClass('mlshop-error').text(mlshop_i18n.address_required).show();
+                return;
+            }
+            var payload = {
+                id: $.trim($form.find('.mlshop-addr-id').val() || ''),
+                name: name,
+                phone: phone,
+                province: province,
+                city: city,
+                detail: detail,
+                is_default: $form.find('.mlshop-addr-default').prop('checked') ? 1 : 0
+            };
+            $form.find('.mlshop-addr-submit').prop('disabled', true);
+            $msg.removeClass('mlshop-ok mlshop-error').hide();
+            post('mlshop_address_save', payload, function (res) {
+                $form.find('.mlshop-addr-submit').prop('disabled', false);
+                if (res.success) {
+                    location.reload();
+                } else {
+                    $msg.removeClass('mlshop-ok').addClass('mlshop-error').text(res.message).show();
                 }
             });
         });

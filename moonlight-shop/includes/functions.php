@@ -601,3 +601,44 @@ function mlshop_sanitize_secret_keep($key, $value)
     }
     return sanitize_text_field($value);
 }
+
+/**
+ * 渲染省 / 市二级下拉（结算页收件资料、账户中心地址簿共用）。
+ *
+ * 市下拉以 optgroup 按省分组渲染全部城市；JS（mlshop.js）按所选省过滤
+ * 非当前省的 optgroup。无 JS 时全部 optgroup 可见（渐进增强）。
+ *
+ * @param string $name_prefix  input name 前缀（如 shipping → shipping_province / shipping_city）
+ * @param string $sel_province 选中的省区码
+ * @param string $sel_city     选中的市区码
+ */
+function mlshop_render_region_selects($name_prefix, $sel_province = '', $sel_city = '')
+{
+    if (!class_exists('Moonlight_Region_Provider')) {
+        return;
+    }
+    $provinces = Moonlight_Region_Provider::provinces();
+    ?>
+    <select name="<?php echo esc_attr($name_prefix); ?>_province" class="mlshop-region-province">
+        <option value=""><?php esc_html_e('選擇省份 / 直轄市', 'moonlight-shop'); ?></option>
+        <?php foreach ($provinces as $pcode => $pname) : ?>
+            <option value="<?php echo esc_attr($pcode); ?>" <?php selected((string) $sel_province, (string) $pcode); ?>><?php echo esc_html($pname); ?></option>
+        <?php endforeach; ?>
+    </select>
+    <select name="<?php echo esc_attr($name_prefix); ?>_city" class="mlshop-region-city">
+        <option value=""><?php esc_html_e('選擇城市', 'moonlight-shop'); ?></option>
+        <?php foreach ($provinces as $pcode => $pname) :
+            $cities = Moonlight_Region_Provider::cities($pcode);
+            if (empty($cities)) {
+                continue;
+            }
+            ?>
+            <optgroup label="<?php echo esc_attr($pname); ?>" data-province="<?php echo esc_attr($pcode); ?>">
+                <?php foreach ($cities as $ccode => $cname) : ?>
+                    <option value="<?php echo esc_attr($ccode); ?>" <?php selected((string) $sel_city, (string) $ccode); ?>><?php echo esc_html($cname); ?></option>
+                <?php endforeach; ?>
+            </optgroup>
+        <?php endforeach; ?>
+    </select>
+    <?php
+}

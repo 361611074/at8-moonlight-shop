@@ -3,10 +3,14 @@
  * Standalone test runner: php tests/run.php
  * Covers Phase 2 core: price calculator (tier pricing, quote pipeline),
  * order state machine whitelist, migration helpers.
+ * 物流第一批：Region Provider、地址簿、运费模板计价、自提报价。
  */
 
 require __DIR__ . '/wp-stubs.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-price-calculator.php';
+require __DIR__ . '/../moonlight-shop/includes/class-shipping.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-region-provider.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-address-book.php';
 require __DIR__ . '/../moonlight-shop/includes/class-order.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-migrations.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-card-stock.php';
@@ -24,6 +28,12 @@ function check($name, $cond)
         echo "FAIL  {$name}\n";
     }
 }
+
+// quote()/has_physical() 读 postmeta 的商品类型（生产语义：未设类型视为实物）
+update_post_meta(1, '_mlshop_type', 'physical');
+update_post_meta(2, '_mlshop_type', 'virtual');
+update_post_meta(3, '_mlshop_type', 'virtual');
+update_post_meta(4, '_mlshop_type', 'virtual');
 
 echo "== Moonlight_Price_Calculator::tier_price ==\n";
 check('free -> sell price', Moonlight_Price_Calculator::tier_price(99, 89, 79, 'free') === 99.0);
@@ -61,10 +71,10 @@ $q2 = Moonlight_Price_Calculator::quote($items, 'NOPE');
 check('invalid coupon ignored', $q2['discount'] === 0.0 && $q2['coupon_valid'] === false && $q2['total'] === 150.0);
 
 // free shipping threshold on pre-discount subtotal
-MLSHOP_Shipping::$free_threshold = 100.0;
+__test_set_option('shipping_free_threshold', 100.0);
 $q3 = Moonlight_Price_Calculator::quote($items, 'save10');
 check('free shipping judged on pre-discount subtotal', $q3['shipping'] === 0.0 && $q3['total'] === 90.0);
-MLSHOP_Shipping::$free_threshold = 400.0;
+__test_set_option('shipping_free_threshold', 400.0);
 
 // fixed-amount coupon never exceeds subtotal
 MLSHOP_Coupon::$coupons[2] = array('code' => 'BIG50', 'fixed' => 500);
@@ -75,6 +85,99 @@ check('fixed coupon capped at subtotal', $q4['discount'] === 30.0 && $q4['total'
 $dig = array(array('id' => 4, 'qty' => 1, 'price' => 20.0, 'type' => 'virtual', 'subtotal' => 20.0));
 $q5 = Moonlight_Price_Calculator::quote($dig, '');
 check('digital-only: no shipping charged', $q5['shipping'] === 0.0 && $q5['has_physical'] === false && $q5['total'] === 20.0);
+
+echo "== Moonlight_Region_Provider ==\n";
+$provinces = Moonlight_Region_Provider::provinces();
+check('34 省级行政区全覆盖', count($provinces) === 34);
+$bj = Moonlight_Region_Provider::resolve('CN-BJ');
+check("resolve('CN-BJ') 返回北京", is_array($bj) && '北京' === $bj['name'] && 'province' === $bj['level']);
+$gz = Moonlight_Region_Provider::resolve('cn-gd-gz'); // 区码大小写归一
+check('resolve 市码返回城市并带省信息', is_array($gz) && '广州市' === $gz['name'] && 'CN-GD' === $gz['province'] && 'city' === $gz['level']);
+check('非法码 resolve 失败', Moonlight_Region_Provider::resolve('CN-XX-NOPE') === false);
+check('空码 resolve 失败', Moonlight_Region_Provider::resolve('') === false);
+check('非字符串码 resolve 失败', Moonlight_Region_Provider::resolve('BEIJING') === false);
+$cities_gd = Moonlight_Region_Provider::cities('CN-GD');
+check('cities(CN-GD) 含广州市', isset($cities_gd['CN-GD-GZ']) && '广州市' === $cities_gd['CN-GD-GZ']);
+check('cities(非法省码) 返回空数组', Moonlight_Region_Provider::cities('CN-NOPE') === array());
+$total_cities = 0;
+foreach ($provinces as $p_code => $p_name) {
+    $total_cities += count(Moonlight_Region_Provider::cities($p_code));
+}
+check("城市总量控制在 ~400 以内（当前 {$total_cities}）", $total_cities > 300 && $total_cities <= 400);
+
+echo "== Moonlight_Address_Book（属主隔离 + 校验） ==\n";
+$GLOBALS['__test_user_meta'] = array();
+$GLOBALS['__test_user_id'] = 1;
+$saved = Moonlight_Address_Book::save(1, array(
+    'name' => '张三', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '天河路 100 号',
+));
+check('save 返回带 id 的完整条目', is_array($saved) && '' !== $saved['id'] && '广东' === $saved['province_name']);
+check('首个地址自动设为默认', !empty($saved['is_default']));
+check('属主 get 可取回', is_array(Moonlight_Address_Book::get(1, $saved['id'])));
+check('first() 返回默认地址', Moonlight_Address_Book::first(1)['id'] === $saved['id']);
+
+$GLOBALS['__test_user_id'] = 2;
+check('B 用户 get A 的地址取不到（属主隔离）', Moonlight_Address_Book::get(2, $saved['id']) === false);
+check('B 用户 delete A 的地址失败', Moonlight_Address_Book::delete(2, $saved['id']) === false);
+check('B 用户 set_default A 的地址失败', Moonlight_Address_Book::set_default(2, $saved['id']) === false);
+check('B 用户列表为空', Moonlight_Address_Book::get_list(2) === array());
+
+$GLOBALS['__test_user_id'] = 1;
+check('姓名超 32 字拒绝', is_wp_error(Moonlight_Address_Book::save(1, array('name' => str_repeat('长', 33), 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '地址'))));
+check('电话格式拒绝', is_wp_error(Moonlight_Address_Book::save(1, array('name' => '李四', 'phone' => 'abc', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '地址'))));
+check('非法区码拒绝', is_wp_error(Moonlight_Address_Book::save(1, array('name' => '李四', 'phone' => '13800138000', 'province' => 'CN-XX', 'city' => 'CN-XX-NOPE', 'detail' => '地址'))));
+check('省市不匹配拒绝', is_wp_error(Moonlight_Address_Book::save(1, array('name' => '李四', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-BJ-BJ', 'detail' => '地址'))));
+check('详情超 120 字拒绝', is_wp_error(Moonlight_Address_Book::save(1, array('name' => '李四', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => str_repeat('地', 121)))));
+
+$s2 = Moonlight_Address_Book::save(1, array(
+    'name' => '王五', 'phone' => '0755-8888', 'province' => 'CN-BJ', 'city' => 'CN-BJ-BJ', 'detail' => '朝阳区 1 号',
+));
+check('第二条保存成功', is_array($s2) && $s2['id'] !== $saved['id']);
+check('set_default 生效', Moonlight_Address_Book::set_default(1, $s2['id']) && Moonlight_Address_Book::first(1)['id'] === $s2['id']);
+$edited = Moonlight_Address_Book::save(1, array(
+    'id' => $saved['id'], 'name' => '张三丰', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '天河路 101 号',
+));
+check('编辑保留原 id 且字段更新', is_array($edited) && $edited['id'] === $saved['id'] && '张三丰' === $edited['name']);
+check('列表数量正确（无重复插入）', count(Moonlight_Address_Book::get_list(1)) === 2);
+check('删除默认地址后剩余首条提升为默认', Moonlight_Address_Book::delete(1, $s2['id']) && Moonlight_Address_Book::first(1)['id'] === $saved['id']);
+check('删除他人地址返回 false', Moonlight_Address_Book::delete(2, $saved['id']) === false);
+
+echo "== MLSHOP_Shipping 運費模板 ==\n";
+update_post_meta(500, '_mlshop_type', 'physical');
+update_post_meta(500, '_mlshop_shipping_template', 'tpl_piece');
+update_post_meta(501, '_mlshop_type', 'physical');
+update_post_meta(501, '_mlshop_shipping_template', 'tpl_fixed');
+update_post_meta(502, '_mlshop_type', 'physical'); // 不挂模板
+$templates = array(
+    array('id' => 'tpl_piece', 'name' => '促銷品', 'mode' => 'piece', 'flat_fee' => 0, 'first_item_fee' => 10, 'extra_item_fee' => 5, 'free_threshold' => 0),
+    array('id' => 'tpl_fixed', 'name' => '標準快遞', 'mode' => 'fixed', 'flat_fee' => 8, 'first_item_fee' => 0, 'extra_item_fee' => 0, 'free_threshold' => 50),
+);
+$piece_items = array(array('id' => 500, 'qty' => 3, 'price' => 10.0, 'subtotal' => 30.0));
+check('piece 模板 首件10续件5 ×3件 = 20', MLSHOP_Shipping::template_calc($piece_items, $templates) === 20.0);
+check('piece 模板单件只收首件 = 10', MLSHOP_Shipping::template_calc(array(array('id' => 500, 'qty' => 1, 'price' => 10.0, 'subtotal' => 10.0)), $templates) === 10.0);
+check('fixed 模板未达门槛收 flat_fee = 8', MLSHOP_Shipping::template_calc(array(array('id' => 501, 'qty' => 1, 'price' => 30.0, 'subtotal' => 30.0)), $templates) === 8.0);
+check('fixed 模板达门槛免邮 = 0', MLSHOP_Shipping::template_calc(array(array('id' => 501, 'qty' => 2, 'price' => 30.0, 'subtotal' => 60.0)), $templates) === 0.0);
+$mixed = array(
+    array('id' => 500, 'qty' => 3, 'price' => 10.0, 'subtotal' => 30.0), // piece => 20
+    array('id' => 501, 'qty' => 1, 'price' => 30.0, 'subtotal' => 30.0), // fixed 未达门槛 => 8
+    array('id' => 502, 'qty' => 1, 'price' => 40.0, 'subtotal' => 40.0), // 未挂模板 => 全局 50
+);
+check('混合订单多模板求和 + 未挂模板回退全局 calc = 78', MLSHOP_Shipping::template_calc($mixed, $templates) === 78.0);
+check('模板已删除的商品回落全局', MLSHOP_Shipping::template_calc(array(array('id' => 502, 'qty' => 1, 'price' => 40.0, 'subtotal' => 40.0)), $templates) === 50.0);
+
+update_option('moonlight_shipping_templates', $templates);
+$tpl_quote_items = array(array('id' => 500, 'qty' => 3, 'price' => 10.0, 'subtotal' => 30.0));
+$q6 = Moonlight_Price_Calculator::quote($tpl_quote_items, '');
+check('quote 有模板走 template_calc', $q6['shipping'] === 20.0 && $q6['total'] === 50.0);
+$q7 = Moonlight_Price_Calculator::quote($tpl_quote_items, '', array('shipping_mode' => 'pickup'));
+check('quote 自提 shipping = 0', $q7['shipping'] === 0.0 && $q7['total'] === 30.0);
+check('自提不影响 has_physical 判定', $q7['has_physical'] === true);
+update_option('moonlight_shipping_templates', array());
+$q8 = Moonlight_Price_Calculator::quote($tpl_quote_items, '');
+check('模板清空后 quote 回退全局 calc（30<400 => 50）', $q8['shipping'] === 50.0 && $q8['total'] === 80.0);
+$q9 = Moonlight_Price_Calculator::quote($items, 'save10', array('shipping_mode' => 'pickup'));
+check('自提免运费同样豁免优惠券后运费行', $q9['shipping'] === 0.0 && $q9['total'] === 90.0);
+update_option('moonlight_shipping_templates', array());
 
 echo "== MLSHOP_Order state machine ==\n";
 check('pending -> paid allowed', MLSHOP_Order::can_transition('pending', 'paid'));

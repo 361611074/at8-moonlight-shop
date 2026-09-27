@@ -326,6 +326,7 @@ class MLSHOP_Order
     public function render_meta_box_shipping($post)
     {
         $addr   = get_post_meta($post->ID, '_mlshop_shipping_address', true);
+        $pickup = (string) get_post_meta($post->ID, '_mlshop_pickup', true);
         $company = (string) get_post_meta($post->ID, '_mlshop_tracking_company', true);
         $no      = (string) get_post_meta($post->ID, '_mlshop_tracking_no', true);
         $time    = (string) get_post_meta($post->ID, '_mlshop_tracking_time', true);
@@ -334,6 +335,9 @@ class MLSHOP_Order
         // 地址回填到下面的字段（一次性只读，避免和字段冲突）
         ?>
         <p><strong><?php esc_html_e('收货地址', 'moonlight-shop'); ?></strong></p>
+        <?php if ('1' === $pickup) : ?>
+            <p style="margin:0 0 8px;"><span class="mlshop-pill" style="background:#ecfdf5;color:#047857;"><?php esc_html_e('到店自提（免运费）', 'moonlight-shop'); ?></span></p>
+        <?php endif; ?>
         <?php if (is_array($addr) && !empty($addr)) : ?>
             <div class="mlshop-order-shipping-addr" style="background:#f8fafc;border:1px solid #e4e9f0;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12.5px;line-height:1.7;color:#374151;">
                 <?php
@@ -341,17 +345,27 @@ class MLSHOP_Order
                 $phone = isset($addr['phone']) ? trim($addr['phone']) : '';
                 $addr1 = isset($addr['addr1']) ? trim($addr['addr1']) : (isset($addr['address']) ? trim($addr['address']) : '');
                 $addr2 = isset($addr['addr2']) ? trim($addr['addr2']) : '';
-                $city  = isset($addr['city'])  ? trim($addr['city'])  : '';
-                $state = isset($addr['state']) ? trim($addr['state']) : '';
+                // 区码 + resolve 后名称快照（新版地址）；旧订单回退 state/city 文本
+                $state = isset($addr['province_name']) ? trim($addr['province_name']) : (isset($addr['state']) ? trim($addr['state']) : '');
+                $city  = '';
+                if (isset($addr['city_name'])) {
+                    $city = trim($addr['city_name']);
+                } elseif (isset($addr['city'])) {
+                    $city = trim((string) $addr['city']);
+                    if (preg_match('/^CN-/i', $city) && class_exists('Moonlight_Region_Provider')) {
+                        $r = Moonlight_Region_Provider::resolve($city);
+                        $city = $r ? $r['name'] : '';
+                    }
+                }
                 $zip   = isset($addr['zip'])   ? trim($addr['zip'])   : '';
                 $country = isset($addr['country']) ? trim($addr['country']) : '';
                 if ($name) echo '<div><strong>' . esc_html($name) . '</strong>';
                 if ($phone) echo ' <span style="color:#6b7280;">' . esc_html($phone) . '</span>';
                 if ($name) echo '</div>';
-                if ($addr1) echo '<div>' . esc_html($addr1) . '</div>';
-                if ($addr2) echo '<div>' . esc_html($addr2) . '</div>';
                 $cityline = trim(implode(' ', array_filter(array($state, $city, $zip, $country))));
                 if ($cityline) echo '<div>' . esc_html($cityline) . '</div>';
+                if ($addr1) echo '<div>' . esc_html($addr1) . '</div>';
+                if ($addr2) echo '<div>' . esc_html($addr2) . '</div>';
                 ?>
             </div>
         <?php else : ?>
@@ -578,9 +592,12 @@ class MLSHOP_Order
      *
      * @param int    $user_id
      * @param string $gateway_id
-     * @param string $coupon_code 优惠码（可选）
+     * @param string $coupon_code      优惠码（可选）
+     * @param array  $shipping_address 收货地址（实物订单；自提单为提货人信息）
+     * @param array  $args             报价附加参数（透传 Price_Calculator::quote，
+     *                                 如 ['shipping_mode'=>'pickup']）
      */
-    public static function create_from_cart($user_id, $gateway_id, $coupon_code = '', $shipping_address = array())
+    public static function create_from_cart($user_id, $gateway_id, $coupon_code = '', $shipping_address = array(), $args = array())
     {
         $cart = MLSHOP_Cart::get_instance();
         $items = $cart->get_items();
@@ -589,7 +606,7 @@ class MLSHOP_Order
         }
 
         // 统一报价（Moonlight_Price_Calculator：小计 → 优惠券 → 运费 → 合计）。
-        $quote = Moonlight_Price_Calculator::quote($items, $coupon_code);
+        $quote = Moonlight_Price_Calculator::quote($items, $coupon_code, $args);
         $subtotal = $quote['subtotal'];
         $total    = $quote['total'];
         $shipping = $quote['shipping'];
@@ -694,6 +711,10 @@ class MLSHOP_Order
         update_post_meta($order_id, '_mlshop_has_physical', $has_physical ? '1' : '0');
         if ($has_physical && is_array($shipping_address) && !empty($shipping_address)) {
             update_post_meta($order_id, '_mlshop_shipping_address', $shipping_address);
+        }
+        // 到店自提订单：记录标记（物流信息 meta box / 邮件据此展示「自提」）
+        if ($has_physical && isset($args['shipping_mode']) && 'pickup' === $args['shipping_mode']) {
+            update_post_meta($order_id, '_mlshop_pickup', '1');
         }
         update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
         update_post_meta($order_id, '_mlshop_status', 'pending');

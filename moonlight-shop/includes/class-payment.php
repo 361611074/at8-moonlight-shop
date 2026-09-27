@@ -150,6 +150,10 @@ class MLSHOP_Payment
             'total'       => $grand_total,
             'has_physical' => $has_physical,
             'gateways'    => $this->get_gateways(),
+            'addresses'   => class_exists('Moonlight_Address_Book')
+                ? Moonlight_Address_Book::get_list(get_current_user_id())
+                : array(),
+            'pickup_enabled' => MLSHOP_Shipping::pickup_enabled(),
         ));
         return ob_get_clean();
     }
@@ -160,6 +164,7 @@ class MLSHOP_Payment
         if (!is_user_logged_in()) {
             mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
         }
+        $uid = get_current_user_id();
 
         $gateway_id = isset($_POST['gateway']) ? sanitize_key($_POST['gateway']) : '';
         $gateway = $this->get_gateway($gateway_id);
@@ -173,18 +178,103 @@ class MLSHOP_Payment
 
         $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';
 
-        // 收集收货地址（仅实物訂單需要）
-        $shipping_address = array();
-        if (isset($_POST['shipping_name'])) {
-            $shipping_address = array(
-                'name'    => sanitize_text_field($_POST['shipping_name']),
-                'phone'   => sanitize_text_field($_POST['shipping_phone']),
-                'address' => sanitize_textarea_field($_POST['shipping_address']),
-                'note'    => isset($_POST['shipping_note']) ? sanitize_textarea_field($_POST['shipping_note']) : '',
-            );
+        // 配送方式：快递配送 / 到店自提（自提开关未开启时忽略客户端值）。
+        // 是否含实物以服务端购物车条目判定，绝不信任前端。
+        $items = MLSHOP_Cart::get_instance()->get_items();
+        $has_physical = MLSHOP_Shipping::has_physical($items);
+        $shipping_mode = 'ship';
+        if ($has_physical
+            && isset($_POST['shipping_mode'])
+            && 'pickup' === sanitize_key($_POST['shipping_mode'])
+            && MLSHOP_Shipping::pickup_enabled()) {
+            $shipping_mode = 'pickup';
         }
 
-        $order_id = MLSHOP_Order::create_from_cart(get_current_user_id(), $gateway_id, $coupon_code, $shipping_address);
+        $shipping_address = array();
+        if ($has_physical) {
+            $note = isset($_POST['shipping_note']) ? sanitize_textarea_field(wp_unslash($_POST['shipping_note'])) : '';
+            if ('pickup' === $shipping_mode) {
+                // 自提：仅需提货人姓名 + 手机号，免运费
+                $pickup_name  = isset($_POST['pickup_name']) ? sanitize_text_field(wp_unslash($_POST['pickup_name'])) : '';
+                $pickup_phone = isset($_POST['pickup_phone']) ? sanitize_text_field(wp_unslash($_POST['pickup_phone'])) : '';
+                if ('' === $pickup_name || '' === $pickup_phone) {
+                    mlshop_send_json(false, __('请填写提货人姓名与手机号。', 'moonlight-shop'));
+                }
+                $shipping_address = array(
+                    'name'  => $pickup_name,
+                    'phone' => $pickup_phone,
+                    'note'  => $note,
+                    'pickup' => 1,
+                );
+            } else {
+                // 快递配送：服务端强制校验收货字段（修复审计 M3，不再信任前端 JS 必填）
+                $name     = isset($_POST['shipping_name']) ? sanitize_text_field(wp_unslash($_POST['shipping_name'])) : '';
+                $phone    = isset($_POST['shipping_phone']) ? sanitize_text_field(wp_unslash($_POST['shipping_phone'])) : '';
+                $detail   = isset($_POST['shipping_address']) ? sanitize_textarea_field(wp_unslash($_POST['shipping_address'])) : '';
+                $province = isset($_POST['shipping_province']) ? sanitize_text_field($_POST['shipping_province']) : '';
+                $city     = isset($_POST['shipping_city']) ? sanitize_text_field($_POST['shipping_city']) : '';
+
+                // 地址簿覆盖：选了地址簿 id 时，同名表单字段一律以地址簿数据为准（防篡改）
+                $address_id = isset($_POST['address_id']) ? sanitize_text_field($_POST['address_id']) : '';
+                if ('' !== $address_id && class_exists('Moonlight_Address_Book')) {
+                    $saved = Moonlight_Address_Book::get($uid, $address_id);
+                    if (!$saved) {
+                        mlshop_send_json(false, __('所选地址不存在，请重新选择。', 'moonlight-shop'));
+                    }
+                    $name     = $saved['name'];
+                    $phone    = $saved['phone'];
+                    $province = $saved['province'];
+                    $city     = $saved['city'];
+                    $detail   = $saved['detail'];
+                }
+
+                // 完整性校验：name / phone / 省 / 市 / detail 缺一不可
+                $missing = array();
+                if ('' === $name) {
+                    $missing[] = __('收件人', 'moonlight-shop');
+                }
+                if ('' === $phone) {
+                    $missing[] = __('联络电话', 'moonlight-shop');
+                }
+                if ('' === $province) {
+                    $missing[] = __('省份', 'moonlight-shop');
+                }
+                if ('' === $city) {
+                    $missing[] = __('城市', 'moonlight-shop');
+                }
+                if ('' === $detail) {
+                    $missing[] = __('详细地址', 'moonlight-shop');
+                }
+                if (!empty($missing)) {
+                    mlshop_send_json(false, sprintf(__('请完整填写收货信息：%s。', 'moonlight-shop'), implode('、', $missing)));
+                }
+
+                // 区码必须能 resolve（省 + 市，且市须属于省），订单同时存区码与名称快照
+                $rp = class_exists('Moonlight_Region_Provider') ? Moonlight_Region_Provider::resolve($province) : false;
+                if (!$rp || 'province' !== $rp['level']) {
+                    mlshop_send_json(false, __('收货省份无效，请重新选择。', 'moonlight-shop'));
+                }
+                $rc = class_exists('Moonlight_Region_Provider') ? Moonlight_Region_Provider::resolve($city) : false;
+                if (!$rc || 'city' !== $rc['level'] || $rc['province'] !== $rp['code']) {
+                    mlshop_send_json(false, __('收货城市无效，请重新选择。', 'moonlight-shop'));
+                }
+
+                $shipping_address = array(
+                    'name'          => $name,
+                    'phone'         => $phone,
+                    'province'      => $rp['code'],
+                    'province_name' => $rp['name'],
+                    'city'          => $rc['code'],
+                    'city_name'     => $rc['name'],
+                    'address'       => $detail,
+                    'note'          => $note,
+                );
+            }
+        }
+
+        $order_id = MLSHOP_Order::create_from_cart($uid, $gateway_id, $coupon_code, $shipping_address, array(
+            'shipping_mode' => $shipping_mode,
+        ));
         if (is_wp_error($order_id)) {
             mlshop_send_json(false, is_wp_error($order_id) ? $order_id->get_error_message() : __('下单失败。', 'moonlight-shop'));
         }

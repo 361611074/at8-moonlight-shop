@@ -136,6 +136,7 @@ class MLSHOP_Admin
             'shipping_free_threshold' => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
             'shipping_flat_rate'      => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
             'shipping_carrier'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'pickup_enabled'          => array('type' => 'integer', 'sanitize' => 'absint'),
             'slug_single'             => array('type' => 'string',  'sanitize' => 'sanitize_title'),
             'slug_archive'            => array('type' => 'string',  'sanitize' => 'sanitize_title'),
             'slug_category'           => array('type' => 'string',  'sanitize' => 'sanitize_title'),
@@ -187,6 +188,146 @@ class MLSHOP_Admin
             'sanitize_callback' => array($this, 'sanitize_enabled_gateways'),
             'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay'),
         ));
+
+        // 運費模板（数组存储；表单提交的是逐行文本，由 sanitize 回调解析为结构化数组）
+        register_setting($group, 'moonlight_shipping_templates', array(
+            'type'              => 'array',
+            'sanitize_callback' => array($this, 'sanitize_shipping_templates'),
+            'default'           => array(),
+        ));
+    }
+
+    /**
+     * 解析運費模板表单输入（每行：模板名|模式|首件|续件|免邮门槛）。
+     *
+     * 示例：
+     *   順豐標準|fixed|50|0|400   → fixed：小计未达 400 收 50
+     *   促銷品|piece|10|5|0      → piece：首件 10，续件每件 +5
+     *
+     * - mode 仅接受 fixed / piece（默认 fixed）；
+     * - fixed 模式「首件」列即固定运费（flat_fee），续件列忽略；
+     * - id 由模板名派生（md5 前 8 位），同名模板跨保存保持 id 稳定，
+     *   改名 = 新模板（旧商品回落默认全局运费）；
+     * - 也可接受程序化数组输入（REST / 代码写入），逐行规范化。
+     *
+     * @param string|array $value
+     * @return array
+     */
+    public function sanitize_shipping_templates($value)
+    {
+        $lines = array();
+        if (is_array($value)) {
+            foreach ($value as $row) {
+                if (!is_array($row)) {
+                    continue;
+                }
+                $lines[] = implode('|', array(
+                    isset($row['name']) ? $row['name'] : '',
+                    isset($row['mode']) ? $row['mode'] : 'fixed',
+                    isset($row['first']) ? $row['first'] : (isset($row['flat_fee']) ? $row['flat_fee'] : 0),
+                    isset($row['extra']) ? $row['extra'] : (isset($row['extra_item_fee']) ? $row['extra_item_fee'] : 0),
+                    isset($row['threshold']) ? $row['threshold'] : (isset($row['free_threshold']) ? $row['free_threshold'] : 0),
+                ));
+            }
+        } else {
+            $lines = preg_split('/\r\n|\r|\n/', (string) $value);
+        }
+
+        $out  = array();
+        $seen = array();
+        foreach ((array) $lines as $line) {
+            $line = trim((string) $line);
+            if ('' === $line || 0 === strpos($line, '#')) {
+                continue;
+            }
+            $parts = array_map('trim', explode('|', $line));
+            $name = sanitize_text_field(isset($parts[0]) ? $parts[0] : '');
+            if ('' === $name) {
+                continue;
+            }
+            $mode = isset($parts[1]) ? sanitize_key($parts[1]) : 'fixed';
+            if (!in_array($mode, array('fixed', 'piece'), true)) {
+                $mode = 'fixed';
+            }
+            $first     = isset($parts[2]) ? mlshop_sanitize_float($parts[2]) : 0.0;
+            $extra     = isset($parts[3]) ? mlshop_sanitize_float($parts[3]) : 0.0;
+            $threshold = isset($parts[4]) ? mlshop_sanitize_float($parts[4]) : 0.0;
+
+            if ('piece' === $mode) {
+                if ($first <= 0 && $extra <= 0) {
+                    continue; // 首件/续件全 0 的按件模板无意义
+                }
+                $row = array(
+                    'id'             => '',
+                    'name'           => $name,
+                    'mode'           => 'piece',
+                    'flat_fee'       => 0.0,
+                    'first_item_fee' => $first,
+                    'extra_item_fee' => $extra,
+                    'free_threshold' => $threshold,
+                );
+            } else {
+                if ($first <= 0) {
+                    continue; // fixed 模式「首件」列即固定运费，0 = 无效行
+                }
+                $row = array(
+                    'id'             => '',
+                    'name'           => $name,
+                    'mode'           => 'fixed',
+                    'flat_fee'       => $first,
+                    'first_item_fee' => 0.0,
+                    'extra_item_fee' => 0.0,
+                    'free_threshold' => $threshold,
+                );
+            }
+
+            // id 由名称派生并去重（md5 摘要保证中文名也有稳定 ASCII id）
+            $id = 'tpl_' . substr(md5($row['name']), 0, 8);
+            $n  = 1;
+            while (isset($seen[$id])) {
+                $id = 'tpl_' . substr(md5($row['name']), 0, 8) . '_' . (++$n);
+            }
+            $seen[$id]  = true;
+            $row['id']  = $id;
+            // 模板名限长（mbstring 缺失时按字节截断兜底）
+            $row['name'] = function_exists('mb_substr')
+                ? mb_substr($row['name'], 0, 40, 'UTF-8')
+                : substr($row['name'], 0, 40);
+            $out[]      = $row;
+        }
+        return $out;
+    }
+
+    /**
+     * 运费模板数组 → 逐行文本（设置页 textarea 回显）。
+     *
+     * @param array $templates
+     * @return string
+     */
+    public static function templates_to_text($templates)
+    {
+        $lines = array();
+        foreach ((array) $templates as $t) {
+            if (!is_array($t) || empty($t['name'])) {
+                continue;
+            }
+            $mode = isset($t['mode']) && 'piece' === $t['mode'] ? 'piece' : 'fixed';
+            if ('piece' === $mode) {
+                $first = isset($t['first_item_fee']) ? $t['first_item_fee'] : 0;
+                $extra = isset($t['extra_item_fee']) ? $t['extra_item_fee'] : 0;
+            } else {
+                $first = isset($t['flat_fee']) ? $t['flat_fee'] : 0;
+                $extra = 0;
+            }
+            $lines[] = implode('|', array(
+                $t['name'],
+                $mode,
+                rtrim(rtrim(number_format((float) $first, 2, '.', ''), '0'), '.'),
+                rtrim(rtrim(number_format((float) $extra, 2, '.', ''), '0'), '.'),
+                rtrim(rtrim(number_format((float) (isset($t['free_threshold']) ? $t['free_threshold'] : 0), 2, '.', ''), '0'), '.'),
+            ));
+        }
+        return implode("\n", $lines);
     }
 
     /**
@@ -618,6 +759,23 @@ class MLSHOP_Admin
                         <td>
                             <input type="text" id="mlshop_shipping_carrier" name="mlshop_shipping_carrier" value="<?php echo esc_attr(mlshop_get_option('shipping_carrier', '順豐速運')); ?>" class="regular-text">
                             <p class="description"><?php esc_html_e('顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('到店自提', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_pickup_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_pickup_enabled" value="1" <?php checked((int) mlshop_get_option('pickup_enabled', 0), 1); ?>> <?php esc_html_e('結算頁實物訂單允許選擇「到店自提」（免運費，收件資料收起為提貨人姓名 + 手機號）', 'moonlight-shop'); ?></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="moonlight_shipping_templates"><?php esc_html_e('運費模板', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="moonlight_shipping_templates" name="moonlight_shipping_templates" rows="4" class="large-text code" placeholder="<?php esc_attr_e('標準快遞|fixed|50|0|400', 'moonlight-shop'); ?>"><?php echo esc_textarea(self::templates_to_text(MLSHOP_Shipping::templates())); ?></textarea>
+                            <p class="description">
+                                <?php esc_html_e('按商品計費的運費模板，每行一條：模板名|模式|首件|續件|免郵門檻。模式 fixed = 固定運費（小計未達門檻收「首件」列金額）；piece = 按件計費（首件 + (件數-1) × 續件）。門檻 > 0 且商品小計達標時該商品免運費。留空 = 未配置，全部商品走上方全局固定運費 + 滿額包郵。', 'moonlight-shop'); ?>
+                                <br><?php esc_html_e('示例：順豐標準|fixed|50|0|400 ／ 促銷品|piece|10|5|0。配置後在商品編輯頁「運費模板」下拉為每個實物商品選擇模板；未選擇的商品仍按全局規則計費。', 'moonlight-shop'); ?>
+                            </p>
                         </td>
                     </tr>
                 </table>
