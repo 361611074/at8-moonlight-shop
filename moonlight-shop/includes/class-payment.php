@@ -120,7 +120,7 @@ class MLSHOP_Payment
         if ($order_id && get_post_type($order_id) === 'mlshop_order') {
             // 归属校验：仅订单所有者（或管理员）可查看订单详情，
             // 防止登录用户枚举 order ID 泄露他人卡密 / 下载链接 / 收货地址。
-            if (!current_user_can('edit_posts')
+            if (!current_user_can('manage_options')
                 && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
                 return '<p class="mlshop-message">' . esc_html__('无权查看该订单。', 'moonlight-shop') . '</p>';
             }
@@ -317,7 +317,7 @@ class MLSHOP_Payment
                 return;
             }
             // 归属校验：仅订单所有者（或管理员）可触发 capture 回跳
-            if (!current_user_can('edit_posts')
+            if (!current_user_can('manage_options')
                 && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
@@ -354,7 +354,7 @@ class MLSHOP_Payment
                 return;
             }
             // 归属校验：仅订单所有者（或管理员）可触发回跳确认
-            if (!current_user_can('edit_posts')
+            if (!current_user_can('manage_options')
                 && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
@@ -377,7 +377,7 @@ class MLSHOP_Payment
                 return;
             }
             // 归属校验：仅订单所有者（或管理员）可触发回跳确认（对齐 PayPal / Stripe 分支）
-            if (!current_user_can('edit_posts')
+            if (!current_user_can('manage_options')
                 && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;

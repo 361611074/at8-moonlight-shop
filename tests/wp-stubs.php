@@ -142,8 +142,9 @@ class __Test_wpdb
     public function query($sql)
     {
         $sql = (string) $sql;
-        // CAS UPDATE postmeta（mlshop_cas_post_meta）：值匹配才更新（行模型）
-        if (preg_match("/UPDATE\s+`?\w*postmeta`?\s+SET\s+meta_value\s*=\s*'((?:[^']|\\')*)'\s+WHERE\s+post_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'((?:[^']|\\')*)'\s+AND\s+meta_value\s*=\s*'((?:[^']|\\')*)'\s*$/i", $sql, $m)) {
+        // CAS UPDATE postmeta（mlshop_cas_post_meta）：值匹配才更新（行模型）。
+        // BINARY 关键字可选（审计 F5 修复后生产 SQL 为 `meta_value = BINARY %s`）。
+        if (preg_match("/UPDATE\s+`?\w*postmeta`?\s+SET\s+meta_value\s*=\s*'((?:[^']|\\')*)'\s+WHERE\s+post_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'((?:[^']|\\')*)'\s+AND\s+meta_value\s*=\s*(?:BINARY\s+)?'((?:[^']|\\')*)'\s*$/i", $sql, $m)) {
             $new  = stripslashes($m[1]);
             $pid  = (int) $m[2];
             $key  = stripslashes($m[3]);

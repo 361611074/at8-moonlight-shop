@@ -1155,12 +1155,28 @@ class MLSHOP_Admin
             'order'          => 'DESC',
         ));
         if (!empty($orders)) {
-            $ok = MLSHOP_Email::get_instance()->send_order_paid_email($orders[0]->ID, $admin_email, true);
+            // 审计 F7：测试邮件不应把真实订单的卡密明文送出站——
+            // 发送前临时掩码卡密行，发送后立即恢复原值。
+            $order_id = (int) $orders[0]->ID;
+            $orig_delivery = get_post_meta($order_id, '_mlshop_delivery', true);
+            if (is_array($orig_delivery)) {
+                $masked = $orig_delivery;
+                foreach ($masked as $i => $d) {
+                    if (isset($d['type']) && 'cardkey' === $d['type'] && !empty($d['key'])) {
+                        $masked[$i]['key'] = '****-MASKED-****';
+                    }
+                }
+                update_post_meta($order_id, '_mlshop_delivery', $masked);
+            }
+            $ok = MLSHOP_Email::get_instance()->send_order_paid_email($order_id, $admin_email, true);
+            if (isset($orig_delivery) && is_array($orig_delivery)) {
+                update_post_meta($order_id, '_mlshop_delivery', $orig_delivery);
+            }
             if ($ok) {
                 $this->redirect_with_notice(
                     'TEST',
                     true,
-                    sprintf(__('測試郵件已發送到 %s（使用訂單 #%s 模擬，含下載連結）。', 'moonlight-shop'), $admin_email, $orders[0]->post_title)
+                    sprintf(__('測試郵件已發送到 %s（使用訂單 #%s 模擬，卡密已掩碼，含下載連結）。', 'moonlight-shop'), $admin_email, $orders[0]->post_title)
                 );
             }
             $this->redirect_with_notice('TEST', false, __('郵件發送失敗，請檢查伺服器郵件配置（wp_mail）。', 'moonlight-shop'));

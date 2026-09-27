@@ -452,6 +452,15 @@ class MLSHOP_Gateway_Alipay extends MLSHOP_Gateway
         foreach ($_GET as $k => $v) {
             $params[(string) $k] = sanitize_text_field(wp_unslash($v));
         }
+        // 剔除站方自有参数（审计 F4）：支付宝只对「它回传的参数」签名，
+        // return_url 上商户自带的 query 参数不在签名原文内，混入会导致验签恒失败。
+        // 仅剔除本插件与常见路由参数；其他插件注入的参数仍可能导致验签失败
+        //（fail-closed，完单主通道为异步 notify，不受影响）。
+        foreach (array_keys($params) as $k) {
+            if (0 === strpos((string) $k, 'mlshop') || in_array((string) $k, array('gateway', 'action', 'p', 'page_id', 'preview'), true)) {
+                unset($params[$k]);
+            }
+        }
         if (!self::verify($params)) {
             self::log($order_id, 'return', 'fail', array('code' => 'signature'));
             return false;

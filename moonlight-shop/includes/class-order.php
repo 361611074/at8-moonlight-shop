@@ -1502,7 +1502,7 @@ class MLSHOP_Order
         if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
             return '';
         }
-        if (!current_user_can('edit_posts') && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+        if (!current_user_can('manage_options') && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
             return '<p>' . esc_html__('无权查看该订单。', 'moonlight-shop') . '</p>';
         }
         self::maybe_expire($order_id);

@@ -45,6 +45,9 @@ class MLPRO_Webhooks
     /** 队列长度上限（防端点永久宕机时无限膨胀；超出丢最旧）。 */
     const MAX_QUEUE = 500;
 
+    /** cron 单轮最大投递数（审计 F9：防止端点宕机时 500×10s 拖垮 cron）。 */
+    const MAX_CRON_BATCH = 20;
+
     /** 可订阅事件白名单。 */
     const EVENTS = array(
         'order.created',
@@ -231,7 +234,19 @@ class MLPRO_Webhooks
             return false;
         }
         $body = self::build_payload($event, self::build_order_data((int) $order_id, $extra));
+        // 审计 F9：前台/请求内同步外呼（每端点最长 10s）会拖慢下单/支付流程——
+        // 非 cron 上下文（前台/AJAX/后台请求）一律「入队 + cron 消费」（next_try=0 即到期）；
+        // 仅 cron 与 WP-CLI 保持立即投递（运维上下文可感知结果）。
+        $sync = wp_doing_cron() || (defined('WP_CLI') && WP_CLI);
         foreach ($targets as $endpoint) {
+            if (!$sync) {
+                $queue   = get_option(self::OPT_QUEUE, array());
+                $queue   = is_array($queue) ? $queue : array();
+                $item    = self::build_queue_item($endpoint['id'], $event, $body, 0);
+                $item['next_try'] = 0; // 立即到期，下一轮 cron 消费
+                update_option(self::OPT_QUEUE, self::push_capped($queue, $item, self::MAX_QUEUE));
+                continue;
+            }
             $res = self::deliver($endpoint, $event, $body);
             if (empty($res['success'])) {
                 self::enqueue($endpoint['id'], $event, $body);
@@ -255,6 +270,7 @@ class MLPRO_Webhooks
 
     /**
      * cron mlpro_webhook_retry：处理到期待重队列。
+     * 单轮限额（审计 F9）：端点宕机时最坏 500×10s 会拖垮 cron，每轮最多处理 MAX_CRON_BATCH 条。
      */
     public function process_queue()
     {
@@ -266,9 +282,15 @@ class MLPRO_Webhooks
         $now       = time();
         $remaining = array();
         $changed   = false;
+        $processed = 0;
 
         foreach ($queue as $item) {
             if (!is_array($item) || (int) $item['next_try'] > $now) {
+                $remaining[] = $item;
+                continue;
+            }
+            // 本轮限额：到期待投递的留在队列里，下一轮 cron 继续。
+            if ($processed >= self::MAX_CRON_BATCH) {
                 $remaining[] = $item;
                 continue;
             }
@@ -279,6 +301,7 @@ class MLPRO_Webhooks
                 continue;
             }
             $res = self::deliver($endpoints[$item['endpoint_id']], $item['event'], $item['body']);
+            $processed++;
             if (!empty($res['success'])) {
                 $changed = true; // 成功：出队
                 continue;
@@ -763,6 +786,14 @@ class MLPRO_Webhooks
             wp_safe_redirect($redirect);
             exit;
         }
+        // SSRF 加固（审计 F10）：拒绝指向内网/回环/链路本地地址的端点，
+        // 防止被用作出站内网探测（域名解析到私网 IP 同样拒绝）。
+        $host = (string) wp_parse_url($url, PHP_URL_HOST);
+        if ('' !== $host && self::is_private_host($host)) {
+            self::set_notice(__('Webhook URL 不允许指向内网 / 回环 / 链路本地地址。', 'moonlight-shop-pro'), true);
+            wp_safe_redirect($redirect);
+            exit;
+        }
 
         $raw = get_option(self::OPT_ENDPOINTS, array());
         if (!is_array($raw)) {
@@ -836,5 +867,36 @@ class MLPRO_Webhooks
     public static function generate_secret()
     {
         return bin2hex(random_bytes(24));
+    }
+
+    /**
+     * SSRF 加固（审计 F10）：判断主机是否指向内网 / 回环 / 链路本地。
+     * 支持 IP 直填与域名解析两种情况；DNS Rebinding 不在此层防御（消费方超时+限额兜底）。
+     *
+     * @param string $host 主机名或 IP。
+     * @return bool true = 拒绝该主机。
+     */
+    public static function is_private_host($host)
+    {
+        $host = strtolower(trim((string) $host));
+        if ('' === $host) {
+            return false;
+        }
+        if ('localhost' === $host || 0 === strpos($host, 'localhost.') || '.local' === substr($host, -6)) {
+            return true;
+        }
+        $ip = filter_var($host, FILTER_VALIDATE_IP) ? $host : @gethostbyname($host);
+        if (!$ip || $ip === $host) {
+            // 域名解析失败：拒绝（宁可误拒不可放行内网）。
+            return filter_var($host, FILTER_VALIDATE_IP) ? false : true;
+        }
+        // FILTER_FLAG_NO_PRIV_RANGE | NO_RES_RANGE 排除私网/保留段；再补链路本地 169.254.0.0/16。
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return true;
+        }
+        if (0 === strpos($ip, '169.254.') || 0 === strpos($ip, 'fe80:')) {
+            return true;
+        }
+        return false;
     }
 }

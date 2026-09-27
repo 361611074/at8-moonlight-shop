@@ -355,6 +355,14 @@ class Moonlight_Refund_Service
 
         $is_full   = ($amount <= 0 || $amount >= $total);
         $effective = $is_full ? $total : $amount;
+        // 部分退款金额截断（审计 F2）：累计退款不得超过订单总额，防止超额出账。
+        $refunded_so_far = (float) get_post_meta($order_id, self::META_REFUNDED_TOTAL, true);
+        if (!$is_full) {
+            $effective = min($effective, $total - $refunded_so_far);
+            if ($effective <= 0.001) {
+                return new WP_Error('moonlight_refund_amount', __('可退金额不足（累计退款已接近订单总额）。', 'moonlight-shop'));
+            }
+        }
 
         // 防抖：同一秒内同额 + 同因 + 同操作者 = 同一请求重复提交，拒绝
         $log  = self::refund_log($order_id);

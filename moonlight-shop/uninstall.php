@@ -99,3 +99,30 @@ $wpdb->query(
      WHERE option_name LIKE '\\_transient\\_mlshop\\_card\\_low\\_stock\\_%'
         OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_card\\_low\\_stock\\_%'"
 );
+
+/* ---------------- 新架构核心层清理（审计 F8） ---------------- */
+
+// 新结构 option（归组配置 / DB 版本 / 迁移日志与标记）
+delete_option('moonlight_shop_options');
+delete_option('moonlight_db_version');
+delete_option('moonlight_db_upgrade_error');
+delete_option('moonlight_migration_log');
+delete_option('moonlight_consent_migrate_mluc');
+delete_option('moonlight_shipping_last_sync');
+delete_option('mlshop_enabled_gateways');
+delete_option('mlshop_url_slugs');
+
+// 下载 token / 付费墙下载 / 群发队列 / 价格缓存 等 transient（成对删除）
+$wpdb->query(
+    "DELETE FROM {$wpdb->options}
+     WHERE option_name LIKE '\\_transient\\_mlshop\\_dl\\_%'
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_dl\\_%'
+        OR option_name LIKE '\\_transient\\_mlshop\\_pw\\_dl\\_%'
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_pw\\_dl\\_%'
+        OR option_name LIKE '\\_transient\\_mlshop\\_bulk\\_%'
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_bulk\\_%'
+        OR option_name = '_transient_mlshop_price_bounds_v1'
+        OR option_name = '_transient_timeout_mlshop_price_bounds_v1'
+        OR option_name LIKE '\\_transient\\_mlshop\\_paypal\\_token%'
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_paypal\\_token%'"
+);

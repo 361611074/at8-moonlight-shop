@@ -168,29 +168,40 @@ class Moonlight_Migrations
             self::log('m3_migrate_mluc_orders', 'skipped (mluc_order not registered)');
             return true;
         }
-        $orders = get_posts(array(
-            'post_type'      => 'mluc_order',
-            'posts_per_page' => 200,
-            'post_status'    => 'any',
-            'fields'         => 'ids',
-            'orderby'        => 'date',
-            'order'          => 'ASC',
-        ));
         $copied = 0;
-        foreach ((array) $orders as $oid) {
-            $oid = (int) $oid;
-            if (get_post_meta($oid, '_mluc_migrated_to', true)) {
-                continue;
+        // 分页循环到没有未迁移订单为止（审计 F12：>200 条站点只迁一半的缺陷）。
+        do {
+            $orders = get_posts(array(
+                'post_type'      => 'mluc_order',
+                'posts_per_page' => 200,
+                'post_status'    => 'any',
+                'fields'         => 'ids',
+                'orderby'        => 'date',
+                'order'          => 'ASC',
+                // 已迁移的带标记，meta 查询排除后翻页才不会卡在同一批
+                'meta_query'     => array(
+                    array(
+                        'key'     => '_mluc_migrated_to',
+                        'compare' => 'NOT EXISTS',
+                    ),
+                ),
+            ));
+            $chunk = count((array) $orders);
+            foreach ((array) $orders as $oid) {
+                $oid = (int) $oid;
+                if (get_post_meta($oid, '_mluc_migrated_to', true)) {
+                    continue;
+                }
+                $new_id = self::copy_mluc_order($oid);
+                if (is_wp_error($new_id)) {
+                    return $new_id;
+                }
+                if ($new_id > 0) {
+                    update_post_meta($oid, '_mluc_migrated_to', $new_id);
+                    $copied++;
+                }
             }
-            $new_id = self::copy_mluc_order($oid);
-            if (is_wp_error($new_id)) {
-                return $new_id;
-            }
-            if ($new_id > 0) {
-                update_post_meta($oid, '_mluc_migrated_to', $new_id);
-                $copied++;
-            }
-        }
+        } while ($chunk >= 200);
         self::log('m3_migrate_mluc_orders', sprintf('copied %d orders', $copied));
         return true;
     }
@@ -275,6 +286,11 @@ class Moonlight_Migrations
      */
     public static function m4_migrate_cardkeys()
     {
+        // 前置条件：加密依赖 OpenSSL。缺失时中止迁移（失败即停 + 后台修复入口），
+        // 绝不允许在无法加密的情况下清空明文池（审计 F1：数据丢失面）。
+        if (!function_exists('openssl_encrypt') || !function_exists('openssl_decrypt')) {
+            return new WP_Error('moonlight_migration_no_openssl', 'OpenSSL 扩展不可用，卡密加密迁移已中止（明文池保持原样）');
+        }
         $done    = 0;
         $imported_total = 0;
         do {
@@ -284,18 +300,27 @@ class Moonlight_Migrations
                 $pid  = (int) $pid;
                 $pool = (string) get_post_meta($pid, '_mlshop_cardkeys', true);
                 $lines = array_values(array_filter(array_map('trim', explode("\n", $pool))));
+                $complete = true;
                 $imported = 0;
                 if (!empty($lines)) {
                     $res = static::import_cardkeys($pid, $lines, '迁移 ' . date('Ymd-His'));
-                    if (is_array($res)) {
+                    if (is_array($res) && (int) $res['batch_id'] > 0
+                        && ((int) $res['imported'] + (int) $res['duplicates']) === count($lines)) {
                         $imported = (int) $res['imported'];
+                    } else {
+                        // 导入不完整（建批次失败/部分行写入失败）：保留明文池，
+                        // 不写迁移标记（下次升级自动重试），绝不丢失存量卡密。
+                        $complete = false;
+                        self::log('m4_migrate_cardkeys', sprintf('product #%d import incomplete, plaintext kept', $pid));
                     }
                 }
-                // 幂等标记 + 明文池置空（即使池为空也写标记，避免重复扫描）。
-                update_post_meta($pid, '_mlshop_cardkeys_migrated', 1);
-                update_post_meta($pid, '_mlshop_cardkeys', '');
-                $done++;
-                $imported_total += $imported;
+                if ($complete) {
+                    // 幂等标记 + 明文池置空（明文已全部进入加密批次或池本为空）。
+                    update_post_meta($pid, '_mlshop_cardkeys_migrated', 1);
+                    update_post_meta($pid, '_mlshop_cardkeys', '');
+                    $done++;
+                    $imported_total += $imported;
+                }
             }
         } while ($chunk >= 200);
         self::log('m4_migrate_cardkeys', sprintf('migrated %d products, imported %d cardkeys', $done, $imported_total));

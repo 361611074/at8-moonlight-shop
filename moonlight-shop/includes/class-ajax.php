@@ -262,7 +262,7 @@ class MLSHOP_Ajax
     /**
      * 用户确认收货（登录 + mlshop_nonce）：订单 delivered → completed。
      *
-     * 校验链：nonce → 登录 → 订单存在 → 属主（管理员 edit_posts 放行）→
+     * 校验链：nonce → 登录 → 订单存在 → 属主（管理员 manage_options 放行）→
      * 当前状态必须为 delivered（其余状态一律拒绝，走状态机白名单）。
      */
     public function confirm_delivery()
@@ -279,7 +279,7 @@ class MLSHOP_Ajax
             mlshop_send_json(false, __('订单不存在。', 'moonlight-shop'));
         }
         // 属主校验：仅订单所有者（或管理员）可确认收货
-        if (!current_user_can('edit_posts')
+        if (!current_user_can('manage_options')
             && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
             mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
         }
@@ -316,7 +316,7 @@ class MLSHOP_Ajax
             mlshop_send_json(false, __('订单不存在。', 'moonlight-shop'));
         }
         // 属主校验：仅订单所有者（或管理员）可申请售后
-        if (!current_user_can('edit_posts')
+        if (!current_user_can('manage_options')
             && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
             mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
         }

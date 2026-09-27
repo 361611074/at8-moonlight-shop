@@ -588,6 +588,11 @@ class MLSHOP_Product
                     $clean[] = $line;
                 }
             }
+            // 行数上限（审计 F11）：与「卡密库存」页导入同一上限，防误贴超大文本拖垮保存。
+            $max_lines = 5000;
+            if (count($clean) > $max_lines) {
+                $clean = array_slice($clean, 0, $max_lines);
+            }
             if (!empty($clean)) {
                 Moonlight_Card_Stock::import($post_id, $clean, '商品编辑导入 ' . date('Ymd-His'));
             }

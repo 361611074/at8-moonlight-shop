@@ -678,7 +678,7 @@ class Moonlight_Card_Stock
             $wpdb->prepare(
                 "UPDATE {$wpdb->postmeta}
                  SET meta_key = %s, meta_value = %s
-                 WHERE meta_id = %d AND meta_value = %s",
+                 WHERE meta_id = %d AND meta_value = BINARY %s",
                 self::ST_SOLD,
                 (string) $new_json,
                 $meta_id,
@@ -708,7 +708,7 @@ class Moonlight_Card_Stock
         $affected = $wpdb->query(
             $wpdb->prepare(
                 "UPDATE {$wpdb->postmeta} SET meta_key = %s
-                 WHERE meta_id = %d AND meta_value = %s",
+                 WHERE meta_id = %d AND meta_value = BINARY %s",
                 $meta_key,
                 (int) $meta_id,
                 (string) $expected

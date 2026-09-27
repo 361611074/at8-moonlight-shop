@@ -581,7 +581,7 @@ function mlshop_cas_post_meta($post_id, $meta_key, $expected, $new_value)
     $affected = $wpdb->query(
         $wpdb->prepare(
             "UPDATE {$wpdb->postmeta} SET meta_value = %s
-             WHERE post_id = %d AND meta_key = %s AND meta_value = %s",
+             WHERE post_id = %d AND meta_key = %s AND meta_value = BINARY %s",
             (string) $new_value,
             (int) $post_id,
             (string) $meta_key,
