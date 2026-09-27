@@ -1,6 +1,8 @@
 # DATABASE.md — 数据架构与数据字典
 
 > Phase 1 交付物 · 2026-09-27
+>
+> **实现状态（v2.0.0 / DB_VERSION 2.1.0）**：DB_VERSION 机制 ✅ / 卡密批次加密双轨 ✅（实现与 3.5 节方案的差异：卡密按状态分 meta_key 存储于批次 post、非分块 JSON） / 订单状态集扩展 ✅（awaiting_shipment/shipped/delivered） / 地址簿 ✅ / `wp_moonlight_order_index` 索引表仍为性能预案（未启用）。
 
 ## 一、存储决策（审计结论）
 

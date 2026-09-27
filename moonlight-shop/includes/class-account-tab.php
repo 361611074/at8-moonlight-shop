@@ -68,6 +68,8 @@ class MLSHOP_Account_Tab
 
     public function shortcode_orders()
     {
+        // 缓存兼容：订单列表为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         if (!is_user_logged_in()) {
             return '<p>' . esc_html__('请先登录查看订单。', 'moonlight-shop') . '</p>';
         }
@@ -106,6 +108,8 @@ class MLSHOP_Account_Tab
      */
     public function shortcode_address()
     {
+        // 缓存兼容：地址簿为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         ob_start();
         $this->render_addresses();
         return ob_get_clean();

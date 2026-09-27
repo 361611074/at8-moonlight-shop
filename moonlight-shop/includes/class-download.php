@@ -207,6 +207,8 @@ class MLSHOP_Download
      */
     public function shortcode_downloads()
     {
+        // 缓存兼容：下载列表为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         if (!is_user_logged_in()) {
             return '<p>' . esc_html__('请先登录。', 'moonlight-shop') . '</p>';
         }

@@ -34,6 +34,8 @@ class MLSHOP_Coupon
         // 支付成功后自增用量（線上付款走 paid；貨到付款走 completed；increment_usage 内部幂等保护）
         add_action('mlshop_order_paid', array($this, 'increment_usage'), 5);
         add_action('mlshop_order_completed', array($this, 'increment_usage'), 5);
+        // 前台「我的优惠券」短代码：列出当前可用优惠券（登录用户，Phase 10 补全）
+        add_shortcode('mlshop_coupons', array($this, 'shortcode_coupons'));
     }
 
     public static function register_post_type()
@@ -366,5 +368,97 @@ class MLSHOP_Coupon
             ));
         }
         update_post_meta($order_id, '_mlshop_coupon_incremented', '1');
+    }
+
+    /**
+     * [mlshop_coupons] 短代码：当前用户可用的优惠券列表。
+     *
+     * 扫描 mlshop_coupon CPT 的有效券（已发布 + 启用 + 名额未用尽 + 未过期），
+     * 展示优惠码、面值、最低消费与有效期。此处仅做展示级过滤，
+     * 结算时仍以 MLSHOP_Coupon::validate() 的服务端校验为准。
+     */
+    public function shortcode_coupons()
+    {
+        // 缓存兼容：优惠券列表随登录态变化，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
+        if (!is_user_logged_in()) {
+            return '<p class="mlshop-message">' . esc_html__('请先登录查看优惠券。', 'moonlight-shop') . '</p>';
+        }
+
+        $now = current_time('timestamp');
+        $posts = get_posts(array(
+            'post_type'      => 'mlshop_coupon',
+            'post_status'    => 'publish',
+            'posts_per_page' => 100,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'no_found_rows'  => true,
+        ));
+
+        $rows = array();
+        foreach ($posts as $c) {
+            if (!get_post_meta($c->ID, '_mlshop_coupon_active', true)) {
+                continue; // 已停用
+            }
+            $limit = (int) get_post_meta($c->ID, '_mlshop_coupon_limit', true);
+            $used  = (int) get_post_meta($c->ID, '_mlshop_coupon_used', true);
+            if ($limit > 0 && $used >= $limit) {
+                continue; // 名额已用尽
+            }
+            $expire = (string) get_post_meta($c->ID, '_mlshop_coupon_expire', true);
+            if ($expire && strtotime($expire . ' 23:59:59') < $now) {
+                continue; // 已过期
+            }
+            $type  = (string) get_post_meta($c->ID, '_mlshop_coupon_type', true);
+            $value = (float) get_post_meta($c->ID, '_mlshop_coupon_value', true);
+            $min   = (float) get_post_meta($c->ID, '_mlshop_coupon_min', true);
+            $rows[] = array(
+                'code'    => (string) $c->post_title,
+                'value'   => self::coupon_value_label($type, $value),
+                'min'     => $min > 0 ? mlshop_format_price($min) : '',
+                'expire'  => $expire,
+            );
+        }
+
+        ob_start();
+        echo '<div class="mlshop-coupons">';
+        if (empty($rows)) {
+            echo '<p class="mlshop-message">' . esc_html__('暂无可用优惠券。', 'moonlight-shop') . '</p>';
+            return ob_get_clean();
+        }
+        echo '<table class="mlshop-coupon-list"><thead><tr>'
+            . '<th>' . esc_html__('优惠码', 'moonlight-shop') . '</th>'
+            . '<th>' . esc_html__('面值', 'moonlight-shop') . '</th>'
+            . '<th>' . esc_html__('最低消费', 'moonlight-shop') . '</th>'
+            . '<th>' . esc_html__('有效期至', 'moonlight-shop') . '</th>'
+            . '</tr></thead><tbody>';
+        foreach ($rows as $r) {
+            echo '<tr>';
+            echo '<td><code class="mlshop-coupon-code">' . esc_html($r['code']) . '</code></td>';
+            echo '<td>' . esc_html($r['value']) . '</td>';
+            echo '<td>' . ('' !== $r['min'] ? esc_html($r['min']) : esc_html__('无门槛', 'moonlight-shop')) . '</td>';
+            echo '<td>' . ('' !== $r['expire'] ? esc_html($r['expire']) : esc_html__('长期有效', 'moonlight-shop')) . '</td>';
+            echo '</tr>';
+        }
+        echo '</tbody></table>';
+        echo '</div>';
+        return ob_get_clean();
+    }
+
+    /**
+     * 面值展示文案：percent → "10%"；fixed → 货币金额。
+     *
+     * @param string $type  优惠类型（percent / fixed）
+     * @param float  $value 优惠数值
+     * @return string
+     */
+    public static function coupon_value_label($type, $value)
+    {
+        $value = (float) $value;
+        if ('fixed' === $type) {
+            return mlshop_format_price($value);
+        }
+        $num = rtrim(rtrim(number_format($value, 2, '.', ''), '0'), '.');
+        return $num . '%';
     }
 }

@@ -98,6 +98,8 @@ class MLSHOP_Favorite
 
     public function shortcode_favorites()
     {
+        // 缓存兼容：收藏按 Cookie 区分用户，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         $ids = $this->get_ids();
         ob_start();
         if (empty($ids)) {

@@ -6,10 +6,10 @@
 
 | 网关 | Webhook URL |
 |------|-------------|
-| Stripe | `https://<你的站点域名>/？mlshop_stripe_webhook=1` |
-| PayPal | `https://<你的站点域名>/？mlshop_paypal_webhook=1` |
+| Stripe | `https://your-site.com/?mlshop_stripe_webhook=1` |
+| PayPal | `https://your-site.com/?mlshop_paypal_webhook=1` |
 
-> 例：`https://asia-languagebuilder.com/?mlshop_stripe_webhook=1`
+> 例：`https://your-site.com/?mlshop_stripe_webhook=1`（把 `your-site.com` 换成你的站点域名）
 
 ## 前置要求
 
@@ -32,9 +32,9 @@
 1. 左侧菜单 **Developers → Webhooks → Add endpoint**
 2. 填入 URL:
    ```
-   https://<你的站点域名>/？mlshop_stripe_webhook=1
+   https://your-site.com/?mlshop_stripe_webhook=1
    ```
-   > 例如: `https://asia-languagebuilder.com/?mlshop_stripe_webhook=1`
+   > 例如: `https://your-site.com/?mlshop_stripe_webhook=1`
 3. **Redirect URL** 留空。
 4. 在 **Select events to send** 中勾选:
    - `checkout.session.completed` (必选 —— 用于标记订单 paid)
@@ -69,7 +69,7 @@
 1. 在 App 详情页左侧菜单 **Webhooks → Add Webhook**
 2. 填入 URL:
    ```
-   https://<你的站点域名>/？mlshop_paypal_webhook=1
+   https://your-site.com/?mlshop_paypal_webhook=1
    ```
 3. **Event types** 至少勾选:
    - `PAYMENT.CAPTURE.COMPLETED` (必选 —— 用于标记订单 paid)

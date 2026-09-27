@@ -38,6 +38,8 @@ class MLSHOP_Membership_UI
      */
     public function shortcode_upgrade()
     {
+        // 缓存兼容：会员卡片随登录态变化，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         if (!is_user_logged_in()) {
             return '<p>' . esc_html__('请先登录。', 'moonlight-shop') . '</p>';
         }

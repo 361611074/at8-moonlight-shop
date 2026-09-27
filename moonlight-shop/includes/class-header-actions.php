@@ -39,17 +39,23 @@ class MLSHOP_Header_Actions
         add_action('init', array($this, 'ensure_favorites_page'), 5);
         // 未登录访问购物车 / 收藏页 → 跳登录并在登录后回跳
         add_action('template_redirect', array($this, 'maybe_redirect_guest'));
-        // 测试站：禁止浏览器缓存前台 HTML，避免匿名访客看到「页眉按钮上线前」的陈旧快照
-        // （生产站 home_url 不含 test 域名，不受影响）。
+        // 非生产环境（开发 / staging）：禁止浏览器缓存前台 HTML，避免匿名访客
+        // 看到「页眉按钮上线前」的陈旧快照（M5：不再按域名硬编码判断测试站）。
+        // 默认 wp_get_environment_type() !== 'production' 时启用；
+        // 可通过过滤器 moonlight_disable_cache 强制开关（返回 true = 禁缓存）。
         add_action('send_headers', array($this, 'prevent_front_cache'), 5);
     }
 
     /**
-     * 仅对测试站前台 GET 请求关闭浏览器缓存。
+     * 非生产环境前台 GET 请求关闭浏览器缓存。
      *
      * 现象：匿名首页服务端正确输出了页眉按钮，但因响应无 Cache-Control / 无 Set-Cookie，
      * 浏览器会启发式缓存该页；登录态带 cookie 不会被缓存 → 登录看得到、未登录看不到旧快照。
      * 这里显式 no-cache，保证每次都是最新渲染。后台 / AJAX / 非 GET 一律不动。
+     *
+     * 判定（修复审计 M5，移除硬编码测试域名）：
+     *   wp_get_environment_type() !== 'production' → 默认禁缓存；
+     *   过滤器 moonlight_disable_cache 可按站点覆盖（生产站需要时也能开启）。
      */
     public function prevent_front_cache()
     {
@@ -59,7 +65,7 @@ class MLSHOP_Header_Actions
         if (empty($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'GET') {
             return;
         }
-        if (strpos(home_url(), 'test.asia-languagebuilder.com') === false) {
+        if (!apply_filters('moonlight_disable_cache', wp_get_environment_type() !== 'production')) {
             return;
         }
         header('Cache-Control: no-cache, no-store, must-revalidate');

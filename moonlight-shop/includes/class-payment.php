@@ -107,6 +107,8 @@ class MLSHOP_Payment
 
     public function shortcode_checkout()
     {
+        // 缓存兼容：结算 / 订单详情为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         if (!is_user_logged_in()) {
             $login = function_exists('mluc_get_account_url') ? mluc_get_account_url() : wp_login_url(mlshop_get_page_url('checkout'));
             return '<p class="mlshop-message">' .

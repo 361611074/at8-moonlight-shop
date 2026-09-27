@@ -111,6 +111,36 @@ function mlshop_ajax_data()
     );
 }
 
+/**
+ * 商城动态页禁缓存（计划书第五十九节：缓存兼容）。
+ *
+ * 购物车 / 结算 / 账户 / 订单详情等用户态短代码在渲染入口调用本函数，
+ * 通知页面缓存插件（及浏览器）不要缓存当前响应，防止 A 用户登录态
+ * 内容（购物车、卡密、收货地址）被缓存后泄露给匿名访客。
+ *
+ * 误伤防护（全部满足才生效）：
+ * - 仅主查询渲染（is_main_query），排除 REST / 嵌入 / 自定义查询片段；
+ * - 非 feed、非 admin、非 AJAX、非 cron。
+ *
+ * 生效动作：定义 DONOTCACHEPAGE（WP Super Cache / W3TC / LiteSpeed 等识别）
+ * 并输出 no-cache 响应头（nocache_headers）。
+ *
+ * @return void
+ */
+function mlshop_no_cache()
+{
+    if (is_admin() || wp_doing_ajax() || defined('DOING_AJAX') || defined('DOING_CRON') || defined('REST_REQUEST')) {
+        return;
+    }
+    if (is_feed() || !is_main_query()) {
+        return;
+    }
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+    nocache_headers();
+}
+
 function mlshop_send_json($success, $message, $data = array())
 {
     wp_send_json(array(

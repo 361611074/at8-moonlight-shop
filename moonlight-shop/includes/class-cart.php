@@ -147,6 +147,8 @@ class MLSHOP_Cart
 
     public function shortcode_cart()
     {
+        // 缓存兼容：购物车为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         ob_start();
         mlshop_get_template('cart', array(
             'items'    => $this->get_items(),

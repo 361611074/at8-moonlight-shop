@@ -2,8 +2,8 @@
 /**
  * Plugin Name:      漫步白月光电子商城
  * Plugin URI:       https://www.at8.fun/
- * Description:       轻量、主题无关的电子商城系统，兼容 Astra 主题与 Elementor。支持实物、虚拟下载、卡密商品，提供购物车、结算、订单与可扩展支付网关。与「漫步白月光用户中心」无缝集成。
- * Version:          1.7.4
+ * Description:       轻量、主题无关的电子商城系统，兼容 Astra 主题与 Elementor。支持实物 / 虚拟下载 / 卡密商品，提供购物车、结算、订单全流程；支付网关内置支付宝 / 微信（预留）、PayPal、Stripe、余额、积分、货到付款与线下转账；支持运费模板、物流轨迹查询与售后退款；与「漫步白月光用户中心」账户中心无缝集成。
+ * Version:          2.0.0
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLSHOP_VERSION', '1.7.4');
+define('MLSHOP_VERSION', '2.0.0');
 define('MLSHOP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLSHOP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLSHOP_PLUGIN_FILE', __FILE__);
@@ -93,7 +93,9 @@ add_action('plugins_loaded', function () {
     MLSHOP_Elementor::get_instance();
     MLSHOP_Bulk_Email::get_instance();
     // 订单统计：自带子菜单 + 服务端 SVG 图表，零外部依赖（2026-08-28）
+    // 商城仪表盘（Phase 9）：概览卡片 + 卡密库存预警，重排为商城菜单默认首页
     if (is_admin()) {
+        MLSHOP_Dashboard::get_instance();
         MLSHOP_Statistics::get_instance();
         MLSHOP_Admin::get_instance();
     }

@@ -1495,6 +1495,8 @@ class MLSHOP_Order
      */
     public function shortcode_order($atts)
     {
+        // 缓存兼容：订单详情含卡密 / 下载链接等敏感内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
         $atts = shortcode_atts(array('id' => 0), $atts, 'mlshop_order');
         $order_id = (int) $atts['id'];
         if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
