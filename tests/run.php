@@ -6,6 +6,8 @@
  * 物流第一批：Region Provider、地址簿、运费模板计价、自提报价。
  * 物流第二批：状态机扩展（待发货/已发货/已签收）、标签单一来源、
  *             发货单/轨迹、Provider 注册表、cron 同步与自动完成、Express100 解析器。
+ * Pro（moonlight-shop-pro）：MLPRO Webhook 签名/退避/事件过滤、
+ *             CSV 公式注入防护、日期白名单、License 客户端本地回退。
  */
 
 require __DIR__ . '/wp-stubs.php';
@@ -26,6 +28,10 @@ require __DIR__ . '/../moonlight-shop/includes/core/class-refund-service.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-stripe.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-paypal.php';
+// Pro（moonlight-shop-pro）：可独立测的静态逻辑（class-analytics 依赖 WP_Query，不在此单测）
+require __DIR__ . '/../moonlight-shop-pro/includes/class-license-client.php';
+require __DIR__ . '/../moonlight-shop-pro/includes/class-webhooks.php';
+require __DIR__ . '/../moonlight-shop-pro/includes/class-order-export.php';
 
 $pass = 0;
 $fail = 0;
@@ -1024,6 +1030,79 @@ foreach ($GLOBALS['__test_http_calls'] as $c) {
     }
 }
 check('PayPal 全额退款 body 为空 JSON {}（省略 amount）', 2 === count($pp_refund_calls) && '{}' === (string) $pp_refund_calls[1]['args']['body']);
+
+/* ==========================================================================
+ * Pro（moonlight-shop-pro）
+ * ========================================================================== */
+
+echo "== MLPRO_License_Client（引擎缺席 → 本地模式回退） ==\n";
+check('MLUC 引擎在测试环境中不存在', !class_exists('MLUC_License_Manager'));
+delete_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE);
+MLPRO_License_Client::clear_cache();
+check('引擎缺席默认本地激活（option 默认 1）', MLPRO_License_Client::is_active() === true);
+check('模式识别为 local', MLPRO_License_Client::get_mode() === 'local');
+update_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE, 0);
+MLPRO_License_Client::clear_cache();
+check('本地开关关闭 → 未激活', MLPRO_License_Client::is_active() === false);
+update_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE, 1);
+MLPRO_License_Client::clear_cache();
+check('本地开关重新开启 → 激活', MLPRO_License_Client::is_active() === true);
+
+echo "== MLPRO_Webhooks::sign_payload / format_signature ==\n";
+$wh_body = '{"event":"order.paid","data":{"order_id":7}}';
+$sig1 = MLPRO_Webhooks::sign_payload($wh_body, 'whsec_abc', 1727400000);
+$sig2 = MLPRO_Webhooks::sign_payload($wh_body, 'whsec_abc', 1727400000);
+check('签名确定性（同输入同输出）', $sig1 === $sig2);
+check('v1 与 hash_hmac 手算一致', $sig1['v1'] === hash_hmac('sha256', '1727400000.' . $wh_body, 'whsec_abc'));
+check('header 格式 t=...,v1=...', MLPRO_Webhooks::format_signature($sig1['t'], $sig1['v1'])
+    === 't=1727400000,v1=' . hash_hmac('sha256', '1727400000.' . $wh_body, 'whsec_abc'));
+check('secret 不同 → 签名不同', MLPRO_Webhooks::sign_payload($wh_body, 'other-secret', 1727400000)['v1'] !== $sig1['v1']);
+check('时间戳不同 → 签名不同', MLPRO_Webhooks::sign_payload($wh_body, 'whsec_abc', 1727400001)['v1'] !== $sig1['v1']);
+
+echo "== MLPRO_Webhooks 队列退避（5/15/60 分钟，≥5 丢弃） ==\n";
+check('attempts 0 → 5min', MLPRO_Webhooks::next_delay(0) === 300);
+check('attempts 1 → 15min', MLPRO_Webhooks::next_delay(1) === 900);
+check('attempts 2 → 60min', MLPRO_Webhooks::next_delay(2) === 3600);
+check('attempts 2+ 封顶 60min', MLPRO_Webhooks::next_delay(7) === 3600);
+check('attempts 4 尚不丢弃', MLPRO_Webhooks::should_drop(4) === false);
+check('attempts >= 5 丢弃判定', MLPRO_Webhooks::should_drop(5) === true && MLPRO_Webhooks::should_drop(9) === true);
+$wh_item = MLPRO_Webhooks::build_queue_item('ep1', 'order.paid', '{"e":1}', 0, 1000);
+check('队列项结构完整', isset($wh_item['endpoint_id'], $wh_item['event'], $wh_item['body'], $wh_item['attempts'], $wh_item['next_try'])
+    && 'ep1' === $wh_item['endpoint_id'] && 'order.paid' === $wh_item['event'] && 0 === $wh_item['attempts']);
+check('首次入队 next_try = now + 5min', 1300 === $wh_item['next_try']);
+$wh_item2 = MLPRO_Webhooks::build_queue_item('ep1', 'order.paid', '{}', 2, 1000);
+check('attempts 2 入队 next_try = now + 60min', 4600 === $wh_item2['next_try']);
+$wh_ring = array();
+foreach (array(1, 2, 3) as $wh_v) {
+    $wh_ring = MLPRO_Webhooks::push_capped($wh_ring, array('v' => $wh_v), 2);
+}
+check('环形日志封顶丢最旧', count($wh_ring) === 2 && 2 === $wh_ring[0]['v'] && 3 === $wh_ring[1]['v']);
+
+echo "== MLPRO_Webhooks 事件过滤（按端点订阅） ==\n";
+$wh_ep = array('id' => 'e1', 'url' => 'https://example.com/hook', 'secret' => 's', 'events' => array('order.paid'), 'enabled' => 1);
+check('订阅 order.paid 收 order.paid', MLPRO_Webhooks::endpoint_wants($wh_ep, 'order.paid') === true);
+check('订阅 order.paid 不收 order.shipped', MLPRO_Webhooks::endpoint_wants($wh_ep, 'order.shipped') === false);
+check('未订阅的 refund.processed 不收', MLPRO_Webhooks::endpoint_wants($wh_ep, 'refund.processed') === false);
+$wh_ep_off = $wh_ep;
+$wh_ep_off['enabled'] = 0;
+check('端点停用不收任何事件', MLPRO_Webhooks::endpoint_wants($wh_ep_off, 'order.paid') === false);
+$wh_ep_none = $wh_ep;
+$wh_ep_none['events'] = array();
+check('订阅列表为空不收', MLPRO_Webhooks::endpoint_wants($wh_ep_none, 'order.paid') === false);
+
+echo "== MLPRO_Order_Export CSV 公式注入防护 / 日期白名单 ==\n";
+check('=cmd(A1) 前置单引号', MLPRO_Order_Export::csv_cell('=cmd(A1)') === "'=cmd(A1)");
+check('+1 前置单引号', MLPRO_Order_Export::csv_cell('+1') === "'+1");
+check('-1 前置单引号', MLPRO_Order_Export::csv_cell('-1') === "'-1");
+check('@SUM 前置单引号', MLPRO_Order_Export::csv_cell('@SUM(A1:A9)') === "'@SUM(A1:A9)");
+check('制表符前缀前置单引号', MLPRO_Order_Export::csv_cell("\tSUM(A1)") === "'\tSUM(A1)");
+check('普通文本不变', MLPRO_Order_Export::csv_cell('MLS-20260927-abc') === 'MLS-20260927-abc');
+check('普通数字不变', MLPRO_Order_Export::csv_cell('140.00') === '140.00');
+check('空串不变', MLPRO_Order_Export::csv_cell('') === '');
+check('日期合法（格式 + 回读一致）', MLPRO_Order_Export::parse_date('2026-09-27', '2026-01-01') === '2026-09-27');
+check('日期非法格式回退默认', MLPRO_Order_Export::parse_date('09/27/2026', '2026-01-01') === '2026-01-01');
+check('不存在日期（2月30日）回退默认', MLPRO_Order_Export::parse_date('2026-02-30', '2026-01-01') === '2026-01-01');
+check('日期为空回退默认', MLPRO_Order_Export::parse_date('', '2026-01-01') === '2026-01-01');
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
