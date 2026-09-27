@@ -1,0 +1,1012 @@
+/* 漫步白月光电子商城 —— 商品单页 / 列表 / 相册 / Tab / 侧栏（不使用最高优先级写法） */
+
+.mlshop-single-wrap,
+.mlshop-archive-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    box-sizing: border-box;
+}
+
+.mlshop-single-main,
+.mlshop-archive-main {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.mlshop-sidebar {
+    flex: 0 0 280px;
+    max-width: 280px;
+}
+
+/* ===== 单品页 ===== */
+.mlshop-single {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.mlshop-single-gallery {
+    flex: 1 1 360px;
+    min-width: 280px;
+}
+
+.mlshop-single-summary {
+    flex: 1 1 320px;
+    min-width: 280px;
+}
+
+.mlshop-gallery {
+    position: relative;
+}
+
+.mlshop-gallery-main {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    padding-bottom: 28px;
+}
+
+.mlshop-gallery-main img {
+    width: 100%;
+    height: auto;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    display: block;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: #fafafa;
+    transition: opacity 0.2s ease;
+}
+
+.mlshop-gallery-main img.is-switching {
+    opacity: 0.4;
+}
+
+/* 左右箭头 */
+.mlshop-gallery-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.85);
+    color: #2271b1;
+    font-size: 26px;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+    z-index: 2;
+    padding: 0;
+}
+
+.mlshop-gallery-arrow:hover {
+    background: #fff;
+    color: #185a8f;
+}
+
+.mlshop-gallery-arrow:active {
+    transform: translateY(-50%) scale(0.94);
+}
+
+.mlshop-gallery-prev {
+    left: 10px;
+}
+
+.mlshop-gallery-next {
+    right: 10px;
+}
+
+/* 索引指示器 */
+.mlshop-gallery-dots {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    z-index: 2;
+}
+
+.mlshop-gallery-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.55);
+    cursor: pointer;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.35);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.mlshop-gallery-dot:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.mlshop-gallery-dot.is-active {
+    background: #2271b1;
+    transform: scale(1.25);
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+}
+
+.mlshop-gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+
+.mlshop-gallery-thumbs .mlshop-gallery-thumb {
+    flex: 0 0 auto;
+}
+
+.mlshop-gallery-thumb {
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    padding: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 0;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s ease, opacity 0.15s ease;
+    box-sizing: border-box;
+    flex: 0 0 64px;
+    opacity: 0.7;
+    overflow: hidden;
+}
+
+.mlshop-gallery-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 3px;
+    display: block;
+}
+
+.mlshop-gallery-thumb.is-active {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    opacity: 1;
+}
+
+.mlshop-gallery-thumb:hover {
+    border-color: #2271b1;
+    opacity: 1;
+}
+
+/* ===== 放大镜（悬停放大，京东式） ===== */
+.mlshop-gallery-main {
+    cursor: crosshair;
+}
+
+.mlshop-gallery-lens {
+    position: absolute;
+    border: 1px solid rgba(34, 113, 177, 0.6);
+    background: rgba(34, 113, 177, 0.18);
+    pointer-events: none;
+    display: none;
+    z-index: 3;
+}
+
+.mlshop-gallery-zoom {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 16px;
+    width: 100%;
+    max-width: 460px;
+    aspect-ratio: 1 / 1;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    background-color: #fff;
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    display: none;
+    z-index: 30;
+    pointer-events: none;
+}
+
+/* 窄屏 / 触屏：放大部分仍由 JS 判定，这里以更高特异性强制隐藏，避免溢出 */
+@media (max-width: 900px) {
+    .mlshop-single .mlshop-gallery-zoom,
+    .mlshop-single-block .mlshop-gallery-zoom {
+        display: none;
+    }
+}
+
+.mlshop-product-title {
+    font-size: 26px;
+    margin: 0 0 8px;
+    line-height: 1.3;
+}
+
+.mlshop-price {
+    font-size: 24px;
+    color: #2271b1;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.mlshop-type-badge {
+    display: inline-block;
+    background: #f0f6fc;
+    color: #2271b1;
+    border: 1px solid #c9def0;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-bottom: 12px;
+}
+
+.mlshop-short-desc {
+    color: #444;
+    line-height: 1.6;
+    margin-bottom: 16px;
+}
+
+.mlshop-buy-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.mlshop-qty-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13px;
+    color: #666;
+}
+
+/* ===== 数量步进器（- input +） ===== */
+.mlshop-qty-stepper {
+    display: inline-flex;
+    align-items: stretch;
+    width: 124px;
+    height: 38px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.mlshop-qty-stepper .mlshop-qty-btn {
+    flex: 0 0 32px;
+    border: none;
+    background: #f5f7fa;
+    color: #555;
+    font-size: 18px;
+    line-height: 1;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease;
+    font-family: inherit;
+}
+
+.mlshop-qty-stepper .mlshop-qty-btn:hover {
+    background: #2271b1;
+    color: #fff;
+}
+
+.mlshop-qty-stepper .mlshop-qty-btn:active {
+    background: #185a8f;
+}
+
+.mlshop-qty-stepper .mlshop-qty-btn:disabled,
+.mlshop-qty-stepper .mlshop-qty-btn[aria-disabled="true"] {
+    color: #cbd5e1;
+    background: #f5f7fa;
+    cursor: not-allowed;
+}
+
+.mlshop-qty-stepper .mlshop-qty {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-left: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-radius: 0;
+    text-align: center;
+    font-size: 15px;
+    color: #333;
+    background: #fff;
+    box-sizing: border-box;
+    -moz-appearance: textfield;
+    font-family: inherit;
+}
+
+.mlshop-qty-stepper .mlshop-qty:focus {
+    outline: none;
+    background: #fff;
+    box-shadow: inset 0 0 0 2px rgba(34, 113, 177, 0.18);
+}
+
+.mlshop-qty-stepper .mlshop-qty::-webkit-outer-spin-button,
+.mlshop-qty-stepper .mlshop-qty::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 购物车行内的紧凑尺寸 */
+.mlshop-qty-stepper.mlshop-qty-stepper-sm {
+    width: 110px;
+    height: 32px;
+}
+
+.mlshop-qty-stepper-sm .mlshop-qty-btn {
+    flex-basis: 28px;
+    font-size: 16px;
+}
+
+.mlshop-qty-stepper-sm .mlshop-qty {
+    font-size: 14px;
+}
+
+/* 兼容详情页单独使用 .mlshop-qty（不在 stepper 内）时仍可作为普通输入框 */
+.mlshop-qty-wrap > .mlshop-qty:not(.mlshop-qty-stepper .mlshop-qty) {
+    width: 64px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.mlshop-product-meta {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    font-size: 13px;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.mlshop-meta-key {
+    display: inline-block;
+    min-width: 48px;
+    color: #999;
+}
+
+/* 按钮（在海运主样式基础上补充） */
+.mlshop-btn-primary {
+    background: #2271b1;
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.mlshop-btn-primary:hover {
+    background: #185a8f;
+}
+
+.mlshop-favorite-btn {
+    background: #fff;
+    border: 1px solid #ccc;
+    color: #666;
+    padding: 10px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+}
+
+.mlshop-favorite-btn.is-active {
+    border-color: #d63638;
+    color: #d63638;
+}
+
+.mlshop-heart {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* ===== Tab ===== */
+.mlshop-tabs {
+    margin-top: 32px;
+    clear: both;
+}
+
+.mlshop-tab-nav {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    padding: 0;
+    margin: 0 0 -1px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.mlshop-tab-nav li {
+    padding: 10px 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    color: #555;
+}
+
+.mlshop-tab-nav li.is-active {
+    background: #fff;
+    border-color: #e5e5e5;
+    color: #2271b1;
+    font-weight: 600;
+}
+
+.mlshop-tab-panel {
+    display: none;
+    padding: 16px;
+    border: 1px solid #e5e5e5;
+    border-radius: 0 0 6px 6px;
+}
+
+.mlshop-tab-panel.is-active {
+    display: block;
+}
+
+.mlshop-info-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mlshop-info-table th,
+.mlshop-info-table td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mlshop-info-table th {
+    color: #888;
+    width: 120px;
+    font-weight: 600;
+}
+
+/* ===== 相关 / 网格 ===== */
+.mlshop-related {
+    margin-top: 36px;
+}
+
+.mlshop-related-title {
+    font-size: 20px;
+    margin: 0 0 16px;
+}
+
+.mlshop-related-grid,
+.mlshop-archive-grid,
+.mlshop-favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--mlshop-cols, 4), 1fr);
+    gap: 20px;
+}
+
+/* ===== 归档 / 列表 ===== */
+.mlshop-archive-header {
+    margin-bottom: 20px;
+}
+
+.mlshop-archive-title {
+    font-size: 28px;
+    margin: 0 0 8px;
+}
+
+.mlshop-archive-desc {
+    color: #666;
+    line-height: 1.6;
+}
+
+.mlshop-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mlshop-result-count {
+    color: #666;
+    font-size: 14px;
+}
+
+.mlshop-orderby {
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.mlshop-pagination {
+    margin-top: 32px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.mlshop-pagination a,
+.mlshop-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    color: #2271b1;
+    text-decoration: none;
+    background: #fff;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    font-size: 14px;
+    line-height: 1;
+}
+
+.mlshop-pagination a:hover,
+.mlshop-pagination a:focus {
+    border-color: #2271b1;
+    background: #f0f6fc;
+    color: #185a8f;
+}
+
+.mlshop-pagination .current {
+    background: #2271b1;
+    color: #fff;
+    border-color: #2271b1;
+    font-weight: 600;
+    cursor: default;
+}
+
+.mlshop-pagination .dots,
+.mlshop-pagination .page-numbers.dots {
+    border-color: transparent;
+    background: transparent;
+    color: #999;
+}
+
+.mlshop-pagination .prev,
+.mlshop-pagination .next {
+    font-weight: 600;
+}
+
+/* ===== 侧栏 / 小工具 ===== */
+.mlshop-sidebar .mlshop-widget {
+    margin-bottom: 24px;
+}
+
+.mlshop-widget-title {
+    font-size: 16px;
+    margin: 0 0 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #2271b1;
+}
+
+.mlshop-search-form {
+    display: flex;
+    gap: 6px;
+}
+
+.mlshop-search-field {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-width: 0;
+}
+
+.mlshop-cat-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mlshop-cat-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.mlshop-cat-list a {
+    color: #333;
+    text-decoration: none;
+}
+
+.mlshop-cat-list a:hover {
+    color: #2271b1;
+}
+
+.mlshop-cat-count {
+    color: #999;
+    font-size: 12px;
+}
+
+.mlshop-tag-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.mlshop-tag-count {
+    color: #999;
+    font-size: 11px;
+}
+
+.mlshop-cat-grid {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.mlshop-cat-grid .mlshop-cat-item {
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+}
+
+.mlshop-cat-grid .mlshop-cat-item a {
+    display: block;
+    padding: 10px;
+    color: #333;
+    text-decoration: none;
+}
+
+.mlshop-cat-grid .mlshop-cat-item a:hover {
+    color: #2271b1;
+}
+
+.mlshop-recent-list,
+.mlshop-fav-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.mlshop-recent-list li,
+.mlshop-fav-list li {
+    margin-bottom: 10px;
+}
+
+.mlshop-recent-list a,
+.mlshop-fav-list a {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+}
+
+.mlshop-recent-list img,
+.mlshop-fav-list img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 4px;
+    flex: 0 0 auto;
+}
+
+.mlshop-price-filter-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* ===== 双滑块价格筛选 ===== */
+.mlshop-price-slider {
+    position: relative;
+    height: 24px;
+    margin: 8px 0 4px;
+    touch-action: none;
+}
+
+.mlshop-price-slider-track {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #d1d5db;
+    border-radius: 0;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.mlshop-price-slider-range {
+    position: absolute;
+    top: 50%;
+    height: 2px;
+    background: #2271b1;
+    border-radius: 0;
+    transform: translateY(-50%);
+    pointer-events: none;
+    /* 由 JS 实时更新 left / right */
+    left: 0;
+    right: 0;
+}
+
+.mlshop-price-slider input[type="range"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 24px;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    pointer-events: none;
+    -webkit-appearance: none;
+    appearance: none;
+    outline: none;
+}
+
+/* WebKit 滑块本身（小圆点）：允许接收事件 */
+.mlshop-price-slider input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2271b1;
+    border: 0;
+    box-shadow: none;
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+.mlshop-price-slider input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+}
+.mlshop-price-slider input[type="range"]::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.1);
+}
+
+/* Firefox 滑块 */
+.mlshop-price-slider input[type="range"]::-moz-range-thumb {
+    pointer-events: auto;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #2271b1;
+    border: 0;
+    box-shadow: none;
+    cursor: grab;
+    transition: transform 0.1s ease;
+}
+.mlshop-price-slider input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.15);
+}
+.mlshop-price-slider input[type="range"]::-moz-range-track {
+    background: transparent;
+    border: 0;
+    height: 24px;
+}
+.mlshop-price-slider input[type="range"]::-moz-range-progress {
+    background: transparent;
+}
+
+/* WebKit 的滑轨也要透明，让自定义轨道透出 */
+.mlshop-price-slider input[type="range"]::-webkit-slider-runnable-track {
+    background: transparent;
+    border: 0;
+    height: 24px;
+}
+
+.mlshop-price-display {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 13px;
+    color: #2271b1;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    margin: 6px 0 10px;
+}
+.mlshop-price-display-sep {
+    color: #94a3b8;
+    font-weight: 400;
+    padding: 0 2px;
+}
+.mlshop-price-display-min,
+.mlshop-price-display-max {
+    background: none;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    min-width: 0;
+    text-align: left;
+    letter-spacing: 0.2px;
+}
+
+.mlshop-fav-count {
+    background: #2271b1;
+    color: #fff;
+    border-radius: 10px;
+    padding: 0 8px;
+    font-size: 12px;
+}
+
+.mlshop-no-thumb-lg {
+    width: 100%;
+    height: 320px;
+    background: #f3f3f3;
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+}
+
+.mlshop-empty {
+    color: #888;
+    padding: 20px 0;
+}
+
+/* ===== 响应式 ===== */
+/* 側邊欄只在手機（≤600px）才堆疊到內容下方；平板/窄桌面仍保持左右並排，
+   位置由「商城設定 → 側邊欄位置」決定（左/右）。 */
+@media (max-width: 600px) {
+    .mlshop-single-wrap,
+    .mlshop-archive-wrap {
+        flex-direction: column;
+    }
+
+    .mlshop-sidebar {
+        flex-basis: auto;
+        max-width: none;
+        order: 0;
+        position: static;
+    }
+}
+
+@media (max-width: 900px) {
+    .mlshop-related-grid,
+    .mlshop-archive-grid,
+    .mlshop-favorites-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mlshop-gallery-arrow {
+        width: 32px;
+        height: 32px;
+        font-size: 22px;
+    }
+}
+
+@media (max-width: 520px) {
+    .mlshop-related-grid,
+    .mlshop-archive-grid,
+    .mlshop-favorites-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .mlshop-gallery-thumb {
+        width: 52px;
+        height: 52px;
+    }
+}
+
+
+/* ===== 顶部面包屑导航 ===== */
+.mlshop-breadcrumb {
+    flex: 0 0 100%;
+    width: 100%;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #6b7280;
+    margin: 0 0 16px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid #f0f0f1;
+    word-break: break-word;
+    display: block;
+    white-space: normal;
+}
+
+.mlshop-breadcrumb .sep {
+    display: inline-block;
+    margin: 0 6px;
+    color: #cbd5e1;
+}
+
+.mlshop-breadcrumb .is-current {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.mlshop-breadcrumb a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.mlshop-breadcrumb a:hover {
+    color: #2271b1;
+    text-decoration: underline;
+}
+
+.mlshop-breadcrumb .sep {
+    margin: 0 6px;
+    color: #c4c8d0;
+    user-select: none;
+}
+
+.mlshop-breadcrumb .is-current {
+    color: #1f2937;
+    font-weight: 500;
+}
+
+/* ===== 商品标签 chips ===== */
+.mlshop-tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 16px;
+    font-size: 13px;
+}
+
+.mlshop-tags-label {
+    color: #999;
+}
+
+.mlshop-tag {
+    display: inline-block;
+    background: #f0f6fc;
+    color: #2271b1;
+    border: 1px solid #c9def0;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12px;
+    line-height: 1.6;
+    text-decoration: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.mlshop-tag:hover,
+.mlshop-tag:focus {
+    background: #2271b1;
+    color: #fff;
+    border-color: #2271b1;
+    text-decoration: none;
+}
+
+.mlshop-product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 8px 0 4px;
+}
+
+.mlshop-tag-sm {
+    padding: 1px 7px;
+    font-size: 11px;
+}

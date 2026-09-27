@@ -1,0 +1,942 @@
+<?php
+/**
+ * 管理员设置：支付网关凭证、货币、邮件等。
+ *
+ * @package Moonlight_Shop
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class MLSHOP_Admin
+{
+    private static $instance;
+
+    public static function get_instance()
+    {
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct()
+    {
+        add_action('admin_menu', array($this, 'add_menu'));
+        add_action('admin_init', array($this, 'register_settings'));
+        add_action('admin_post_mlshop_test_stripe', array($this, 'test_stripe'));
+        add_action('admin_post_mlshop_test_paypal', array($this, 'test_paypal'));
+        add_action('admin_post_mlshop_test_order_email', array($this, 'test_order_email'));
+        add_action('admin_post_mlshop_order_set_status', array($this, 'order_set_status'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin'));
+    }
+
+    /**
+     * 后台编辑商品时加载相册上传器所需的脚本与样式；
+     * 设置页 / 群发邮件页加载美化样式与导航脚本；
+     * 文章 / 页面 / 商品 编辑器加载「付费功能」Meta Box 交互脚本。
+     */
+    public function enqueue_admin($hook)
+    {
+        // 文章 / 页面 / 商品 编辑器：付费功能 Meta Box
+        if (in_array($hook, array('post.php', 'post-new.php'), true)) {
+            $screen = get_current_screen();
+            $pt = $screen ? $screen->post_type : '';
+            if (in_array($pt, array('mlshop_product', 'post', 'page'), true)) {
+                wp_enqueue_media();
+                // 商品编辑页：相册上传器（仅 mlshop_product 用 .mlshop_gallery 旧字段）
+                if ($pt === 'mlshop_product') {
+                    wp_enqueue_style('mlshop-admin', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-admin.css', array(), MLSHOP_VERSION);
+                    wp_enqueue_script('mlshop-admin', MLSHOP_PLUGIN_URL . 'assets/js/mlshop-admin.js', array('jquery', 'media-editor'), MLSHOP_VERSION, true);
+                }
+                // 付费功能 Meta Box 交互（tab 切换 / 条件显隐 / repeater / 图集 / 视频封面）
+                wp_enqueue_script('mlshop-pay-meta', MLSHOP_PLUGIN_URL . 'assets/js/mlshop-pay-meta.js', array('jquery', 'media-editor'), MLSHOP_VERSION, true);
+            }
+            // 优惠券/订单 CPT 编辑页：套用设置页同样的卡片化外观
+            if (in_array($pt, array('mlshop_coupon', 'mlshop_order'), true)) {
+                wp_enqueue_style('mlshop-settings', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-settings.css', array(), MLSHOP_VERSION);
+            }
+        }
+
+        // 列表页（edit.php）：订单 / 优惠券列表 + 设置/群发邮件页加载美化样式
+        $post_type = isset($_GET['post_type']) ? sanitize_key($_GET['post_type']) : '';
+        $is_cpt_list = ('edit.php' === $hook) && in_array($post_type, array('mlshop_order', 'mlshop_coupon'), true);
+        if ($is_cpt_list) {
+            wp_enqueue_style('mlshop-settings', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-settings.css', array(), MLSHOP_VERSION);
+        }
+
+        // 设置页 / 群发邮件页：美化样式 + 导航脚本
+        $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
+        if ('mlshop-settings' === $page || 'mlshop-bulk-email' === $page) {
+            wp_enqueue_style('wp-color-picker');
+            wp_enqueue_style('mlshop-settings', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-settings.css', array('wp-color-picker'), MLSHOP_VERSION);
+            wp_enqueue_script('mlshop-admin', MLSHOP_PLUGIN_URL . 'assets/js/mlshop-admin.js', array('jquery', 'wp-color-picker'), MLSHOP_VERSION, true);
+        }
+        if ('mlshop-bulk-email' === $page) {
+            wp_enqueue_script('mlshop-bulk-email', MLSHOP_PLUGIN_URL . 'assets/js/mlshop-bulk-email.js', array('jquery'), MLSHOP_VERSION, true);
+            wp_localize_script('mlshop-bulk-email', 'mlshopBulk', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce'    => wp_create_nonce('mlshop_bulk_email'),
+            ));
+        }
+    }
+
+    public function add_menu()
+    {
+        add_submenu_page(
+            'edit.php?post_type=mlshop_product',
+            __('商城設定', 'moonlight-shop'),
+            __('商城設定', 'moonlight-shop'),
+            'manage_options',
+            'mlshop-settings',
+            array($this, 'render_settings')
+        );
+    }
+
+    public function register_settings()
+    {
+        $group = 'mlshop_settings_group';
+        $keys = array(
+            'currency'                => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'currency_symbol'         => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'store_email'             => array('type' => 'string',  'sanitize' => 'sanitize_email'),
+            'stripe_test_mode'        => array('type' => 'integer', 'sanitize' => 'absint'),
+            'stripe_test_publishable' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_test_secret'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_publishable'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_webhook_secret'   => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'paypal_sandbox'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            'paypal_client_id'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'paypal_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'paypal_webhook_id'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'pay_enabled'             => array('type' => 'integer', 'sanitize' => 'absint'),
+            'credit_name'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'pay_popup_default_title' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'recharge_packages'       => array('type' => 'string',  'sanitize' => 'sanitize_textarea_field'),
+            'credit_rate'             => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
+            'order_expire_minutes'    => array('type' => 'integer', 'sanitize' => 'absint'),
+            'shipping_enabled'        => array('type' => 'integer', 'sanitize' => 'absint'),
+            'shipping_free_threshold' => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
+            'shipping_flat_rate'      => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
+            'shipping_carrier'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'slug_single'             => array('type' => 'string',  'sanitize' => 'sanitize_title'),
+            'slug_archive'            => array('type' => 'string',  'sanitize' => 'sanitize_title'),
+            'slug_category'           => array('type' => 'string',  'sanitize' => 'sanitize_title'),
+            'slug_tag'               => array('type' => 'string',  'sanitize' => 'sanitize_title'),
+            'archive_cols_desktop'    => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_cols_tablet'     => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_cols_mobile'     => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_per_page'        => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_gap_px'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_show_type_badge' => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_show_tags'       => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_title_font_size'  => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_title_font_weight'=> array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'archive_title_align'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'archive_title_line_clamp' => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_price_font_size'  => array('type' => 'integer', 'sanitize' => 'absint'),
+            'archive_price_font_weight'=> array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'archive_price_color'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'show_breadcrumbs'        => array('type' => 'integer', 'sanitize' => 'absint'),
+            'show_product_meta'       => array('type' => 'integer', 'sanitize' => 'absint'),
+            'reviews_enabled'         => array('type' => 'integer', 'sanitize' => 'absint'),
+            'sidebar_position'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'sidebar_sticky'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            'order_email_enabled'     => array('type' => 'integer', 'sanitize' => 'absint'),
+            'from_name'               => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'from_email'              => array('type' => 'string',  'sanitize' => 'sanitize_email'),
+            'order_email_subject'     => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'email_footer'            => array('type' => 'string',  'sanitize' => 'sanitize_textarea_field'),
+        );
+        foreach ($keys as $key => $conf) {
+            register_setting($group, 'mlshop_' . $key, array(
+                'type'              => $conf['type'],
+                'sanitize_callback' => $conf['sanitize'],
+                'default'           => '',
+            ));
+        }
+
+        // 前台公开支付方式（每个网关 ID 独立开关，可被其他插件扩展）。
+        register_setting($group, 'mlshop_enabled_gateways', array(
+            'type'              => 'array',
+            'sanitize_callback' => array($this, 'sanitize_enabled_gateways'),
+            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal'),
+        ));
+    }
+
+    /**
+     * 净化前台公开支付方式：只接受 sanitize_key 化后的非空 id，未勾选不会在 $_POST 出现。
+     */
+    public function sanitize_enabled_gateways($value)
+    {
+        if (!is_array($value)) {
+            return array();
+        }
+        $clean = array();
+        foreach ($value as $raw_id) {
+            $id = sanitize_key($raw_id);
+            if ($id !== '') {
+                $clean[] = $id;
+            }
+        }
+        return array_values(array_unique($clean));
+    }
+
+    public function render_settings()
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        $webhook_url = home_url('/?mlshop_stripe_webhook=1');
+        $paypal_return = home_url('/?gateway=paypal&action=capture');
+        ?>
+        <div class="wrap mlshop-admin-settings mlshop-settings-layout">
+            <h1><?php esc_html_e('漫步白月光電子商城 設定', 'moonlight-shop'); ?></h1>
+            <nav class="mlshop-settings-nav" aria-label="<?php esc_attr_e('设置页导航', 'moonlight-shop'); ?>">
+                <div class="mlshop-settings-nav-title"><?php esc_html_e('设置导航', 'moonlight-shop'); ?></div>
+                <ul class="mlshop-settings-nav-list">
+                    <li><a href="#mlshop-sec-basic"><?php esc_html_e('基本設定', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-slugs"><?php esc_html_e('商品連結', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-archive"><?php esc_html_e('商品列表布局', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-sidebar"><?php esc_html_e('側邊欄', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-list"><?php esc_html_e('列表顯示', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-single"><?php esc_html_e('單頁顯示', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-tags"><?php esc_html_e('商品标签', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-paywall"><?php esc_html_e('付费/会员/积分', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-order"><?php esc_html_e('订单设置', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-shipping"><?php esc_html_e('運費設定', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-mail"><?php esc_html_e('郵件設置', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-stripe"><?php esc_html_e('Stripe 支付', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-pmethods"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-paypal"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></a></li>
+                </ul>
+            </nav>
+            <form method="post" action="options.php">
+                <?php settings_fields('mlshop_settings_group'); ?>
+
+                <h2 id="mlshop-sec-basic" class="mlshop-card-title"><?php esc_html_e('基本設定', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_currency"><?php esc_html_e('貨幣代碼（ISO 4217）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_currency" name="mlshop_currency" value="<?php echo esc_attr(mlshop_get_option('currency', 'HKD')); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('例：HKD / USD / CNY / EUR', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_currency_symbol"><?php esc_html_e('貨幣符號（顯示用）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_currency_symbol" name="mlshop_currency_symbol" value="<?php echo esc_attr(mlshop_get_option('currency_symbol', 'HK$')); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_store_email"><?php esc_html_e('商店聯絡電郵', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="email" id="mlshop_store_email" name="mlshop_store_email" value="<?php echo esc_attr(mlshop_get_option('store_email', get_option('admin_email'))); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-slugs" class="mlshop-card-title"><?php esc_html_e('商品連結', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_slug_single"><?php esc_html_e('商品單頁前綴', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_slug_single" name="mlshop_slug_single" value="<?php echo esc_attr(mlshop_get_option('slug_single', '')); ?>" class="regular-text" placeholder="product">
+                            <p class="description">
+                                <?php
+                                printf(
+                                    /* translators: %s：当前生效的链接前缀 */
+                                    esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
+                                    '<code>/' . esc_html(MLSHOP_Product::get_url_slug('single')) . '/…/</code>'
+                                );
+                                ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_slug_archive"><?php esc_html_e('商品列表頁前綴', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_slug_archive" name="mlshop_slug_archive" value="<?php echo esc_attr(mlshop_get_option('slug_archive', '')); ?>" class="regular-text" placeholder="products">
+                            <p class="description">
+                                <?php
+                                printf(
+                                    esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
+                                    '<code>/' . esc_html(MLSHOP_Product::get_url_slug('archive')) . '/</code>'
+                                );
+                                ?>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_slug_category"><?php esc_html_e('商品分類前綴', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_slug_category" name="mlshop_slug_category" value="<?php echo esc_attr(mlshop_get_option('slug_category', '')); ?>" class="regular-text" placeholder="product-category">
+                        <p class="description">
+                            <?php
+                            printf(
+                                esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
+                                '<code>/' . esc_html(MLSHOP_Product::get_url_slug('category')) . '/…/</code>'
+                            );
+                            ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="mlshop_slug_tag"><?php esc_html_e('商品标签前缀', 'moonlight-shop'); ?></label></th>
+                    <td>
+                        <input type="text" id="mlshop_slug_tag" name="mlshop_slug_tag" value="<?php echo esc_attr(mlshop_get_option('slug_tag', '')); ?>" class="regular-text" placeholder="product-tag">
+                        <p class="description">
+                            <?php
+                            printf(
+                                esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
+                                '<code>/' . esc_html(MLSHOP_Product::get_url_slug('tag')) . '/</code>'
+                            );
+                            ?>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e('說明', 'moonlight-shop'); ?></th>
+                        <td>
+                            <p class="description"><?php esc_html_e('若站內已有其他內容類型佔用相同前綴，商城會自動改用備用前綴，避免頁面出現 404。修改後系統會自動更新連結規則，無需手動重新儲存永久連結。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-archive" class="mlshop-card-title"><?php esc_html_e('商品列表布局', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_archive_cols_desktop"><?php esc_html_e('桌面端列数', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $dcol = (int) mlshop_get_option('archive_cols_desktop', 4); ?>
+                            <select id="mlshop_archive_cols_desktop" name="mlshop_archive_cols_desktop">
+                                <?php for ($i = 2; $i <= 6; $i++) : ?>
+                                    <option value="<?php echo esc_attr($i); ?>" <?php selected($dcol, $i); ?>><?php echo (int) $i; ?> 列</option>
+                                <?php endfor; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_archive_cols_tablet"><?php esc_html_e('平板端列数（≤900px）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $tcol = (int) mlshop_get_option('archive_cols_tablet', 2); ?>
+                            <select id="mlshop_archive_cols_tablet" name="mlshop_archive_cols_tablet">
+                                <?php for ($i = 1; $i <= 4; $i++) : ?>
+                                    <option value="<?php echo esc_attr($i); ?>" <?php selected($tcol, $i); ?>><?php echo (int) $i; ?> 列</option>
+                                <?php endfor; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_archive_cols_mobile"><?php esc_html_e('手机端列数（≤520px）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $mcol = (int) mlshop_get_option('archive_cols_mobile', 1); ?>
+                            <select id="mlshop_archive_cols_mobile" name="mlshop_archive_cols_mobile">
+                                <?php for ($i = 1; $i <= 3; $i++) : ?>
+                                    <option value="<?php echo esc_attr($i); ?>" <?php selected($mcol, $i); ?>><?php echo (int) $i; ?> 列</option>
+                                <?php endfor; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_archive_gap_px"><?php esc_html_e('商品间距（像素）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" max="48" step="2" id="mlshop_archive_gap_px" name="mlshop_archive_gap_px" value="<?php echo esc_attr((int) mlshop_get_option('archive_gap_px', 20)); ?>" class="small-text"> px
+                            <p class="description"><?php esc_html_e('调整每张商品卡之间的空隙。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_archive_per_page"><?php esc_html_e('每页商品数', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="1" max="120" step="1" id="mlshop_archive_per_page" name="mlshop_archive_per_page" value="<?php echo esc_attr((int) mlshop_get_option('archive_per_page', 12)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('商品列表页、分类页、搜索结果页每页显示的商品数量。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('商品标题排版', 'moonlight-shop'); ?></th>
+                        <td>
+                            <?php
+                            // 防御性 sanitize：旧值若混入了非白名单字重 / 对齐，强制回退默认。
+                            $allowed_weights = array('300', '400', '500', '600', '700', '800');
+                            $allowed_aligns  = array('left', 'center', 'right');
+                            $cur_w = (string) mlshop_get_option('archive_title_font_weight', '600');
+                            $cur_a = (string) mlshop_get_option('archive_title_align', 'center');
+                            if (!in_array($cur_w, $allowed_weights, true)) { $cur_w = '600'; }
+                            if (!in_array($cur_a, $allowed_aligns, true))   { $cur_a = 'center'; }
+                            ?>
+                            <fieldset class="mlshop-inline-fieldset">
+                                <label><?php esc_html_e('字号', 'moonlight-shop'); ?>
+                                    <input type="number" min="10" max="32" step="1" name="mlshop_archive_title_font_size" value="<?php echo esc_attr((int) mlshop_get_option('archive_title_font_size', 16)); ?>" class="small-text"> px
+                                </label>
+                                <label><?php esc_html_e('字重', 'moonlight-shop'); ?>
+                                    <select name="mlshop_archive_title_font_weight">
+                                        <?php foreach ($allowed_weights as $w) : ?>
+                                            <option value="<?php echo esc_attr($w); ?>" <?php selected($cur_w, $w); ?>><?php echo esc_html($w); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                                <label><?php esc_html_e('对齐', 'moonlight-shop'); ?>
+                                    <select name="mlshop_archive_title_align">
+                                        <option value="left" <?php selected($cur_a, 'left'); ?>><?php esc_html_e('左', 'moonlight-shop'); ?></option>
+                                        <option value="center" <?php selected($cur_a, 'center'); ?>><?php esc_html_e('居中', 'moonlight-shop'); ?></option>
+                                        <option value="right" <?php selected($cur_a, 'right'); ?>><?php esc_html_e('右', 'moonlight-shop'); ?></option>
+                                    </select>
+                                </label>
+                                <label><?php esc_html_e('最多显示行数', 'moonlight-shop'); ?>
+                                    <input type="number" min="1" max="6" step="1" name="mlshop_archive_title_line_clamp" value="<?php echo esc_attr((int) mlshop_get_option('archive_title_line_clamp', 2)); ?>" class="small-text">
+                                </label>
+                                <span class="mlshop-fieldset-hint"><?php esc_html_e('（超出自动省略，省略号结尾）', 'moonlight-shop'); ?></span>
+                            </fieldset>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('商品价格排版', 'moonlight-shop'); ?></th>
+                        <td>
+                            <?php
+                            $cur_pw = (string) mlshop_get_option('archive_price_font_weight', '700');
+                            if (!in_array($cur_pw, $allowed_weights, true)) { $cur_pw = '700'; }
+                            $cur_pc = (string) mlshop_get_option('archive_price_color', '#e23b3b');
+                            if (!preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $cur_pc)) { $cur_pc = '#e23b3b'; }
+                            ?>
+                            <fieldset class="mlshop-inline-fieldset">
+                                <label><?php esc_html_e('字号', 'moonlight-shop'); ?>
+                                    <input type="number" min="10" max="32" step="1" name="mlshop_archive_price_font_size" value="<?php echo esc_attr((int) mlshop_get_option('archive_price_font_size', 17)); ?>" class="small-text"> px
+                                </label>
+                                <label><?php esc_html_e('字重', 'moonlight-shop'); ?>
+                                    <select name="mlshop_archive_price_font_weight">
+                                        <?php foreach ($allowed_weights as $w) : ?>
+                                            <option value="<?php echo esc_attr($w); ?>" <?php selected($cur_pw, $w); ?>><?php echo esc_html($w); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </label>
+                                <label><?php esc_html_e('颜色', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_archive_price_color" value="<?php echo esc_attr($cur_pc); ?>" class="mlshop-color-field" data-default-color="#e23b3b">
+                                </label>
+                            </fieldset>
+                            <p class="description"><?php esc_html_e('影响商品列表页（含分类、搜索、Elementor 网格）卡片上的价格显示；商品详情页不受此设置控制。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" style="padding-top:4px;">
+                            <p class="description" style="margin:0;"><?php esc_html_e('所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-sidebar" class="mlshop-card-title"><?php esc_html_e('側邊欄', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_sidebar_position"><?php esc_html_e('側邊欄位置', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $pos = mlshop_get_option('sidebar_position', 'right'); ?>
+                            <select id="mlshop_sidebar_position" name="mlshop_sidebar_position">
+                                <option value="right" <?php selected($pos, 'right'); ?>><?php esc_html_e('右側（默认）', 'moonlight-shop'); ?></option>
+                                <option value="left" <?php selected($pos, 'left'); ?>><?php esc_html_e('左側', 'moonlight-shop'); ?></option>
+                                <option value="none" <?php selected($pos, 'none'); ?>><?php esc_html_e('隱藏', 'moonlight-shop'); ?></option>
+                            </select>
+                            <p class="description"><?php esc_html_e('設定商品單頁與商品列表頁側邊欄出現在左邊、右邊，或完全隱藏（隱藏後內容區自動佔滿整行）。手機端（≤600px）一律自動堆疊在內容下方，不受此設定影響。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_sidebar_sticky"><?php esc_html_e('側邊欄懸停', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="hidden" name="mlshop_sidebar_sticky" value="0">
+                            <label><input type="checkbox" id="mlshop_sidebar_sticky" name="mlshop_sidebar_sticky" value="1" <?php checked((int) mlshop_get_option('sidebar_sticky', 1), 1); ?>> <?php esc_html_e('滾動頁面時讓側邊欄固定在視窗（吸頂），內容過長時小工具始終可見', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-list" class="mlshop-card-title"><?php esc_html_e('列表顯示', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('商品类型徽章（实物/虚拟/卡密）', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_archive_show_type_badge" value="0">
+                            <label><input type="checkbox" name="mlshop_archive_show_type_badge" value="1" <?php checked((int) mlshop_get_option('archive_show_type_badge', 0), 1); ?>> <?php esc_html_e('在商品列表卡片上顯示「实物 / 虚拟 / 卡密」類型徽章', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後，列表卡片上不再出現類型標籤，只顯示圖片、標題、價格、按鈕。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('商品标签云', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_archive_show_tags" value="0">
+                            <label><input type="checkbox" name="mlshop_archive_show_tags" value="1" <?php checked((int) mlshop_get_option('archive_show_tags', 0), 1); ?>> <?php esc_html_e('在商品列表卡片上顯示商品標籤（小藥丸樣式）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後，列表卡片上不再渲染標籤雲，版面更簡潔。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-single" class="mlshop-card-title"><?php esc_html_e('單頁顯示', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('頂部面包屑導航', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_show_breadcrumbs" value="0">
+                            <label><input type="checkbox" name="mlshop_show_breadcrumbs" value="1" <?php checked((int) mlshop_get_option('show_breadcrumbs', 1), 1); ?>> <?php esc_html_e('在商品單頁頂部顯示「首頁 › 商城 › 分類 › 商品」面包屑', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後，商品單頁頂部只保留主圖。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('商品摘要 meta 區塊', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_show_product_meta" value="0">
+                            <label><input type="checkbox" name="mlshop_show_product_meta" value="1" <?php checked((int) mlshop_get_option('show_product_meta', 0), 1); ?>> <?php esc_html_e('在摘要下方顯示「貨號 / 分類 / 庫存」三行', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後，摘要區只保留標題 / 價格 / 類型標籤 / 描述 / 加購 / 收藏，更簡潔。「更多信息」標籤頁仍會包含完整資訊表。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('商品评价', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_reviews_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_reviews_enabled" value="1" <?php checked((int) mlshop_get_option('reviews_enabled', 1), 1); ?>> <?php esc_html_e('在商品单页底部「评价」标签页启用 WordPress 評論區', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('關閉後，「评价」標籤頁與評論區不再渲染，標籤欄只保留「商品描述」與「更多信息」。已發表的歷史評論仍保留在資料庫，重新開啟後即恢復顯示。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-tags" class="mlshop-card-title"><?php esc_html_e('商品标签', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('从 WooCommerce 同步', 'moonlight-shop'); ?></th>
+                        <td>
+                            <p class="description"><?php esc_html_e('将站内 WooCommerce 商品的标签（product_tag）整批汇入月光「商品标签」，并按 SKU / 标题对应到月光商品打标。可重复执行，不会重复建标签或重复打标。', 'moonlight-shop'); ?></p>
+                            <p>
+                                <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_sync_woo_tags'), 'mlshop_sync_woo_tags')); ?>" class="button"><?php esc_html_e('同步 WooCommerce 商品标签', 'moonlight-shop'); ?></a>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-paywall" class="mlshop-card-title"><?php esc_html_e('付费/会员/积分', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('启用付费功能', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_pay_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_pay_enabled" value="1" <?php checked((int) mlshop_get_option('pay_enabled', 1), 1); ?>> <?php esc_html_e('启用产品付费阅读/下载/积分购买等功能', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('关闭后，产品的付费 Meta Box 不生效。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_credit_name"><?php esc_html_e('积分名称', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_credit_name" name="mlshop_credit_name" value="<?php echo esc_attr(mlshop_get_option('credit_name', '积分')); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_pay_popup_default_title"><?php esc_html_e('付费弹窗默认标题', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_pay_popup_default_title" name="mlshop_pay_popup_default_title" value="<?php echo esc_attr(mlshop_get_option('pay_popup_default_title', '')); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('产品 Meta Box 未填写"商品标题"时的回退文案。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_recharge_packages"><?php esc_html_e('积分充值套餐', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_recharge_packages" name="mlshop_recharge_packages" rows="4" class="large-text code mlshop-admin-packages"><?php echo esc_textarea(mlshop_get_option('recharge_packages', '')); ?></textarea>
+                            <p class="description"><?php esc_html_e('每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_credit_rate"><?php esc_html_e('自定义充值汇率（积分/货币单位）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_credit_rate" name="mlshop_credit_rate" value="<?php echo esc_attr(mlshop_get_option('credit_rate', 10)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-order" class="mlshop-card-title"><?php esc_html_e('订单设置', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_order_expire_minutes"><?php esc_html_e('未支付订单自动取消（分钟）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" step="1" id="mlshop_order_expire_minutes" name="mlshop_order_expire_minutes" value="<?php echo esc_attr(mlshop_get_option('order_expire_minutes', 0)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('超过该时长仍未付款的订单将自动取消并回滚库存。0 表示永不自动取消。即使未配置服务器计划任务，用户查看订单时也会惰性过期。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-shipping" class="mlshop-card-title"><?php esc_html_e('運費設定', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('啟用實物商品運費', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_shipping_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_shipping_enabled" value="1" <?php checked((int) mlshop_get_option('shipping_enabled', 1), 1); ?>> <?php esc_html_e('購物車含實物商品時計算運費', 'moonlight-shop'); ?></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_shipping_free_threshold"><?php esc_html_e('滿額包郵門檻', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" step="1" id="mlshop_shipping_free_threshold" name="mlshop_shipping_free_threshold" value="<?php echo esc_attr(mlshop_get_option('shipping_free_threshold', 400)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('商品小計達到此金額即免運費（例：400 表示滿 400 包郵）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_shipping_flat_rate"><?php esc_html_e('固定運費', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" step="1" id="mlshop_shipping_flat_rate" name="mlshop_shipping_flat_rate" value="<?php echo esc_attr(mlshop_get_option('shipping_flat_rate', 50)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('未達免運門檻時收取的統一運費（例：50 表示順豐統一運費 50）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_shipping_carrier"><?php esc_html_e('承運商名稱', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_shipping_carrier" name="mlshop_shipping_carrier" value="<?php echo esc_attr(mlshop_get_option('shipping_carrier', '順豐速運')); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-mail" class="mlshop-card-title"><?php esc_html_e('郵件設置', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('訂單 / 下載確認郵件', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_order_email_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_order_email_enabled" value="1" <?php checked((int) mlshop_get_option('order_email_enabled', 1), 1); ?>> <?php esc_html_e('購買完成後自動向客戶發送訂單與虛擬商品下載連結郵件', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('虛擬下載 / 卡密類商品會在郵件中附上下載連結或卡密；關閉後不再自動發信。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_from_name"><?php esc_html_e('發件人名称', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_from_name" name="mlshop_from_name" value="<?php echo esc_attr(mlshop_get_option('from_name', wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES))); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('客戶收到郵件時看到的「發件人」名字，留空用站點名稱。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_from_email"><?php esc_html_e('發件人郵箱', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="email" id="mlshop_from_email" name="mlshop_from_email" value="<?php echo esc_attr(mlshop_get_option('from_email', mlshop_get_option('store_email', get_option('admin_email')))); ?>" class="regular-text">
+                            <p class="description"><?php esc_html_e('建議使用與網域一致的郵箱（如 no-reply@yourdomain.com）以提升送達率，留空用商店聯絡郵箱。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_order_email_subject"><?php esc_html_e('郵件主題', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_order_email_subject" name="mlshop_order_email_subject" value="<?php echo esc_attr(mlshop_get_option('order_email_subject', '')); ?>" class="large-text" placeholder="<?php esc_attr_e('【訂單確認】#{order_number} 付款完成', 'moonlight-shop'); ?>">
+                            <p class="description"><?php esc_html_e('留空使用內建主題。支持佔位符 {order_number}（訂單號）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_email_footer"><?php esc_html_e('郵件頁腳', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_email_footer" name="mlshop_email_footer" rows="3" class="large-text"><?php echo esc_textarea(mlshop_get_option('email_footer', '')); ?></textarea>
+                            <p class="description"><?php esc_html_e('顯示在郵件底部的補充說明（如客服聯絡方式、社群連結），支持換行。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('測試發送', 'moonlight-shop'); ?></th>
+                        <td>
+                            <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_test_order_email'), 'mlshop_test_order_email')); ?>" class="button"><?php esc_html_e('發送測試郵件到管理員', 'moonlight-shop'); ?></a>
+                            <p class="description"><?php esc_html_e('用最近的訂單模擬一封完整郵件（含下載連結）發送到您的後台管理員郵箱，確認發信與模板正常。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-stripe" class="mlshop-card-title"><?php esc_html_e('Stripe 支付', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('測試模式', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_stripe_test_mode" value="0">
+                            <label><input type="checkbox" name="mlshop_stripe_test_mode" value="1" <?php checked(mlshop_get_option('stripe_test_mode', 1), 1); ?>> <?php esc_html_e('啟用（使用 Test Key，不會真實扣款）', 'moonlight-shop'); ?></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Test Publishable Key', 'moonlight-shop'); ?></th>
+                        <td><input type="text" name="mlshop_stripe_test_publishable" value="<?php echo esc_attr(mlshop_get_option('stripe_test_publishable', '')); ?>" class="regular-text" placeholder="pk_test_..."></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Test Secret Key', 'moonlight-shop'); ?></th>
+                        <td><input type="password" name="mlshop_stripe_test_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_test_secret', '')); ?>" class="regular-text" placeholder="sk_test_..."></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Live Publishable Key', 'moonlight-shop'); ?></th>
+                        <td><input type="text" name="mlshop_stripe_publishable" value="<?php echo esc_attr(mlshop_get_option('stripe_publishable', '')); ?>" class="regular-text" placeholder="pk_live_..."></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Live Secret Key', 'moonlight-shop'); ?></th>
+                        <td><input type="password" name="mlshop_stripe_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_secret', '')); ?>" class="regular-text" placeholder="sk_live_..."></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Webhook Signing Secret', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="password" name="mlshop_stripe_webhook_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_webhook_secret', '')); ?>" class="regular-text" placeholder="whsec_...">
+                            <p class="description">
+                                <?php esc_html_e('在 Stripe Dashboard → Developers → Webhooks 新增端點：', 'moonlight-shop'); ?>
+                                <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($webhook_url); ?></code>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_test_stripe'), 'mlshop_test_stripe')); ?>" class="button"><?php esc_html_e('測試 Stripe 連線', 'moonlight-shop'); ?></a>
+                </p>
+
+                <h2 id="mlshop-sec-pmethods" class="mlshop-card-title"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></h2>
+                <p class="description"><?php esc_html_e('勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP 跳轉型網關）請單獨告訴我對接。', 'moonlight-shop'); ?></p>
+                <?php
+                $enabled = get_option('mlshop_enabled_gateways', null);
+                if (!is_array($enabled)) {
+                    // 第一次进入设置页或尚未保存：默认全部内建网关为启用。
+                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal');
+                }
+                // 用支付管理器拉出全量候选（含第三方扩展），便于管理员按需开启。
+                $all_gateways = array();
+                if (class_exists('MLSHOP_Payment')) {
+                    $all_gateways = MLSHOP_Payment::get_instance()->get_gateways();
+                    // 让 filter 也跑过一遍得到真正的"全部候选"，再含未过滤的用于本面板。
+                    $all_gateways = apply_filters(
+                        'mlshop_payment_gateways',
+                        array(
+                            new MLSHOP_Gateway_COD(),
+                            new MLSHOP_Gateway_Balance(),
+                            new MLSHOP_Gateway_Manual(),
+                            new MLSHOP_Gateway_Stripe(),
+                            new MLSHOP_Gateway_PayPal(),
+                        )
+                    );
+                }
+                ?>
+                <table class="form-table">
+                    <?php foreach ($all_gateways as $g) :
+                        $gid = $gid_esc = '';
+                        $gid = $g->get_id();
+                        $gid_esc = esc_attr($gid);
+                        $checked = in_array($gid, $enabled, true);
+                        ?>
+                        <tr>
+                            <th><?php echo esc_html($g->get_title()); ?></th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="mlshop_enabled_gateways[]" value="<?php echo $gid_esc; ?>" <?php checked($checked); ?>>
+                                    <?php echo esc_html($g->get_title()); ?> — <?php echo esc_html($g->get_description()); ?>
+                                </label>
+                                <p class="description">
+                                    <?php
+                                    printf(
+                                        /* translators: %s: gateway id */
+                                        esc_html__('網關標識：%s', 'moonlight-shop'),
+                                        '<code>' . esc_html($gid) . '</code>'
+                                    );
+                                    ?>
+                                </p>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+
+                <h2 id="mlshop-sec-paypal" class="mlshop-card-title"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('沙盒模式', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_paypal_sandbox" value="0">
+                            <label><input type="checkbox" name="mlshop_paypal_sandbox" value="1" <?php checked(mlshop_get_option('paypal_sandbox', 1), 1); ?>> <?php esc_html_e('啟用（使用 Sandbox 環境）', 'moonlight-shop'); ?></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Client ID', 'moonlight-shop'); ?></th>
+                        <td><input type="text" name="mlshop_paypal_client_id" value="<?php echo esc_attr(mlshop_get_option('paypal_client_id', '')); ?>" class="regular-text"></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Secret', 'moonlight-shop'); ?></th>
+                        <td><input type="password" name="mlshop_paypal_secret" value="<?php echo esc_attr(mlshop_get_option('paypal_secret', '')); ?>" class="regular-text"></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Webhook ID', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="text" name="mlshop_paypal_webhook_id" value="<?php echo esc_attr(mlshop_get_option('paypal_webhook_id', '')); ?>" class="regular-text" placeholder="WH-...">
+                            <p class="description">
+                                <?php esc_html_e('在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID：', 'moonlight-shop'); ?>
+                                <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url(home_url('/?mlshop_paypal_webhook=1')); ?></code>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_test_paypal'), 'mlshop_test_paypal')); ?>" class="button"><?php esc_html_e('測試 PayPal 連線', 'moonlight-shop'); ?></a>
+                </p>
+                <p class="description">
+                    <?php esc_html_e('PayPal 回跳 URL（用於 return_url，可在 PayPal 應用設定中登記）：', 'moonlight-shop'); ?>
+                    <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($paypal_return); ?></code>
+                </p>
+
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function test_stripe()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('mlshop_test_stripe')) {
+            wp_die(esc_html__('權限不足。', 'moonlight-shop'));
+        }
+        $stripe = new MLSHOP_Gateway_Stripe();
+        $key = $stripe->is_test_mode() ? trim((string) mlshop_get_option('stripe_test_secret', '')) : trim((string) mlshop_get_option('stripe_secret', ''));
+        if (!$key) {
+            $this->redirect_with_notice('stripe', false, '請先填寫 Stripe Secret Key。');
+        }
+        $response = wp_remote_get('https://api.stripe.com/v1/balance', array(
+            'headers' => array('Authorization' => 'Bearer ' . $key),
+            'timeout' => 15,
+        ));
+        if (is_wp_error($response)) {
+            $this->redirect_with_notice('stripe', false, $response->get_error_message());
+        }
+        $code = wp_remote_retrieve_response_code($response);
+        if ($code >= 200 && $code < 300) {
+            $this->redirect_with_notice('stripe', true, 'Stripe 連線成功！');
+        }
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $msg = isset($body['error']['message']) ? $body['error']['message'] : 'HTTP ' . $code;
+        $this->redirect_with_notice('stripe', false, $msg);
+    }
+
+    public function test_paypal()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('mlshop_test_paypal')) {
+            wp_die(esc_html__('權限不足。', 'moonlight-shop'));
+        }
+        $paypal = new MLSHOP_Gateway_PayPal();
+        $token = $this->get_paypal_token($paypal);
+        if (is_wp_error($token)) {
+            $this->redirect_with_notice('paypal', false, $token->get_error_message());
+        }
+        $this->redirect_with_notice('paypal', true, 'PayPal 認證成功！');
+    }
+
+    private function get_paypal_token($gateway)
+    {
+        $client_id = trim((string) mlshop_get_option('paypal_client_id', ''));
+        $secret    = trim((string) mlshop_get_option('paypal_secret', ''));
+        if (!$client_id || !$secret) {
+            return new WP_Error('mlshop_paypal_auth', '請先填寫 PayPal Client ID 與 Secret。');
+        }
+        $base = (bool) mlshop_get_option('paypal_sandbox', 1) ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
+        $response = wp_remote_post($base . '/v1/oauth2/token', array(
+            'method'  => 'POST',
+            'headers' => array(
+                'Authorization' => 'Basic ' . base64_encode($client_id . ':' . $secret),
+                'Content-Type'  => 'application/x-www-form-urlencoded',
+            ),
+            'body'    => 'grant_type=client_credentials',
+            'timeout' => 15,
+        ));
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        $code = wp_remote_retrieve_response_code($response);
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+        if ($code < 200 || $code >= 300 || empty($data['access_token'])) {
+            $msg = isset($data['error_description']) ? $data['error_description'] : 'HTTP ' . $code;
+            return new WP_Error('mlshop_paypal_auth', $msg);
+        }
+        return $data['access_token'];
+    }
+
+    public function test_order_email()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('mlshop_test_order_email')) {
+            wp_die(esc_html__('權限不足。', 'moonlight-shop'));
+        }
+        $admin_email = get_option('admin_email');
+        $orders = get_posts(array(
+            'post_type'      => 'mlshop_order',
+            'post_status'    => 'any',
+            'posts_per_page' => 1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ));
+        if (!empty($orders)) {
+            $ok = MLSHOP_Email::get_instance()->send_order_paid_email($orders[0]->ID, $admin_email, true);
+            if ($ok) {
+                $this->redirect_with_notice(
+                    'TEST',
+                    true,
+                    sprintf(__('測試郵件已發送到 %s（使用訂單 #%s 模擬，含下載連結）。', 'moonlight-shop'), $admin_email, $orders[0]->post_title)
+                );
+            }
+            $this->redirect_with_notice('TEST', false, __('郵件發送失敗，請檢查伺服器郵件配置（wp_mail）。', 'moonlight-shop'));
+        }
+        // 沒有訂單：發送一封最簡示例確認發信通道可用
+        $site    = wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES);
+        $subject = __('【測試】訂單 / 下載確認郵件', 'moonlight-shop');
+        $body    = '<div style="max-width:600px;margin:0 auto;padding:24px;background:#fff;border:1px solid #e4e9f0;border-radius:8px;">'
+            . '<h1 style="font-size:20px;margin:0 0 16px;color:#1f2937;">' . esc_html($site) . '</h1>'
+            . '<p style="color:#374151;">' . esc_html__('這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。', 'moonlight-shop') . '</p>'
+            . '</div>';
+        $ok = mlshop_send_html_mail($admin_email, $subject, $body, mlshop_get_option('from_name', $site), mlshop_get_option('from_email', ''));
+        $this->redirect_with_notice('TEST', $ok, $ok ? sprintf(__('測試郵件已發送到 %s。', 'moonlight-shop'), $admin_email) : __('郵件發送失敗。', 'moonlight-shop'));
+    }
+
+    private function redirect_with_notice($gateway, $success, $msg)
+    {
+        set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+            'gateway' => $gateway,
+            'success' => $success,
+            'message' => $msg,
+        ), 60);
+        wp_safe_redirect(admin_url('edit.php?post_type=mlshop_product&page=mlshop-settings'));
+        exit;
+    }
+
+    /**
+     * 后台手动变更订单状态（admin_post）。
+     *
+     * 校验管理员权限与 nonce 后调用 MLSHOP_Order::set_status，
+     * 由状态机统一触发交付 / 退款回补 / 优惠券释放等副作用。
+     */
+    public function order_set_status()
+    {
+        if (!current_user_can('manage_options') || !check_admin_referer('mlshop_order_set_status')) {
+            wp_die(esc_html__('權限不足或校验失敗。', 'moonlight-shop'));
+        }
+        $order_id = isset($_POST['order_id']) ? (int) $_POST['order_id'] : 0;
+        $new      = isset($_POST['mlshop_status']) ? sanitize_key((string) $_POST['mlshop_status']) : '';
+        $redirect = wp_get_referer() ?: admin_url('post.php?post=' . $order_id . '&action=edit');
+
+        if ($order_id && $new && class_exists('MLSHOP_Order')) {
+            $res = MLSHOP_Order::set_status($order_id, $new);
+            if (is_wp_error($res)) {
+                set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                    'gateway' => 'ORDER',
+                    'success' => false,
+                    'message' => $res->get_error_message(),
+                ), 60);
+            } else {
+                set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                    'gateway' => 'ORDER',
+                    'success' => true,
+                    'message' => sprintf(__('訂單狀態已更新為「%s」。', 'moonlight-shop'), mlshop_get_order_status_label($new)),
+                ), 60);
+            }
+        }
+        wp_safe_redirect($redirect);
+        exit;
+    }
+}
+
+// 显示管理员通知
+add_action('admin_notices', function () {
+    $user_id = get_current_user_id();
+    $notice = get_transient('mlshop_admin_notice_' . $user_id);
+    if (!$notice) {
+        return;
+    }
+    delete_transient('mlshop_admin_notice_' . $user_id);
+    $class = $notice['success'] ? 'notice-success' : 'notice-error';
+    echo '<div class="notice ' . esc_attr($class) . ' is-dismissible"><p>'
+        . '<strong>' . esc_html(strtoupper($notice['gateway'])) . '：</strong> '
+        . esc_html($notice['message'])
+        . '</p></div>';
+});

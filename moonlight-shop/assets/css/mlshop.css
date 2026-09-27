@@ -1,0 +1,1589 @@
+/* 漫步白月光电子商城 样式（作用域限定，兼容 Astra / Elementor） */
+
+.mlshop-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.mlshop-product-item {
+    border: 1px solid #eee;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.mlshop-product-item:hover {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+    transform: translateY(-2px);
+}
+
+.mlshop-product-thumb {
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: #f4f6f9;
+}
+
+.mlshop-product-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.mlshop-no-thumb {
+    width: 100%;
+    height: 100%;
+}
+
+.mlshop-product-body {
+    padding: 14px;
+}
+
+.mlshop-product-title {
+    /* 默认值仅当后台未填写时生效；正常由 product-item.php 输出 inline style 覆盖 */
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 8px;
+    text-align: center;
+    color: #2d2d2d;
+}
+
+.mlshop-product-title a {
+    color: inherit;
+    text-decoration: none;
+    /* 标题多行省略号所需容器；具体行数由模板 inline 的 -webkit-line-clamp 控制 */
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.mlshop-product-title a:hover {
+    color: var(--mlshop-primary, #4f46e5);
+}
+
+.mlshop-product-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.mlshop-price {
+    color: #e23b3b;
+    font-weight: 700;
+    font-size: 17px;
+}
+
+.mlshop-type-badge {
+    font-size: 12px;
+    color: #2f6fed;
+    background: rgba(47, 111, 237, .1);
+    padding: 2px 8px;
+    border-radius: 20px;
+}
+
+.mlshop-btn {
+    display: inline-block;
+    padding: 9px 18px;
+    background: #2f6fed;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+    transition: background .2s ease;
+}
+
+.mlshop-btn:hover {
+    background: #2257c4;
+    color: #fff;
+}
+
+.mlshop-message {
+    padding: 12px;
+    background: #f4f6f9;
+    border-radius: 6px;
+    color: #555;
+}
+
+/* 购物车 / 收藏空白态 */
+.mlshop-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin: 8px 0;
+}
+
+/* 购物车 */
+.mlshop-cart-table,
+.mlshop-order-items,
+.mlshop-orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+}
+
+.mlshop-cart-table th,
+.mlshop-cart-table td,
+.mlshop-orders-table th,
+.mlshop-orders-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.mlshop-cart-table input.mlshop-qty {
+    width: 64px;
+    padding: 6px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.mlshop-remove {
+    border: none;
+    background: #fdecea;
+    color: #c0392b;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    font-family: inherit;
+}
+
+.mlshop-cart-total-label,
+.mlshop-cart-total {
+    font-weight: 600;
+    text-align: right;
+}
+
+.mlshop-checkout-btn {
+    margin-top: 8px;
+}
+
+/* 结算 */
+.mlshop-checkout {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 8px 4px 24px;
+    color: #2b2b2b;
+}
+
+.mlshop-checkout > .mlshop-title {
+    position: relative;
+    font-size: 22px;
+    font-weight: 700;
+    margin: 6px 0 18px;
+    padding-left: 14px;
+    color: #1f1f1f;
+}
+.mlshop-checkout > .mlshop-title::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 4px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #2f6fed, #6aa1ff);
+}
+
+.mlshop-checkout h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin: 24px 0 12px;
+    color: #333;
+    letter-spacing: .2px;
+}
+
+.mlshop-checkout-items {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #e7eaf1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(20, 33, 61, .04);
+}
+
+.mlshop-checkout-items td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #eef0f4;
+    vertical-align: middle;
+}
+
+.mlshop-checkout-items tr:last-child td {
+    border-bottom: none;
+}
+
+.mlshop-checkout-items td:first-child {
+    color: #333;
+}
+.mlshop-checkout-items td:last-child {
+    color: #555;
+    font-variant-numeric: tabular-nums;
+}
+
+.mlshop-align-right {
+    text-align: right;
+}
+
+.mlshop-checkout-items .mlshop-checkout-subtotal td,
+.mlshop-checkout-items .mlshop-checkout-shipping td,
+.mlshop-checkout-items .mlshop-checkout-discount td {
+    background: #fafbfd;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.mlshop-checkout-items .mlshop-coupon-tag {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    font-size: 12px;
+    background: rgba(47, 111, 237, .1);
+    color: #2f6fed;
+    border-radius: 10px;
+    vertical-align: middle;
+}
+
+.mlshop-shipping-note {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 9px;
+    font-size: 12px;
+    background: #e8f6ef;
+    color: #1e8a5b;
+    border-radius: 10px;
+    vertical-align: middle;
+}
+
+.mlshop-checkout-items .mlshop-checkout-total td {
+    background: linear-gradient(180deg, #fff7f7, #fdecec);
+    color: #1f1f1f;
+    font-size: 17px;
+    font-weight: 700;
+    border-top: 1px solid #f3cdcd;
+}
+
+.mlshop-checkout-items .mlshop-checkout-total td:last-child {
+    color: #e53935;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.mlshop-gateway {
+    display: block;
+    padding: 14px 16px;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+.mlshop-gateway:hover {
+    border-color: #c9d4ee;
+    background: #fafbff;
+}
+.mlshop-gateway:has(input[type="radio"]:checked) {
+    border-color: #2f6fed;
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, .12);
+    background: #f6f9ff;
+}
+
+.mlshop-gateway input {
+    vertical-align: top;
+    margin-top: 3px;
+    accent-color: #2f6fed;
+}
+
+.mlshop-gateway-title {
+    font-weight: 600;
+    margin-left: 6px;
+    color: #1f1f1f;
+}
+
+.mlshop-gateway-desc {
+    display: block;
+    color: #6b7280;
+    font-size: 13px;
+    margin: 4px 0 0 24px;
+}
+
+.mlshop-place-order {
+    width: 100%;
+    padding: 14px 22px;
+    font-size: 16px;
+    font-weight: 700;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(47, 111, 237, .25);
+    margin-top: 6px;
+    letter-spacing: 1px;
+}
+.mlshop-place-order:hover {
+    box-shadow: 0 6px 18px rgba(47, 111, 237, .35);
+}
+
+/* 收件资料 / 优惠码 容器卡片化 */
+.mlshop-checkout .mlshop-shipping-box,
+.mlshop-checkout .mlshop-coupon-box {
+    margin-top: 22px;
+    padding: 18px 20px 4px;
+    border: 1px solid #e7eaf1;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(20, 33, 61, .04);
+}
+
+.mlshop-checkout .mlshop-shipping-box .mlshop-field,
+.mlshop-checkout .mlshop-coupon-box .mlshop-coupon-row {
+    margin-bottom: 14px;
+}
+
+.mlshop-checkout .mlshop-coupon-row {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+}
+.mlshop-checkout .mlshop-coupon-input {
+    flex: 1 1 auto;
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    min-width: 0;
+}
+.mlshop-checkout .mlshop-coupon-row .mlshop-apply-coupon {
+    flex: 0 0 auto;
+    padding: 9px 16px;
+}
+
+@media (max-width: 560px) {
+    .mlshop-checkout-items td {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+    .mlshop-checkout-items .mlshop-checkout-total td:last-child {
+        font-size: 20px;
+    }
+    .mlshop-place-order {
+        font-size: 15px;
+        padding: 12px 18px;
+    }
+}
+
+.mlshop-msg {
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin: 0 0 14px;
+    font-size: 14px;
+}
+
+.mlshop-msg.mlshop-error {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+.mlshop-msg.mlshop-ok {
+    background: #e8f6ef;
+    color: #1e8a5b;
+}
+
+/* 订单 */
+.mlshop-order-status {
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.status-pending { background: #fff4e0; color: #c77700; }
+.status-paid { background: #e8f6ef; color: #1e8a5b; }
+.status-processing { background: #e6f0ff; color: #2f6fed; }
+.status-refunded { background: #f1f1f1; color: #777; }
+.status-cancelled { background: #fdecea; color: #c0392b; }
+
+.mlshop-qr-placeholder {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px dashed #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.mlshop-qr-box {
+    width: 160px;
+    height: 160px;
+    margin: 12px auto;
+    background: repeating-linear-gradient(45deg, #f4f6f9, #f4f6f9 10px, #e9edf2 10px, #e9edf2 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    border-radius: 8px;
+}
+
+.mlshop-cardkey {
+    background: #2d2d2d;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    letter-spacing: 1px;
+}
+
+.mlshop-download-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+@media (max-width: 720px) {
+    .mlshop-products {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+}
+
+/* 付费墙 */
+.mlshop-paywall {
+    margin: 18px 0;
+    padding: 20px;
+    border: 1px solid #e7e9ef;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fafbff, #f4f6fb);
+}
+
+.mlshop-paywall-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.mlshop-paywall-badge {
+    display: inline-block;
+    font-size: 12px;
+    color: #fff;
+    background: #2f6fed;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.mlshop-paywall-title {
+    font-size: 18px;
+    margin: 0;
+}
+
+.mlshop-paywall-desc {
+    color: #555;
+    margin: 0 0 12px;
+}
+
+.mlshop-paywall-notes {
+    margin: 0 0 14px;
+    padding-left: 18px;
+    color: #888;
+    font-size: 13px;
+}
+
+.mlshop-paywall-notes li {
+    margin: 2px 0;
+}
+
+/* 會員門禁（文章/頁面：僅會員可看） */
+.mlshop-member-lock {
+    margin: 18px 0;
+    padding: 22px;
+    border: 1px solid #ece2cf;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #fffdf8, #fdf6ea);
+}
+.mlshop-member-lock-inner {
+    text-align: center;
+}
+.mlshop-member-lock-badge {
+    display: inline-block;
+    font-size: 12px;
+    color: #fff;
+    background: #c8902a;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+.mlshop-member-lock-title {
+    font-size: 18px;
+    margin: 12px 0 8px;
+    color: #5a4716;
+}
+.mlshop-member-lock-desc {
+    color: #8a7438;
+    margin: 0 0 14px;
+}
+
+.mlshop-paywall-price {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mlshop-paywall-cost {
+    color: #e23b3b;
+    font-weight: 700;
+    font-size: 22px;
+}
+
+.mlshop-paywall-origin {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 15px;
+}
+
+.mlshop-paywall-balance {
+    color: #666;
+    font-size: 13px;
+}
+
+.mlshop-paywall-login,
+.mlshop-paywall-gated {
+    padding: 12px;
+    background: #fff4e0;
+    border-radius: 8px;
+    color: #8a5a00;
+    margin: 0;
+}
+
+.mlshop-paywall-form {
+    margin: 0;
+}
+
+.mlshop-paywall-form .mlshop-gateway {
+    margin-bottom: 8px;
+}
+
+.mlshop-paywall-download {
+    margin-top: 16px;
+}
+
+.mlshop-paywall-msg {
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 10px 0 0;
+}
+
+.mlshop-paywall-msg.mlshop-ok {
+    background: #e8f6ef;
+    color: #1e8a5b;
+}
+
+.mlshop-paywall-msg.mlshop-error {
+    background: #fdecea;
+    color: #c0392b;
+}
+
+/* 积分余额 / 充值 / 流水 */
+.mlshop-credit {
+    max-width: 640px;
+}
+
+.mlshop-credit-balance {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 18px 20px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #2f6fed, #5b8def);
+    color: #fff;
+    margin-bottom: 22px;
+}
+
+.mlshop-credit-balance-label {
+    font-size: 14px;
+    opacity: .9;
+}
+
+.mlshop-credit-balance-value {
+    font-size: 30px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.mlshop-credit-section-title {
+    font-size: 17px;
+    margin: 0 0 14px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.mlshop-credit-recharge {
+    margin-bottom: 28px;
+}
+
+.mlshop-recharge-packages {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.mlshop-recharge-package {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px;
+    border: 1px solid #e4e4e4;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.mlshop-recharge-package:hover {
+    border-color: #2f6fed;
+}
+
+.mlshop-recharge-package:has(input:checked) {
+    border-color: #2f6fed;
+    box-shadow: 0 0 0 2px rgba(47, 111, 237, .15);
+    background: #f5f8ff;
+}
+
+.mlshop-recharge-pkg-credit {
+    font-weight: 700;
+    font-size: 16px;
+    color: #2d2d2d;
+}
+
+.mlshop-recharge-pkg-price {
+    color: #e23b3b;
+    font-size: 14px;
+}
+
+.mlshop-recharge-custom {
+    margin-bottom: 14px;
+}
+
+.mlshop-recharge-custom-input {
+    width: 160px;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-right: 10px;
+}
+
+.mlshop-recharge-custom-hint {
+    color: #888;
+    font-size: 13px;
+    margin-right: 8px;
+}
+
+.mlshop-recharge-custom-price {
+    color: #e23b3b;
+    font-weight: 700;
+}
+
+.mlshop-recharge-gateway {
+    margin-bottom: 14px;
+}
+
+.mlshop-recharge-gateway-select {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    min-width: 200px;
+}
+
+.mlshop-recharge-submit {
+    margin-right: 12px;
+}
+
+.mlshop-recharge-msg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.mlshop-credit-ledger-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mlshop-credit-ledger-table th,
+.mlshop-credit-ledger-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 14px;
+}
+
+.mlshop-credit-ledger-table th {
+    color: #777;
+    font-weight: 600;
+}
+
+.mlshop-credit-plus {
+    color: #1e8a5b;
+    font-weight: 700;
+}
+
+.mlshop-credit-minus {
+    color: #c0392b;
+    font-weight: 700;
+}
+
+.mlshop-credit-empty {
+    color: #999;
+    padding: 12px 0;
+}
+
+/* 后台设置：充值套餐文本框 */
+.mlshop-admin-settings textarea.mlshop-admin-packages {
+    width: 100%;
+    max-width: 420px;
+}
+
+/* 订单详情页 */
+.mlshop-order {
+    max-width: 720px;
+}
+
+.mlshop-order-back {
+    display: inline-block;
+    margin-bottom: 14px;
+}
+
+.mlshop-order .mlshop-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 22px;
+    margin: 0 0 18px;
+}
+
+.mlshop-order-meta {
+    list-style: none;
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    background: #f7f8fa;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.mlshop-order-meta li {
+    font-size: 14px;
+    color: #444;
+}
+
+.mlshop-order-meta li span {
+    display: block;
+    color: #999;
+    font-size: 12px;
+    margin-bottom: 2px;
+}
+
+.mlshop-order-meta code {
+    background: #fff;
+    border: 1px solid #e4e4e4;
+    border-radius: 4px;
+    padding: 1px 6px;
+}
+
+.mlshop-order-expire {
+    color: #b86a00;
+    background: #fff4e0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+    font-size: 14px;
+}
+
+.mlshop-order-expired {
+    color: #c0392b;
+    background: #fdecea;
+}
+
+.mlshop-order-failed-note {
+    color: #c0392b;
+    background: #fdecea;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+    font-size: 14px;
+}
+
+.mlshop-order .mlshop-order-status {
+    font-size: 13px;
+    font-weight: 600;
+    padding: 3px 12px;
+    border-radius: 20px;
+}
+
+.status-failed { background: #fdecea; color: #c0392b; }
+
+.mlshop-order .mlshop-order-items {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+}
+
+.mlshop-order .mlshop-order-items th,
+.mlshop-order .mlshop-order-items td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 14px;
+}
+
+.mlshop-order .mlshop-order-items th {
+    color: #777;
+    font-weight: 600;
+}
+
+.mlshop-order .mlshop-order-items tfoot td {
+    font-weight: 700;
+    border-top: 2px solid #eee;
+}
+
+/* 优惠券 */
+.mlshop-coupon-box {
+    margin: 18px 0;
+    padding: 14px 16px;
+    border: 1px dashed #d8d8d8;
+    border-radius: 10px;
+    background: #fafbfc;
+}
+
+.mlshop-coupon-box > label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.mlshop-coupon-row {
+    display: flex;
+    gap: 8px;
+}
+
+.mlshop-coupon-input {
+    flex: 1;
+    padding: 9px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    text-transform: uppercase;
+    min-width: 0;
+}
+
+.mlshop-coupon-msg {
+    margin: 8px 0 0;
+    font-size: 13px;
+    display: none;
+}
+
+.mlshop-coupon-msg.mlshop-ok {
+    color: #1e8a5b;
+}
+
+.mlshop-coupon-msg.mlshop-error {
+    color: #c0392b;
+}
+
+.mlshop-checkout-discount td {
+    color: #1e8a5b;
+    font-weight: 600;
+}
+
+/* 后台优惠券规则表 */
+.mlshop-coupon-fields .small-text {
+    width: 110px;
+}
+
+.mlshop-coupon-fields .regular-text {
+    max-width: 320px;
+}
+
+/* 会员等级升级卡片 */
+.mlshop-membership-upgrade {
+    margin-top: 24px;
+}
+
+.mlshop-membership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 14px;
+}
+
+.mlshop-membership-card {
+    border: 1px solid #e4e4e4;
+    border-top: 3px solid #2f6fed;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mlshop-membership-name {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.mlshop-membership-price {
+    font-size: 22px;
+    font-weight: 800;
+    color: #2d2d2d;
+}
+
+.mlshop-membership-validity {
+    font-size: 13px;
+    color: #888;
+}
+
+.mlshop-membership-actions {
+    margin-top: auto;
+}
+
+.mlshop-membership-gateways {
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mlshop-membership-gateway {
+    font-size: 13px;
+    color: #555;
+}
+
+.mlshop-membership-current {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 6px;
+    background: #e8f6ef;
+    color: #1e8a5b;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.mlshop-membership-msg {
+    margin: 12px 0 0;
+    font-size: 14px;
+    display: none;
+}
+
+.mlshop-membership-msg.mlshop-ok {
+    color: #1e8a5b;
+}
+
+.mlshop-membership-msg.mlshop-error {
+    color: #c0392b;
+}
+
+/* 我的优惠券列表 */
+.mlshop-coupon-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.mlshop-coupon-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border: 1px dashed #d8d8d8;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background: #fafbfc;
+}
+
+.mlshop-coupon-list-code {
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #e23b3b;
+}
+
+.mlshop-coupon-list-count {
+    font-size: 13px;
+    color: #888;
+}
+
+.mlshop-coupon-empty {
+    color: #999;
+    padding: 12px 0;
+}
+
+/* 宽表在窄屏横向滚动，避免溢出破坏布局 */
+.mlshop-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ---------- 商品单品页（模块化） ---------- */
+.mlshop-single {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 300px;
+    gap: 28px;
+    max-width: 1100px;
+    margin: 28px auto;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+.mlshop-single-gallery img,
+.mlshop-single-gallery video {
+    width: 100%;
+    border-radius: 10px;
+    background: #f3f4f6;
+    display: block;
+}
+.mlshop-no-thumb--lg {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    background: #eef0f3;
+}
+.mlshop-single-title {
+    margin: 0 0 10px;
+    font-size: 24px;
+    line-height: 1.3;
+}
+.mlshop-single-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.mlshop-cat, .mlshop-tag, .mlshop-cat-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 12px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3b5bdb;
+    text-decoration: none;
+}
+.mlshop-tag { background: #e6fcf5; color: #0ca678; }
+.mlshop-cat-badge { background: #fff0f6; color: #e64980; }
+.mlshop-single-price {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.mlshop-single-price .mlshop-price {
+    font-size: 26px;
+    font-weight: 700;
+    color: #e03131;
+}
+.mlshop-type-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    background: #f1f3f5;
+    color: #495057;
+}
+.mlshop-buy-area { margin-bottom: 18px; }
+.mlshop-single-desc {
+    font-size: 15px;
+    line-height: 1.8;
+    color: #333;
+}
+.mlshop-single-meta .mlshop-meta-block {
+    background: #f8f9fa;
+    border: 1px solid #eef0f3;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+}
+.mlshop-single-meta .mlshop-meta-block h3 {
+    margin: 0 0 10px;
+    font-size: 15px;
+    color: #222;
+}
+.mlshop-params-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.mlshop-params-table th,
+.mlshop-params-table td {
+    text-align: left;
+    padding: 6px 8px;
+    border-bottom: 1px solid #eceef1;
+    vertical-align: top;
+}
+.mlshop-params-table th {
+    color: #868e96;
+    font-weight: 500;
+    width: 40%;
+}
+.mlshop-service-list, .mlshop-after-list {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 14px;
+    color: #495057;
+}
+.mlshop-service-list li, .mlshop-after-list li { margin: 4px 0; }
+.mlshop-req-note, .mlshop-limit-note { margin: 0; font-size: 14px; color: #495057; }
+
+/* Meta Box 参数行 */
+.mlshop-params-list { margin: 6px 0 8px; }
+.mlshop-param-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 6px;
+    align-items: center;
+}
+.mlshop-param-row input[type="text"] { flex: 1; }
+
+/* 窄屏单列 */
+@media (max-width: 860px) {
+    .mlshop-single {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- 商品规格（SKU）选择 ---------- */
+.mlshop-variations {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.mlshop-var-opt {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 14px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1.3;
+    transition: border-color .15s, box-shadow .15s;
+}
+.mlshop-var-opt:hover { border-color: #adb5bd; }
+.mlshop-var-opt.mlshop-var-selected {
+    border-color: #e03131;
+    box-shadow: 0 0 0 2px rgba(224,49,49,.15);
+}
+.mlshop-var-opt.mlshop-var-soldout {
+    opacity: .5;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+.mlshop-var-name { font-weight: 600; }
+.mlshop-var-price { color: #e03131; font-size: 13px; }
+.mlshop-var-msg { flex-basis: 100%; margin: 2px 0 0; font-size: 13px; }
+.mlshop-cart-var,
+.mlshop-checkout-var,
+.mlshop-order-var {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    font-size: 12px;
+    border-radius: 999px;
+    background: #f1f3f5;
+    color: #495057;
+}
+
+/* ---------- 免登入下單 / 物流跟踪 / 确认收货 ---------- */
+.mlshop-guest-box { background: #f8f9fa; border: 1px solid #eef0f3; border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; }
+.mlshop-tracking { background: #f8f9fa; border: 1px solid #eef0f3; border-radius: 10px; padding: 14px 16px; margin-top: 16px; }
+.mlshop-tracking h3 { margin: 0 0 10px; font-size: 15px; }
+.mlshop-confirm-receipt-wrap { margin-top: 14px; }
+
+/* ---------- 评价 / 评分 / 会员限购 / 销量 / 售后 ---------- */
+.mlshop-rating-summary { display: flex; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 14px; }
+.mlshop-stars { color: #f59f00; letter-spacing: 2px; font-size: 16px; }
+.mlshop-star { color: #f59f00; }
+.mlshop-star:not(.on) { color: #ced4da; }
+.mlshop-rating-num { font-weight: 600; color: #495057; }
+.mlshop-rating-link { color: #2563eb; text-decoration: none; font-size: 13px; }
+.mlshop-rating-link:hover { text-decoration: underline; }
+
+.mlshop-buy-card-text { background: #fff8e1; border: 1px solid #ffe08a; color: #8a6d00; border-radius: 8px; padding: 8px 12px; margin: 10px 0; font-size: 13px; }
+.mlshop-member-lock { background: #fff4f4; border: 1px solid #ffc9c9; border-radius: 10px; padding: 14px 16px; margin: 10px 0; }
+.mlshop-member-lock p { margin: 0 0 10px; color: #c92a2a; }
+
+.mlshop-sales-note,
+.mlshop-limit-note { margin: 0; font-size: 13px; color: #868e96; }
+.mlshop-member-badge { display: inline-block; padding: 1px 8px; font-size: 12px; border-radius: 999px; background: #fff0f6; color: #c2255c; border: 1px solid #ffc9de; }
+.mlshop-item-sales { margin: 6px 0 0; font-size: 12px; color: #868e96; }
+
+.mlshop-reviews { margin-top: 28px; border-top: 1px solid #eef0f3; padding-top: 18px; }
+.mlshop-reviews h2 { font-size: 18px; margin: 0 0 12px; }
+.mlshop-no-review { color: #868e96; font-size: 14px; }
+.mlshop-review-list { list-style: none; margin: 0; padding: 0; }
+.mlshop-review-item { padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
+.mlshop-review-head { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #495057; }
+.mlshop-review-author { font-weight: 600; }
+.mlshop-review-date { color: #adb5bd; }
+.mlshop-review-content { margin: 6px 0 0; color: #343a40; line-height: 1.6; }
+.mlshop-review-form { margin-top: 16px; max-width: 520px; }
+.mlshop-review-form h3 { font-size: 15px; margin: 0 0 8px; }
+.mlshop-review-rating { display: flex; gap: 12px; margin-bottom: 8px; }
+.mlshop-review-rating label { font-size: 14px; cursor: pointer; }
+.mlshop-review-form textarea { width: 100%; border: 1px solid #dee2e6; border-radius: 8px; padding: 8px 10px; font-family: inherit; resize: vertical; }
+.mlshop-review-form .mlshop-btn { margin-top: 8px; }
+.mlshop-review-tip { color: #868e96; font-size: 13px; }
+.mlshop-review-tip a { color: #2563eb; }
+
+.mlshop-aftersale { margin-top: 28px; border-top: 1px solid #eef0f3; padding-top: 18px; }
+.mlshop-aftersale h3 { font-size: 16px; margin: 0 0 12px; }
+.mlshop-aftersale-list { list-style: none; margin: 0 0 12px; padding: 0; }
+.mlshop-aftersale-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #f1f3f5; }
+.mlshop-as-type { font-weight: 600; }
+.mlshop-as-status { color: #495057; }
+.mlshop-as-row.status-approved .mlshop-as-status { color: #2f9e44; }
+.mlshop-as-row.status-rejected .mlshop-as-status { color: #e03131; }
+.mlshop-as-date { color: #adb5bd; margin-left: auto; }
+.mlshop-as-item { padding: 10px 0; border-bottom: 1px solid #f1f3f5; }
+.mlshop-as-product { display: flex; align-items: center; gap: 10px; justify-content: space-between; margin: 0; }
+.mlshop-as-form { margin-top: 10px; max-width: 520px; }
+.mlshop-as-types { display: flex; gap: 14px; margin-bottom: 8px; }
+.mlshop-as-types label { font-size: 14px; cursor: pointer; }
+.mlshop-as-form textarea { width: 100%; border: 1px solid #dee2e6; border-radius: 8px; padding: 8px 10px; font-family: inherit; resize: vertical; }
+.mlshop-as-form .mlshop-btn { margin-top: 8px; }
+.mlshop-admin-as { list-style: none; margin: 0; padding: 0; }
+.mlshop-admin-as li { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+
+/* ---------- 分销返佣 ---------- */
+.mlshop-affiliate { max-width: 720px; }
+.mlshop-aff-stat { display: flex; gap: 16px; margin: 12px 0 18px; }
+.mlshop-aff-stat div { background: #f8f9fa; border: 1px solid #eef0f3; border-radius: 10px; padding: 12px 18px; }
+.mlshop-aff-stat span { display: block; font-size: 13px; color: #868e96; }
+.mlshop-aff-stat strong { font-size: 20px; color: #212529; }
+.mlshop-aff-link { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.mlshop-aff-link label { font-size: 13px; color: #495057; }
+.mlshop-aff-url { flex: 1; min-width: 240px; padding: 8px 10px; border: 1px solid #dee2e6; border-radius: 8px; background: #fff; }
+.mlshop-aff-rate { font-size: 13px; color: #868e96; }
+.mlshop-aff-tip { font-size: 13px; color: #adb5bd; }
+.mlshop-aff-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+.mlshop-aff-table th, .mlshop-aff-table td { padding: 8px 10px; border-bottom: 1px solid #f1f3f5; text-align: left; }
+.mlshop-aff-table th { color: #868e96; font-weight: 600; }
+
+/* ---------- 用户中心统计条 ---------- */
+.mlshop-account-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.mlshop-account-stat { background: #f8f9fa; border: 1px solid #eef0f3; border-radius: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.mlshop-account-stat span { font-size: 13px; color: #868e96; }
+.mlshop-account-stat strong { font-size: 19px; color: #212529; font-weight: 700; }
+@media (max-width: 768px) { .mlshop-account-stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---------- 付费资源：下载 / 图集 / 视频 ---------- */
+.mlshop-pay-download {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-top: 16px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+.mlshop-dl-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+.mlshop-dl-btn:hover { opacity: .92; text-decoration: none; color: #fff; }
+.mlshop-dl-icon { font-size: 16px; line-height: 1; }
+.mlshop-dl-note { margin: 0; color: #475569; font-size: 14px; }
+.mlshop-copy-block { display: flex; align-items: center; gap: 8px; }
+.mlshop-copy-name { color: #334155; font-size: 14px; font-weight: 600; }
+.mlshop-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    background: #fff;
+    color: #334155;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+.mlshop-copy-btn:hover,
+.mlshop-copy-btn:focus,
+.mlshop-copy-btn:active {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #1e293b;
+}
+.mlshop-copy-btn.is-copied {
+    background: #ecfdf5;
+    border-color: #6ee7b7;
+    color: #047857;
+}
+.mlshop-dl-attrs { list-style: none; margin: 4px 0 0; padding: 8px 0 0; width: 100%; border-top: 1px dashed #e2e8f0; }
+.mlshop-dl-attrs li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed #eef2f7; font-size: 14px; }
+.mlshop-dl-attr-k { color: #64748b; }
+.mlshop-dl-attr-v { color: #1e293b; font-weight: 600; text-align: right; }
+.mlshop-dl-demo a { color: #2271b1; text-decoration: none; }
+.mlshop-dl-demo a:hover { text-decoration: underline; }
+
+.mlshop-pay-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+.mlshop-gallery-item {
+    position: relative;
+    display: block;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    background: #f1f5f9;
+}
+.mlshop-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mlshop-gallery-item.mlshop-locked { cursor: pointer; }
+.mlshop-blur { filter: blur(8px); transform: scale(1.08); }
+.mlshop-lock-mask {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, .45);
+}
+.mlshop-lock-ico { font-size: 22px; }
+.mlshop-gallery-tip { color: #64748b; font-size: 13px; margin: 8px 0 0; }
+
+.mlshop-pay-video { margin-top: 16px; }
+.mlshop-video-locked {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    border-radius: 10px;
+    background-color: #0f172a;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    overflow: hidden;
+}
+.mlshop-video-mask {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(15, 23, 42, .5);
+    color: #fff;
+}
+.mlshop-video-play { font-size: 42px; line-height: 1; }
+.mlshop-video-tip { font-size: 15px; }
+.mlshop-video-player { width: 100%; border-radius: 10px; background: #000; display: block; }
+.mlshop-video-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border-radius: 8px;
+    background: #2271b1;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.mlshop-video-link:hover { opacity: .92; color: #fff; text-decoration: none; }
+.mlshop-dl-item { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.mlshop-pay-video-list { display: flex; flex-direction: column; gap: 18px; margin-top: 16px; }
+.mlshop-pay-video-item .mlshop-pay-video { margin-top: 0; }
+.mlshop-pay-video-item .mlshop-video-link { display: inline-flex; }
+.mlshop-video-title { margin: 6px 0 0; color: #334155; font-size: 14px; font-weight: 600; }
+
+.mlshop-paywall-flash { animation: mlshopFlash 1.2s ease; }
+@keyframes mlshopFlash {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(34, 113, 177, 0); }
+    30% { box-shadow: 0 0 0 4px rgba(34, 113, 177, .35); }
+}
+
+@media (max-width: 768px) {
+    .mlshop-pay-gallery { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+}
+
+/* ===== 页眉购物车 / 收藏按钮（inline 内联到 Astra 页眉，JS 兜底移到 right 区） ===== */
+.mlshop-header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 14px;
+    vertical-align: middle;
+    line-height: 1;
+}
+.mlshop-header-actions.mlshop-header-in-right {
+    margin-left: auto;
+}
+
+.mlshop-header-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(120, 120, 120, .16);
+    color: #2b2b2b;
+    text-decoration: none;
+    transition: background-color .18s ease, color .18s ease;
+}
+
+.mlshop-header-btn:hover {
+    background-color: rgba(34, 113, 177, .18);
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.mlshop-header-btn .mlshop-header-icon {
+    display: inline-flex;
+    line-height: 0;
+}
+
+.mlshop-header-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    background: #e53935;
+    color: #fff;
+    font-size: 11px;
+    line-height: 18px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.mlshop-header-count.is-empty {
+    display: none;
+}
+
+.mlshop-header-fav.is-active { color: #e53935; }
+.mlshop-header-fav.is-active .mlshop-header-icon { background: rgba(229, 57, 53, .16); border-radius: 50%; }
+
+/* 会员中心按钮 + 下拉菜单 */
+.mlshop-header-account {
+    position: relative;
+    display: inline-flex;
+}
+
+.mlshop-header-member {
+    padding: 0;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.mlshop-member-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 132px;
+    padding: 6px 0;
+    background: #fff;
+    border: 1px solid #ececec;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .12);
+    z-index: 999;
+    display: none;
+    flex-direction: column;
+}
+
+.mlshop-header-account.is-open .mlshop-member-menu {
+    display: flex;
+}
+
+.mlshop-member-item {
+    display: block;
+    padding: 9px 16px;
+    color: #2b2b2b;
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background-color .15s ease, color .15s ease;
+}
+
+.mlshop-member-item:hover {
+    background: #f4f6f9;
+    color: #2271b1;
+    text-decoration: none;
+}
+
+.mlshop-member-logout {
+    color: #c0392b;
+}
+
+.mlshop-member-logout:hover {
+    background: rgba(192, 57, 43, .08);
+    color: #c0392b;
+}
+
+/* 移动端：行内仍显示，但按钮尺寸略小，且让位 mobile header 内的 right section 元素 */
+@media (max-width: 768px) {
+    .mlshop-header-actions { gap: 6px; margin-left: 8px; }
+    .mlshop-header-btn { width: 32px; height: 32px; }
+    .mlshop-header-btn .mlshop-header-icon svg { width: 18px; height: 18px; }
+}
+
+/* === 商品卡片 + 单页：「加入购物车」与「收藏」按钮尺寸统一（以加入购物车为基线，2026-08-28） === */
+/* 之前 .mlshop-add-to-cart（基础 .mlshop-btn padding 9 18 字号 14）与 .mlshop-favorite-btn（padding 10 16 字号 15）
+   高度/字号不一致，截图可见两个按钮明显一大一小。此处以下面的双上下文选择器（特异性 0,2,0）
+   同时覆盖产品卡片 .mlshop-product-item 与单页 .mlshop-buy-form，强制两按钮同高同字号行对齐。 */
+.mlshop-product-item .mlshop-add-to-cart,
+.mlshop-buy-form .mlshop-add-to-cart,
+.mlshop-product-item .mlshop-favorite-btn,
+.mlshop-buy-form .mlshop-favorite-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 40px;
+    padding: 0 22px;
+    font-size: 15px;
+    line-height: 1;
+    box-sizing: border-box;
+    /* 对齐体验：相邻按钮垂直基线一致，视觉一眼统一 */
+    vertical-align: middle;
+}
+.mlshop-buy-form .mlshop-qty-wrap + .mlshop-add-to-cart,
+.mlshop-buy-form .mlshop-add-to-cart + .mlshop-favorite-btn {
+    margin-left: 8px;
+}

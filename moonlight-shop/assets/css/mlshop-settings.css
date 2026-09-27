@@ -1,0 +1,541 @@
+/* 漫步白月光电子商城 —— 后台设置页 / 群发邮件 美化
+ * 卡片式分区 + 吸顶导航；仅作用于 .mlshop-admin-settings / .mlshop-bulk-email 容器。
+ * 严格零 !important。
+ */
+
+/* ===== 布局：h1 顶部一行；nav + form 第二行（左右两列） ===== */
+.mlshop-settings-layout,
+.mlshop-bulk-layout {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+.mlshop-settings-layout > h1,
+.mlshop-bulk-layout > h1 {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    margin: 0;
+}
+
+/* 吸顶导航：显式第二行第一列 */
+.mlshop-settings-nav,
+.mlshop-bulk-nav {
+    grid-row: 2;
+    grid-column: 1;
+    position: sticky;
+    top: 32px;
+    align-self: start;
+    background: #fff;
+    border: 1px solid #e4e9f0;
+    border-radius: 10px;
+    padding: 10px 0;
+    width: 232px;
+    max-height: calc(100vh - 80px);
+    overflow-y: auto;
+}
+
+.mlshop-settings-nav .mlshop-settings-nav-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    color: #8a9099;
+    padding: 4px 16px 8px;
+}
+
+.mlshop-settings-nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 2px solid #eef1f5;
+}
+
+.mlshop-settings-nav li a {
+    display: block;
+    padding: 7px 16px;
+    margin-left: -2px;
+    border-left: 2px solid transparent;
+    color: #50575e;
+    font-size: 13px;
+    line-height: 1.4;
+    text-decoration: none;
+}
+
+.mlshop-settings-nav li a:hover,
+.mlshop-settings-nav li a.active {
+    color: #4f46e5;
+    border-left-color: #4f46e5;
+    font-weight: 600;
+    background: #f5f4ff;
+}
+
+/* ===== 卡片 ===== */
+.mlshop-settings-layout > form,
+.mlshop-bulk-layout > form,
+.mlshop-bulk-layout > .mlshop-bulk-email {
+    grid-row: 2;
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    min-width: 0;
+}
+
+.mlshop-card {
+    background: #fff;
+    border: 1px solid #e4e9f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    min-width: 0;
+    overflow-x: auto;
+    scroll-margin-top: 80px;
+}
+
+.mlshop-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f1;
+    color: #1f2937;
+    scroll-margin-top: 80px;
+}
+
+/* form-table 在卡片内自适应 */
+.mlshop-card .form-table,
+.mlshop-card .widefat {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+.mlshop-card .form-table th {
+    padding: 14px 12px 14px 0;
+    vertical-align: top;
+}
+
+.mlshop-card .form-table td {
+    padding: 14px 10px;
+    vertical-align: top;
+}
+
+.mlshop-card .widefat th,
+.mlshop-card .widefat td {
+    padding: 10px 12px;
+    vertical-align: middle;
+}
+
+.mlshop-card .form-table tr:not(:last-child) td,
+.mlshop-card .form-table tr:not(:last-child) th {
+    border-bottom: 1px solid #f4f6f9;
+}
+
+.mlshop-card .form-table .description,
+.mlshop-card .description {
+    color: #6b7280;
+    font-size: 12.5px;
+    margin-top: 4px;
+}
+
+/* === 未被 .mlshop-card 包裹的松散 section（form 内 h2+table 自成一个 card）
+   2026-08-28：FOUC 修复时改为 PHP 端直接打 id + class，CSS 立即生效无需 JS 包。
+   关键点：h2 当 card 标题、紧随的 form-table 当 card 主体，二者合起来像一个圆角 box。 === */
+.mlshop-settings-layout > form > h2.mlshop-card-title {
+    background: #fff;
+    border: 1px solid #e4e9f0;
+    border-radius: 10px 10px 0 0;
+    padding: 16px 24px 12px;
+    margin: 22px 0 0;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    scroll-margin-top: 80px;
+}
+.mlshop-settings-layout > form > h2.mlshop-card-title:first-child {
+    margin-top: 0;
+}
+.mlshop-settings-layout > form > h2.mlshop-card-title + table.form-table {
+    background: #fff;
+    border: 1px solid #e4e9f0;
+    border-top: 0;
+    border-radius: 0 0 10px 10px;
+    padding: 0 24px 20px;
+    margin: 0 0 22px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    width: auto;
+    border-collapse: collapse;
+}
+.mlshop-settings-layout > form > h2.mlshop-card-title + table.form-table th {
+    padding: 14px 12px 14px 0;
+    vertical-align: top;
+    color: #4b5563;
+    font-weight: 600;
+}
+.mlshop-settings-layout > form > h2.mlshop-card-title + table.form-table td {
+    padding: 14px 10px;
+    vertical-align: top;
+}
+.mlshop-settings-layout > form > h2.mlshop-card-title + table.form-table tr:not(:last-child) td,
+.mlshop-settings-layout > form > h2.mlshop-card-title + table.form-table tr:not(:last-child) th {
+    border-bottom: 1px solid #f4f6f9;
+}
+
+/* ===== 群发邮件撰写区 ===== */
+.mlshop-bulk-email .mlshop-field {
+    margin-bottom: 18px;
+}
+
+.mlshop-bulk-email label.mlshop-label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #1f2937;
+}
+
+.mlshop-bulk-email .mlshop-recipient-pane {
+    border: 1px solid #e4e9f0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: #fafbfc;
+}
+
+.mlshop-bulk-email .mlshop-recipient-pane[hidden] {
+    display: none;
+}
+
+.mlshop-bulk-email .mlshop-count-hint {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 12px;
+    color: #4f46e5;
+    font-weight: 600;
+}
+
+.mlshop-bulk-email textarea.mlshop-bulk-body {
+    width: 100%;
+    min-height: 180px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.mlshop-bulk-email .mlshop-vars {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.mlshop-bulk-email .mlshop-vars code {
+    background: #eef0f2;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #4f46e5;
+    margin: 0 2px;
+    cursor: pointer;
+}
+
+.mlshop-bulk-email .mlshop-progress {
+    height: 10px;
+    border-radius: 6px;
+    background: #eef1f5;
+    overflow: hidden;
+    margin: 14px 0 8px;
+}
+
+.mlshop-bulk-email .mlshop-progress-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #4f46e5, #7c3aed);
+    transition: width .25s ease;
+}
+
+.mlshop-bulk-email .mlshop-progress-text {
+    font-size: 13px;
+    color: #50575e;
+}
+
+.mlshop-bulk-email .mlshop-result {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    display: none;
+}
+
+.mlshop-bulk-email .mlshop-result.show {
+    display: block;
+}
+
+.mlshop-bulk-email .mlshop-result.ok {
+    background: #ecfdf3;
+    border: 1px solid #abefc6;
+    color: #027a48;
+}
+
+.mlshop-bulk-email .mlshop-result.err {
+    background: #fef3f2;
+    border: 1px solid #fda29b;
+    color: #b42318;
+}
+
+.mlshop-bulk-email .mlshop-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.mlshop-bulk-email .mlshop-test-note {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 手机端：导航堆叠到顶部 */
+@media (max-width: 782px) {
+    .mlshop-settings-layout,
+    .mlshop-bulk-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+    }
+
+    .mlshop-settings-nav,
+    .mlshop-bulk-nav {
+        grid-row: 2;
+        grid-column: 1;
+        position: static;
+        margin-bottom: 0;
+        max-height: none;
+    }
+
+    .mlshop-settings-layout > form,
+    .mlshop-bulk-layout > form,
+    .mlshop-bulk-layout > .mlshop-bulk-email {
+        grid-row: 3;
+        grid-column: 1;
+    }
+
+    .mlshop-settings-nav ul {
+        display: flex;
+        flex-wrap: wrap;
+        border-left: 0;
+        gap: 4px;
+    }
+
+    .mlshop-settings-nav li a {
+        border-left: 0;
+        border-radius: 6px;
+        background: #f3f4f6;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+/* ===== 商城 CPT 编辑页 / 列表页：套用设置页的卡片 + 输入框规范 ===== */
+body.post-type-mlshop_coupon #poststuff .postbox,
+body.post-type-mlshop_order #poststuff .postbox,
+body.post-type-mlshop_coupon #post-body-content,
+body.post-type-mlshop_order #post-body-content {
+    background: transparent;
+}
+
+body.post-type-mlshop_coupon #poststuff .postbox .inside,
+body.post-type-mlshop_order #poststuff .postbox .inside {
+    background: #fff;
+    border: 1px solid #e4e9f0;
+    border-radius: 10px;
+    padding: 20px 24px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
+    margin: 0;
+}
+
+body.post-type-mlshop_coupon #poststuff .form-table,
+body.post-type-mlshop_order #poststuff .form-table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+body.post-type-mlshop_coupon #poststuff .form-table th,
+body.post-type-mlshop_order #poststuff .form-table th {
+    padding: 14px 12px 14px 0;
+    vertical-align: top;
+}
+
+body.post-type-mlshop_coupon #poststuff .form-table td,
+body.post-type-mlshop_order #poststuff .form-table td {
+    padding: 14px 10px;
+    vertical-align: top;
+}
+
+body.post-type-mlshop_coupon #poststuff .form-table tr:not(:last-child) td,
+body.post-type-mlshop_coupon #poststuff .form-table tr:not(:last-child) th,
+body.post-type-mlshop_order #poststuff .form-table tr:not(:last-child) td,
+body.post-type-mlshop_order #poststuff .form-table tr:not(:last-child) th {
+    border-bottom: 1px solid #f4f6f9;
+}
+
+body.post-type-mlshop_coupon #poststuff .form-table .description,
+body.post-type-mlshop_order #poststuff .form-table .description {
+    color: #6b7280;
+    font-size: 12.5px;
+    margin-top: 4px;
+}
+
+body.post-type-mlshop_coupon #poststuff input.small-text,
+body.post-type-mlshop_order #poststuff input.small-text {
+    width: auto;
+    min-width: 110px;
+}
+
+body.post-type-mlshop_coupon #poststuff input.regular-text,
+body.post-type-mlshop_coupon #poststuff select.regular-text,
+body.post-type-mlshop_order #poststuff input.regular-text,
+body.post-type-mlshop_order #poststuff select.regular-text {
+    min-width: 280px;
+    max-width: 100%;
+}
+
+body.post-type-mlshop_coupon #poststuff input[type="date"].regular-text,
+body.post-type-mlshop_order #poststuff input[type="date"].regular-text {
+    min-width: 220px;
+}
+
+/* 列表页（orders / coupons）的小幅贴合设置页视觉感 */
+body.edit-php.post-type-mlshop_coupon .wp-list-table thead th,
+body.edit-php.post-type-mlshop_order .wp-list-table thead th {
+    background: #fafbfc;
+    color: #1f2937;
+    font-weight: 600;
+    border-bottom: 1px solid #e4e9f0;
+}
+
+body.edit-php.post-type-mlshop_coupon .wp-list-table tbody tr:hover,
+body.edit-php.post-type-mlshop_order .wp-list-table tbody tr:hover {
+    background: #f5f4ff;
+}
+
+body.edit-php.post-type-mlshop_coupon .wrap .wp-heading-inline + .page-title-action,
+body.edit-php.post-type-mlshop_order .wrap .wp-heading-inline + .page-title-action {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border: 0;
+    color: #fff;
+    padding: 4px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+body.edit-php.post-type-mlshop_coupon .wrap .wp-heading-inline + .page-title-action:hover,
+body.edit-php.post-type-mlshop_order .wrap .wp-heading-inline + .page-title-action:hover {
+    background: linear-gradient(135deg, #4338ca, #6d28d9);
+    color: #fff;
+}
+
+/* === 商品标题/价格 排版：内联 fieldset（同一行多控件） === */
+.mlshop-inline-fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 18px;
+    margin: 0;
+    padding: 6px 0;
+    border: 0;
+    min-width: 280px;
+}
+.mlshop-inline-fieldset label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    color: #374151;
+    font-size: 13px;
+    line-height: 1.6;
+}
+.mlshop-inline-fieldset label input.small-text,
+.mlshop-inline-fieldset label select {
+    margin: 0;
+}
+.mlshop-inline-fieldset .mlshop-fieldset-hint {
+    color: #6b7280;
+    font-size: 12.5px;
+}
+
+/* === WP 颜色选择器：与 .small-text 同高（28px） === */
+.mlshop-inline-fieldset input.mlshop-color-field {
+    width: 90px;
+    min-width: 0;
+    padding: 2px 6px;
+    line-height: 1.4;
+    font-size: 13px;
+}
+.mlshop-inline-fieldset input.mlshop-color-field.wp-color-picker {
+    width: 90px;
+    min-height: 28px;
+}
+
+/* === 订单编辑页：状态 pill + 商品表样式（2026-08-28） === */
+.mlshop-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.5;
+    vertical-align: middle;
+    background: #f3f4f6;
+    color: #4b5563;
+}
+.mlshop-pill-pending    { background: #fef3c7; color: #92400e; }
+.mlshop-pill-paid       { background: #d1fae5; color: #065f46; }
+.mlshop-pill-processing { background: #dbeafe; color: #1e40af; }
+.mlshop-pill-completed  { background: #ede9fe; color: #5b21b6; }
+.mlshop-pill-failed     { background: #fee2e2; color: #991b1b; }
+.mlshop-pill-refunded   { background: #e5e7eb; color: #374151; }
+.mlshop-pill-cancelled  { background: #f3f4f6; color: #9ca3af; }
+
+/* 订单信息表 */
+.mlshop-order-meta .form-table,
+body.post-type-mlshop_order .mlshop-order-meta {
+    background: #fff;
+}
+.mlshop-order-meta th {
+    padding: 14px 12px 14px 0;
+    vertical-align: top;
+    width: 130px;
+    color: #4b5563;
+}
+.mlshop-order-meta td {
+    padding: 14px 10px;
+    vertical-align: top;
+}
+.mlshop-order-meta tr:not(:last-child) td,
+.mlshop-order-meta tr:not(:last-child) th {
+    border-bottom: 1px solid #f4f6f9;
+}
+
+/* 订单商品 widefat 表 */
+.mlshop-order-items-table {
+    border: 1px solid #e4e9f0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.mlshop-order-items-table thead th {
+    background: #fafbfc;
+    color: #1f2937;
+    font-weight: 600;
+    border-bottom: 1px solid #e4e9f0;
+    padding: 10px 14px;
+}
+.mlshop-order-items-table tbody td {
+    padding: 10px 14px;
+    border-top: 1px solid #f4f6f9;
+    vertical-align: middle;
+}

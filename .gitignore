@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Build / deps
+/node_modules/
+/vendor/
+
+# Local archives
+*.zip

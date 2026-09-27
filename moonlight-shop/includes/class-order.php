@@ -1,0 +1,1179 @@
+<?php
+/**
+ * 订单管理。
+ *
+ * @package Moonlight_Shop
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class MLSHOP_Order
+{
+    private static $instance;
+
+    public static function get_instance()
+    {
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct()
+    {
+        add_action('init', array($this, 'register_post_type'));
+        add_action('init', array($this, 'maybe_schedule_cron'));
+        add_action('mlshop_expire_pending_orders', array($this, 'expire_pending_orders'));
+        add_shortcode('mlshop_order', array($this, 'shortcode_order'));
+
+        // 后台订单编辑页：3 个 meta box（订单信息 / 订单商品 / 物流信息）。
+        // 历史仅 supports=title，编辑页只剩标题与发布栏，看不到任何 meta（订单 meta 全在 _mlshop_* 字段）。
+        // 2026-08-28：补齐——让管理员能看到付款时间、物流、金额构成等。
+        if (is_admin()) {
+            add_action('add_meta_boxes', array($this, 'add_meta_boxes'));
+            add_action('save_post_mlshop_order', array($this, 'save_meta_box'), 20, 2);
+        }
+
+        /**
+         * 修订单 CPT 默认 list 不显示订单的根因。
+         *
+         * WP 7.x 的 wp_edit_posts_query() 不再像旧版那样自动按
+         * `show_in_admin_all_list=true` 把 internal status 注入默认查询，
+         * 它直接把 post_status='' 传给 WP_Query。空字符串 = 「只查 public 状态」，
+         * 而我们的 mlshop_* 全部 internal + public=false，于是 WP 默认把订单筛光。
+         *
+         * 解决：当 list 未显式指定 post_status 时，主动把全部
+         * `show_in_admin_all_list=true` 的 status（含 publish/private + 我们的 custom）
+         * 注入到主查询。函数内自身判断 post_type，避免污染其他 CPT 的查询。
+         */
+        add_action('pre_get_posts', array($this, 'fix_admin_list_status'));
+    }
+
+    /**
+     * 默认 list 修复：把当前 CPT 的「admin-all 可见」状态注入默认查询。
+     *
+     * 仅作用于 (post_type=mlshop_order) 未显式筛选状态的情况。不强制 is_admin()：
+     * 前端列表很少按 mlshop_order 拉全部；万一有，前端既看 publish 之外的也合理。
+     * 不强制 is_main_query()：CLI/原生工具脚本走 new WP_Query 也常见。
+     * 其他 list 调用（get_post 单条 / 按 ID 查）通常已传 post__in，不会被影响。
+     */
+    public function fix_admin_list_status($q)
+    {
+        if (!$q instanceof WP_Query) {
+            return;
+        }
+        $pt = $q->get('post_type');
+        if (is_array($pt)) {
+            // WP 某些查询将 post_type 传为数组（如跨类型查询），逐元素匹配，避免 (string) 数组警告
+            if (!in_array('mlshop_order', $pt, true)) {
+                return;
+            }
+        } elseif ((string) $pt !== 'mlshop_order') {
+            return;
+        }
+        // 用户已显式筛选某一状态：尊重之
+        $ps = $q->get('post_status');
+        if (is_array($ps)) {
+            // WP 后台多状态勾选 / 计数查询会把 post_status 传成数组，先判定数组避免 (string) 数组警告
+            return;
+        }
+        if ((string) $ps !== '') {
+            return;
+        }
+        $statuses = get_post_stati(array('show_in_admin_all_list' => true));
+        if (empty($statuses)) {
+            return;
+        }
+        $slugs = array_keys($statuses);
+        if (empty($slugs)) {
+            return;
+        }
+        $q->set('post_status', $slugs);
+    }
+
+    /**
+     * 后台订单编辑页 3 个 meta box。
+     */
+    public function add_meta_boxes()
+    {
+        add_meta_box(
+            'mlshop_order_info',
+            __('订单信息', 'moonlight-shop'),
+            array($this, 'render_meta_box_info'),
+            'mlshop_order',
+            'normal',
+            'high'
+        );
+        add_meta_box(
+            'mlshop_order_items',
+            __('订单商品', 'moonlight-shop'),
+            array($this, 'render_meta_box_items'),
+            'mlshop_order',
+            'normal',
+            'default'
+        );
+        add_meta_box(
+            'mlshop_order_shipping',
+            __('物流信息', 'moonlight-shop'),
+            array($this, 'render_meta_box_shipping'),
+            'mlshop_order',
+            'side',
+            'default'
+        );
+    }
+
+    /**
+     * meta box #1：订单摘要（客户/状态/时间/金额/网关/优惠券/下单时间/付款时间）。
+     */
+    public function render_meta_box_info($post)
+    {
+        wp_nonce_field('mlshop_order_meta', 'mlshop_order_meta_nonce');
+
+        // 自我检查：粗略估计只在订单 CPT 上运行（防御性）
+        if ($post->post_type !== 'mlshop_order') {
+            return;
+        }
+
+        $user_id      = (int) get_post_meta($post->ID, '_mlshop_user_id', true);
+        $user         = $user_id ? get_user_by('id', $user_id) : null;
+        $status_raw   = (string) get_post_meta($post->ID, '_mlshop_status', true); // pending/paid/processing/...
+        $status_label = self::status_label_zh($status_raw);
+        $currency     = (string) get_post_meta($post->ID, '_mlshop_currency', true);
+        $subtotal     = (float)  get_post_meta($post->ID, '_mlshop_subtotal', true);
+        $shipping     = (float)  get_post_meta($post->ID, '_mlshop_shipping', true);
+        $total        = (float)  get_post_meta($post->ID, '_mlshop_total', true);
+        $gateway      = (string) get_post_meta($post->ID, '_mlshop_gateway', true);
+        $pay_gw       = (string) get_post_meta($post->ID, '_mlshop_payment_gateway', true);
+        $pay_id       = (string) get_post_meta($post->ID, '_mlshop_payment_id', true);
+        $coupon_code  = (string) get_post_meta($post->ID, '_mlshop_coupon_code', true);
+        $coupon_disc  = (float)  get_post_meta($post->ID, '_mlshop_coupon_discount', true);
+        $created      = (string) get_post_meta($post->ID, '_mlshop_created', true);
+        $paid_at      = (string) get_post_meta($post->ID, '_mlshop_paid_time', true); // 由网关回调写入
+        $fail_msg     = (string) get_post_meta($post->ID, '_mlshop_fail_message', true);
+        $type         = (string) get_post_meta($post->ID, '_mlshop_type', true); // ''|'recharge'|'membership'|'paywall'
+        $type_label   = self::type_label_zh($type);
+        $extra        = self::read_extra_meta($post->ID);
+
+        ?>
+        <table class="form-table mlshop-order-meta">
+            <tr>
+                <th><?php esc_html_e('订单状态', 'moonlight-shop'); ?></th>
+                <td>
+                    <span class="mlshop-pill mlshop-pill-<?php echo esc_attr($status_raw); ?>"><?php echo esc_html($status_label); ?></span>
+                    <span class="description" style="margin-left:8px;">（原始: <code><?php echo esc_html($status_raw ?: 'pending'); ?></code>）</span>
+                    <?php if (current_user_can('manage_options')) : ?>
+                    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <?php wp_nonce_field('mlshop_order_set_status'); ?>
+                        <input type="hidden" name="action" value="mlshop_order_set_status">
+                        <input type="hidden" name="order_id" value="<?php echo (int) $post->ID; ?>">
+                        <select name="mlshop_status" aria-label="<?php esc_attr_e('变更订单状态', 'moonlight-shop'); ?>">
+                            <?php foreach (mlshop_get_order_statuses() as $k => $lbl) : ?>
+                                <option value="<?php echo esc_attr($k); ?>" <?php selected($k, $status_raw); ?>><?php echo esc_html($lbl); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                        <button type="submit" class="button"><?php esc_html_e('更新状态', 'moonlight-shop'); ?></button>
+                    </form>
+                    <p class="description"><?php esc_html_e('变更状态会触发对应副作用（发货/交付/退款回补/优惠券释放），并受状态流转规则约束。', 'moonlight-shop'); ?></p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('订单类型', 'moonlight-shop'); ?></th>
+                <td><?php echo esc_html($type_label); ?></td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('客户', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php if ($user) : ?>
+                        <a href="<?php echo esc_url(admin_url('user-edit.php?user_id=' . $user->ID)); ?>">
+                            <?php echo esc_html($user->display_name); ?>
+                        </a>
+                        <span style="color:#6b7280;">（<?php echo esc_html($user->user_email); ?> / #<?php echo (int) $user->ID; ?>）</span>
+                    <?php else : ?>
+                        <span style="color:#9ca3af;"><?php esc_html_e('（未关联用户，可能为访客下单或用户已删除）', 'moonlight-shop'); ?></span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('订单金额', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php if ($subtotal) : ?>
+                        <?php echo esc_html($currency); ?> <?php echo esc_html(number_format($subtotal, 2)); ?> <?php esc_html_e('（小计）', 'moonlight-shop'); ?>
+                    <?php endif; ?>
+                    <?php if ($coupon_disc > 0) : ?>
+                        <span style="color:#16a34a;">− <?php echo esc_html($currency); ?> <?php echo esc_html(number_format($coupon_disc, 2)); ?>
+                        <?php if ($coupon_code) : ?>（<?php echo esc_html($coupon_code); ?>）<?php endif; ?>
+                        </span>
+                    <?php endif; ?>
+                    <?php if ($shipping > 0) : ?>
+                        <span>＋ <?php echo esc_html($currency); ?> <?php echo esc_html(number_format($shipping, 2)); ?> <?php esc_html_e('（运费）', 'moonlight-shop'); ?></span>
+                    <?php endif; ?>
+                    <strong style="margin-left:12px;font-size:1.1em;">
+                        <?php esc_html_e('合计：', 'moonlight-shop'); ?>
+                        <?php echo esc_html($currency); ?> <?php echo esc_html(number_format($total, 2)); ?>
+                    </strong>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('支付网关', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php echo esc_html(self::gateway_label_zh($gateway)); ?>
+                    <?php if ($pay_gw) : ?>
+                        <span style="color:#6b7280;"><?php esc_html_e('（实际通道：', 'moonlight-shop'); echo esc_html(self::gateway_label_zh($pay_gw)); ?>）</span>
+                    <?php endif; ?>
+                    <?php if ($pay_id) : ?>
+                        <br><code style="font-size:11px;"><?php echo esc_html($pay_id); ?></code>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('下单时间', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php if ($created) : ?>
+                        <?php echo esc_html($created); ?>
+                        <span style="color:#9ca3af;">（<?php echo esc_html(self::human_diff($created)); ?>）</span>
+                    <?php else : ?>
+                        <span style="color:#9ca3af;">—</span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('付款时间', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php if ($paid_at) : ?>
+                        <?php echo esc_html($paid_at); ?>
+                        <span style="color:#6b7280;">（<?php echo esc_html(self::human_diff($paid_at)); ?>）</span>
+                    <?php else : ?>
+                        <span style="color:#9ca3af;"><?php esc_html_e('（未支付或付款时间未记录）', 'moonlight-shop'); ?></span>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <?php if ($fail_msg) : ?>
+                <tr>
+                    <th><?php esc_html_e('失败信息', 'moonlight-shop'); ?></th>
+                    <td style="color:#dc2626;"><?php echo esc_html($fail_msg); ?></td>
+                </tr>
+            <?php endif; ?>
+            <?php if (!empty($extra)) : ?>
+                <tr>
+                    <th><?php esc_html_e('其它标识', 'moonlight-shop'); ?></th>
+                    <td>
+                        <?php foreach ($extra as $label => $val) : ?>
+                            <div><span style="color:#6b7280;"><?php echo esc_html($label); ?>：</span><code style="font-size:11px;"><?php echo esc_html($val); ?></code></div>
+                        <?php endforeach; ?>
+                    </td>
+                </tr>
+            <?php endif; ?>
+        </table>
+        <?php
+    }
+
+    /**
+     * meta box #2：订单商品（只读，原始 _mlshop_items）。
+     */
+    public function render_meta_box_items($post)
+    {
+        $items = get_post_meta($post->ID, '_mlshop_items', true);
+        $currency = (string) get_post_meta($post->ID, '_mlshop_currency', true);
+        if (!is_array($items) || empty($items)) {
+            echo '<p style="color:#9ca3af;">' . esc_html__('（该订单无商品记录，可能是充值/升级订单）', 'moonlight-shop') . '</p>';
+            return;
+        }
+        ?>
+        <table class="widefat striped mlshop-order-items-table">
+            <thead>
+                <tr>
+                    <th><?php esc_html_e('商品', 'moonlight-shop'); ?></th>
+                    <th style="width:80px;"><?php esc_html_e('单价', 'moonlight-shop'); ?></th>
+                    <th style="width:70px;"><?php esc_html_e('数量', 'moonlight-shop'); ?></th>
+                    <th style="width:100px;"><?php esc_html_e('小计', 'moonlight-shop'); ?></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($items as $it) :
+                $pid = isset($it['id']) ? (int) $it['id'] : 0;
+                $qty = isset($it['qty']) ? (int) $it['qty'] : 0;
+                $sub = isset($it['subtotal']) ? (float) $it['subtotal'] : ((isset($it['price']) ? (float) $it['price'] : 0) * $qty);
+                $title = isset($it['title']) ? $it['title'] : '';
+                if (!$title && $pid) {
+                    $title = get_the_title($pid);
+                }
+                ?>
+                <tr>
+                    <td>
+                        <?php if ($pid && get_post_type($pid) === 'mlshop_product') : ?>
+                            <a href="<?php echo esc_url(get_edit_post_link($pid)); ?>"><?php echo esc_html($title); ?></a>
+                            <span style="color:#9ca3af;">（#<?php echo $pid; ?>）</span>
+                        <?php else : ?>
+                            <?php echo esc_html($title ?: '—'); ?>
+                        <?php endif; ?>
+                    </td>
+                    <td><?php echo $qty > 0 ? esc_html($currency . ' ' . number_format($sub / max(1, $qty), 2)) : '—'; ?></td>
+                    <td><?php echo (int) $qty; ?></td>
+                    <td><?php echo esc_html($currency . ' ' . number_format($sub, 2)); ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+        <?php
+    }
+
+    /**
+     * meta box #3：物流信息（地址只读 + 4 字段可编辑保存）。
+     */
+    public function render_meta_box_shipping($post)
+    {
+        $addr   = get_post_meta($post->ID, '_mlshop_shipping_address', true);
+        $company = (string) get_post_meta($post->ID, '_mlshop_tracking_company', true);
+        $no      = (string) get_post_meta($post->ID, '_mlshop_tracking_no', true);
+        $time    = (string) get_post_meta($post->ID, '_mlshop_tracking_time', true);
+        $remark  = (string) get_post_meta($post->ID, '_mlshop_tracking_remark', true);
+
+        // 地址回填到下面的字段（一次性只读，避免和字段冲突）
+        ?>
+        <p><strong><?php esc_html_e('收货地址', 'moonlight-shop'); ?></strong></p>
+        <?php if (is_array($addr) && !empty($addr)) : ?>
+            <div class="mlshop-order-shipping-addr" style="background:#f8fafc;border:1px solid #e4e9f0;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:12.5px;line-height:1.7;color:#374151;">
+                <?php
+                $name  = isset($addr['name'])  ? trim($addr['name'])  : '';
+                $phone = isset($addr['phone']) ? trim($addr['phone']) : '';
+                $addr1 = isset($addr['addr1']) ? trim($addr['addr1']) : (isset($addr['address']) ? trim($addr['address']) : '');
+                $addr2 = isset($addr['addr2']) ? trim($addr['addr2']) : '';
+                $city  = isset($addr['city'])  ? trim($addr['city'])  : '';
+                $state = isset($addr['state']) ? trim($addr['state']) : '';
+                $zip   = isset($addr['zip'])   ? trim($addr['zip'])   : '';
+                $country = isset($addr['country']) ? trim($addr['country']) : '';
+                if ($name) echo '<div><strong>' . esc_html($name) . '</strong>';
+                if ($phone) echo ' <span style="color:#6b7280;">' . esc_html($phone) . '</span>';
+                if ($name) echo '</div>';
+                if ($addr1) echo '<div>' . esc_html($addr1) . '</div>';
+                if ($addr2) echo '<div>' . esc_html($addr2) . '</div>';
+                $cityline = trim(implode(' ', array_filter(array($state, $city, $zip, $country))));
+                if ($cityline) echo '<div>' . esc_html($cityline) . '</div>';
+                ?>
+            </div>
+        <?php else : ?>
+            <p style="color:#9ca3af;font-size:12.5px;"><?php esc_html_e('（非实物订单，无收货地址）', 'moonlight-shop'); ?></p>
+        <?php endif; ?>
+
+        <p><strong><?php esc_html_e('物流公司', 'moonlight-shop'); ?></strong></p>
+        <input type="text" name="mlshop_tracking_company" value="<?php echo esc_attr($company); ?>" class="widefat" placeholder="顺丰 / 中通 / SF Express ...">
+        <p><strong><?php esc_html_e('物流单号', 'moonlight-shop'); ?></strong></p>
+        <input type="text" name="mlshop_tracking_no" value="<?php echo esc_attr($no); ?>" class="widefat" placeholder="1234567890">
+        <p><strong><?php esc_html_e('发货时间', 'moonlight-shop'); ?></strong></p>
+        <input type="datetime-local" name="mlshop_tracking_time" value="<?php echo esc_attr(preg_replace('/\s+/', 'T', $time)); ?>" class="widefat">
+        <p><strong><?php esc_html_e('备注', 'moonlight-shop'); ?></strong></p>
+        <textarea name="mlshop_tracking_remark" rows="3" class="widefat" placeholder="例：已签收 / 客户改地址 / 退回原因 ..."><?php echo esc_textarea($remark); ?></textarea>
+        <?php
+    }
+
+    /**
+     * 保存物流 4 字段（订单信息与商品只读 meta 不可误改，由 set_status / 支付回调写入）。
+     *
+     * 1. nonce + 自删能力校验
+     * 2. autosave 不处理
+     * 3. 4 字段 sanitize
+     */
+    public function save_meta_box($post_id, $post)
+    {
+        if (wp_is_post_autosave($post_id) || wp_is_post_revision($post_id)) {
+            return;
+        }
+        if (!isset($_POST['mlshop_order_meta_nonce']) || !wp_verify_nonce($_POST['mlshop_order_meta_nonce'], 'mlshop_order_meta')) {
+            return;
+        }
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        if ($post->post_type !== 'mlshop_order') {
+            return;
+        }
+        // 仅商品订单有物流意义（实物商品 _mlshop_has_physical=1）— 但管理员手动填写不强制，
+        // 留口子让管理员手工补录充值/会员订单的备注场景。
+        if (isset($_POST['mlshop_tracking_company'])) {
+            update_post_meta($post_id, '_mlshop_tracking_company', sanitize_text_field(wp_unslash($_POST['mlshop_tracking_company'])));
+        }
+        if (isset($_POST['mlshop_tracking_no'])) {
+            update_post_meta($post_id, '_mlshop_tracking_no', sanitize_text_field(wp_unslash($_POST['mlshop_tracking_no'])));
+        }
+        if (isset($_POST['mlshop_tracking_time'])) {
+            $raw = sanitize_text_field(wp_unslash($_POST['mlshop_tracking_time']));
+            // datetime-local: "2026-08-28T10:30" → 规范化为 "Y-m-d H:i:s" 存
+            $ts = strtotime($raw);
+            $val = $ts ? date('Y-m-d H:i:s', $ts) : '';
+            update_post_meta($post_id, '_mlshop_tracking_time', $val);
+        }
+        if (isset($_POST['mlshop_tracking_remark'])) {
+            update_post_meta($post_id, '_mlshop_tracking_remark', sanitize_textarea_field(wp_unslash($_POST['mlshop_tracking_remark'])));
+        }
+    }
+
+    /* === meta box 辅助函数 === */
+
+    private static function status_label_zh($raw)
+    {
+        $map = array(
+            'pending'    => __('待付款', 'moonlight-shop'),
+            'paid'       => __('已付款', 'moonlight-shop'),
+            'processing' => __('处理中', 'moonlight-shop'),
+            'completed'  => __('已完成', 'moonlight-shop'),
+            'failed'     => __('支付失败', 'moonlight-shop'),
+            'refunded'   => __('已退款', 'moonlight-shop'),
+            'cancelled'  => __('已取消', 'moonlight-shop'),
+        );
+        return isset($map[$raw]) ? $map[$raw] : $raw;
+    }
+
+    private static function type_label_zh($raw)
+    {
+        $map = array(
+            ''           => __('商品订单', 'moonlight-shop'),
+            'recharge'   => __('积分充值', 'moonlight-shop'),
+            'membership' => __('会员升级', 'moonlight-shop'),
+            'paywall'    => __('付费内容', 'moonlight-shop'),
+        );
+        return isset($map[$raw]) ? $map[$raw] : $raw;
+    }
+
+    private static function gateway_label_zh($gw)
+    {
+        $map = array(
+            'cod'      => __('货到付款', 'moonlight-shop'),
+            'balance'  => __('余额支付', 'moonlight-shop'),
+            'manual'   => __('线下转账', 'moonlight-shop'),
+            'stripe'   => __('Stripe', 'moonlight-shop'),
+            'paypal'   => __('PayPal', 'moonlight-shop'),
+        );
+        return isset($map[$gw]) ? $map[$gw] : ($gw ?: '—');
+    }
+
+    /**
+     * 读「其它标识」meta（充值金额 / 升级目标 / 付费内容 ID）。
+     */
+    private static function read_extra_meta($post_id)
+    {
+        $out = array();
+        $credit = get_post_meta($post_id, '_mlshop_credit_amount', true);
+        if ($credit !== '') $out[__('充值积分', 'moonlight-shop')] = $credit;
+        $mb = get_post_meta($post_id, '_mlshop_membership_target', true);
+        if ($mb) $out[__('升级目标等级', 'moonlight-shop')] = $mb;
+        $pw = get_post_meta($post_id, '_mlshop_paywall_post', true);
+        if ($pw) {
+            $t = get_the_title($pw);
+            $out[__('付费内容', 'moonlight-shop')] = '#' . $pw . ($t ? ' ' . $t : '');
+        }
+        return $out;
+    }
+
+    /**
+     * mysql datetime → 「N 天前 / N 小时前」友好文案。
+     */
+    private static function human_diff($mysql_dt)
+    {
+        $ts = strtotime($mysql_dt);
+        if (!$ts) return '';
+        $diff = current_time('timestamp') - $ts;
+        if ($diff < 60) return __('刚刚', 'moonlight-shop');
+        if ($diff < 3600) return sprintf(__('%d 分钟前', 'moonlight-shop'), (int) ($diff / 60));
+        if ($diff < 86400) return sprintf(__('%d 小时前', 'moonlight-shop'), (int) ($diff / 3600));
+        if ($diff < 86400 * 30) return sprintf(__('%d 天前', 'moonlight-shop'), (int) ($diff / 86400));
+        return date('Y-m-d', $ts);
+    }
+
+    public static function register_post_type()
+    {
+        /**
+         * 订单 CPT labels 必须全量填写。
+         * 仅填 name/singular_name 时，WP 会回退到内置 post 的标签，
+         * 后台 list 表头会显示「写文章」「未找到文章」等与订单无关的字样。
+         */
+        register_post_type('mlshop_order', array(
+            'labels'             => array(
+                'name'                  => __('订单', 'moonlight-shop'),
+                'singular_name'         => __('订单', 'moonlight-shop'),
+                'menu_name'             => __('订单', 'moonlight-shop'),
+                'name_admin_bar'        => __('订单', 'moonlight-shop'),
+                'add_new'               => __('添加订单', 'moonlight-shop'),
+                'add_new_item'          => __('添加新订单', 'moonlight-shop'),
+                'new_item'              => __('新订单', 'moonlight-shop'),
+                'edit_item'             => __('编辑订单', 'moonlight-shop'),
+                'view_item'             => __('查看订单', 'moonlight-shop'),
+                'view_items'            => __('查看订单', 'moonlight-shop'),
+                'all_items'             => __('全部订单', 'moonlight-shop'),
+                'search_items'          => __('搜索订单', 'moonlight-shop'),
+                'not_found'             => __('暂无订单。', 'moonlight-shop'),
+                'not_found_in_trash'    => __('回收站中暂无订单。', 'moonlight-shop'),
+                'parent_item_colon'     => null,
+                'archives'              => __('订单归档', 'moonlight-shop'),
+                'attributes'            => __('订单属性', 'moonlight-shop'),
+                'insert_into_item'      => __('插入至订单', 'moonlight-shop'),
+                'uploaded_to_this_item' => __('上传到本订单', 'moonlight-shop'),
+                'featured_image'        => __('订单封面图', 'moonlight-shop'),
+                'set_featured_image'    => __('设置订单封面图', 'moonlight-shop'),
+                'remove_featured_image' => __('移除订单封面图', 'moonlight-shop'),
+                'use_featured_image'    => __('设为订单封面图', 'moonlight-shop'),
+                'filter_items_list'     => __('筛选订单列表', 'moonlight-shop'),
+                'filter_by_date'        => __('按日期筛选订单', 'moonlight-shop'),
+                'items_list_navigation' => __('订单列表导航', 'moonlight-shop'),
+                'items_list'            => __('订单列表', 'moonlight-shop'),
+                'item_published'        => __('订单已发布。', 'moonlight-shop'),
+                'item_published_privately' => __('订单已私密发布。', 'moonlight-shop'),
+                'item_reverted_to_draft' => __('订单已恢复为草稿。', 'moonlight-shop'),
+                'item_trashed'          => __('订单已删除。', 'moonlight-shop'),
+                'item_scheduled'        => __('订单已排入计划。', 'moonlight-shop'),
+                'item_updated'          => __('订单已更新。', 'moonlight-shop'),
+                'item_link'             => __('订单链接', 'moonlight-shop'),
+                'item_link_description' => __('当前订单的链接。', 'moonlight-shop'),
+                'template_name'         => __('单个订单', 'moonlight-shop'),
+            ),
+            'public'             => false,
+            'show_ui'            => true,
+            'show_in_menu'       => 'edit.php?post_type=mlshop_product',
+            'capability_type'    => 'post',
+            'supports'           => array('title'),
+            'rewrite'            => false,
+        ));
+
+        self::register_statuses();
+    }
+
+    /**
+     * 注册订单自定义状态，使其在后台列表与筛选中正常显示。
+     *
+     * 关键：必须把 show_in_admin_all_list 也设为 true，否则 WP 6.x 后
+     * `edit.php` 默认走的所有页（status 未传 = 'all'）不会包含这些 internal 状态，
+     * 列表里 13 条订单但表格仍为「未找到订单」。count 链接显示 13 是因为后端
+     * `wp_count_posts()` 用了 show_in_admin_status_list，但默认列表 query 不一样。
+     */
+    public static function register_statuses()
+    {
+        $statuses = array(
+            'mlshop_pending'    => __('待付款', 'moonlight-shop'),
+            'mlshop_paid'       => __('已付款', 'moonlight-shop'),
+            'mlshop_processing' => __('处理中', 'moonlight-shop'),
+            'mlshop_completed'  => __('已完成', 'moonlight-shop'),
+            'mlshop_failed'     => __('支付失败', 'moonlight-shop'),
+            'mlshop_refunded'   => __('已退款', 'moonlight-shop'),
+            'mlshop_cancelled'  => __('已取消', 'moonlight-shop'),
+        );
+        foreach ($statuses as $slug => $label) {
+            register_post_status($slug, array(
+                'label'                     => $label,
+                'public'                    => false,
+                'internal'                  => true,
+                'exclude_from_search'       => true,
+                'show_in_admin_all'         => true,
+                'show_in_admin_status_list' => true,
+                'show_in_admin_all_list'    => true,
+                'label_count'               => _n_noop($label . ' <span class="count">(%s)</span>', $label . ' <span class="count">(%s)</span>'),
+            ));
+        }
+    }
+
+    /**
+     * 从购物车创建订单。
+     *
+     * @param int    $user_id
+     * @param string $gateway_id
+     * @param string $coupon_code 优惠码（可选）
+     */
+    public static function create_from_cart($user_id, $gateway_id, $coupon_code = '', $shipping_address = array())
+    {
+        $cart = MLSHOP_Cart::get_instance();
+        $items = $cart->get_items();
+        if (empty($items)) {
+            return new WP_Error('empty', __('购物车为空。', 'moonlight-shop'));
+        }
+        $subtotal = $cart->get_total();
+        $total    = $subtotal;
+        $coupon_meta = array();
+        $shipping    = 0.0;
+        $has_physical = MLSHOP_Shipping::has_physical($items);
+
+        $coupon_code = trim((string) $coupon_code);
+        if ('' !== $coupon_code && class_exists('MLSHOP_Coupon')) {
+            $cid = MLSHOP_Coupon::validate($coupon_code, $subtotal, $items);
+            if (!is_wp_error($cid)) {
+                $discount = MLSHOP_Coupon::compute_discount($cid, $subtotal);
+                if ($discount > 0) {
+                    // 原子预留名额，防并发超发（两人同时用同一限次码时仅一人能预留成功）
+                    if (MLSHOP_Coupon::reserve($cid)) {
+                        $total = round($subtotal - $discount, 2);
+                        $coupon_meta = array(
+                            '_mlshop_coupon_code' => strtoupper(trim($coupon_code)),
+                            '_mlshop_coupon_discount' => $discount,
+                            '_mlshop_coupon_reserved' => '1',
+                        );
+                    }
+                    // 预留失败（名额已满）：不报错，按原价下单，避免阻断购买
+                }
+            }
+        }
+
+        // 实物商品運費：以「優惠前小計」判定免運門檻，與結算頁展示一致；
+        // 優惠券只減貨款，不影響運費，避免結算頁展示與實收金額不一致。
+        if ($has_physical && MLSHOP_Shipping::enabled()) {
+            $shipping = MLSHOP_Shipping::calc($subtotal, true);
+            $total    = round($total + $shipping, 2);
+        }
+
+        // 库存校验（下单前拦截超卖）：_mlshop_stock 为空或 0 视为不限量。
+        foreach ($items as $it) {
+            $chk_pid = isset($it['id']) ? (int) $it['id'] : 0;
+            $chk_qty = isset($it['qty']) ? (int) $it['qty'] : 0;
+            if (!$chk_pid || $chk_qty <= 0) {
+                continue;
+            }
+            $chk_stock = (int) get_post_meta($chk_pid, '_mlshop_stock', true);
+            if ($chk_stock > 0 && $chk_qty > $chk_stock) {
+                return new WP_Error(
+                    'stock',
+                    sprintf(__('「%s」库存不足，仅剩 %d 件。', 'moonlight-shop'), get_the_title($chk_pid), $chk_stock)
+                );
+            }
+        }
+
+        $order_id = wp_insert_post(array(
+            'post_title'  => 'MLS-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_type'   => 'mlshop_order',
+            'post_status' => 'mlshop_pending',
+            'post_author' => $user_id,
+        ));
+        if (is_wp_error($order_id)) {
+            return $order_id;
+        }
+
+        update_post_meta($order_id, '_mlshop_user_id', $user_id);
+        update_post_meta($order_id, '_mlshop_items', $items);
+        update_post_meta($order_id, '_mlshop_subtotal', $subtotal);
+        update_post_meta($order_id, '_mlshop_total', $total);
+        update_post_meta($order_id, '_mlshop_shipping', $shipping);
+        update_post_meta($order_id, '_mlshop_has_physical', $has_physical ? '1' : '0');
+        if ($has_physical && is_array($shipping_address) && !empty($shipping_address)) {
+            update_post_meta($order_id, '_mlshop_shipping_address', $shipping_address);
+        }
+        update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
+        update_post_meta($order_id, '_mlshop_status', 'pending');
+        update_post_meta($order_id, '_mlshop_currency', mlshop_get_option('currency_symbol', 'HK$'));
+        update_post_meta($order_id, '_mlshop_created', current_time('mysql'));
+        foreach ($coupon_meta as $k => $v) {
+            update_post_meta($order_id, $k, $v);
+        }
+
+        // 库存扣减（实物 / 虚拟；卡密由交付時 pop_cardkey 扣除，避免雙扣）
+        foreach ($items as $item) {
+            $pid = (int) $item['id'];
+            if ('cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
+                continue;
+            }
+            $stock = (int) get_post_meta($pid, '_mlshop_stock', true);
+            if ($stock > 0) {
+                // 原子扣减：并发下单时由数据库保证不超卖；扣减失败（期间被他人买走）则清零兜底。
+                if (!mlshop_atomic_decrement_post_meta($pid, '_mlshop_stock', (int) $item['qty'])) {
+                    update_post_meta($pid, '_mlshop_stock', 0);
+                }
+            }
+        }
+
+        $cart->clear();
+        return $order_id;
+    }
+
+    /**
+     * 为付费内容直接创建专用订单（不经过购物车）。
+     *
+     * @param int    $user_id
+     * @param int    $post_id   mlshop_product ID
+     * @param string $gateway_id
+     * @return int|WP_Error
+     */
+    public static function create_for_paywall($user_id, $post_id, $gateway_id)
+    {
+        $user_id = (int) $user_id;
+        $post_id = (int) $post_id;
+        // 付费内容可挂在 商品 / 文章 / 页面 上（与 MLSHOP_Product_Pay_Meta 支持范围、
+        // MLSHOP_Pay_Access::is_paywalled() 保持一致），否则文章付费墙能显示却永远买不了。
+        $pay_pt = $post_id ? get_post_type($post_id) : '';
+        if (!$user_id || !$post_id || !in_array($pay_pt, array('mlshop_product', 'post', 'page'), true)) {
+            return new WP_Error('invalid', __('内容无效。', 'moonlight-shop'));
+        }
+        $pay_mode = class_exists('MLSHOP_Product_Pay_Meta')
+            ? MLSHOP_Product_Pay_Meta::get($post_id, 'pay_mode', 'off')
+            : 'off';
+        if ($pay_mode === 'off') {
+            return new WP_Error('not_paywalled', __('该内容未启用付费。', 'moonlight-shop'));
+        }
+
+        // 按会员等级取价（与 MLSHOP_Pay_Access::get_price_for_user 同源逻辑，这里就近计算避免跨类依赖）
+        $level = class_exists('MLUC_Membership') ? MLUC_Membership::get_user_level($user_id) : 'free';
+        $price = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_sell', 0);
+        if (in_array($level, array('gold', 'diamond'), true)) {
+            $g = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_gold', 0);
+            if ($g > 0) {
+                $price = $g;
+            }
+        }
+        if ('diamond' === $level) {
+            $d = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_diamond', 0);
+            if ($d > 0) {
+                $price = $d;
+            }
+        }
+        if ($price <= 0) {
+            return new WP_Error('noprice', __('价格未设置。', 'moonlight-shop'));
+        }
+
+        $title = get_the_title($post_id);
+        $order_id = wp_insert_post(array(
+            'post_title'  => 'MLS-PW-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_type'   => 'mlshop_order',
+            'post_status' => 'mlshop_pending',
+            'post_author' => $user_id,
+        ));
+        if (is_wp_error($order_id)) {
+            return $order_id;
+        }
+
+        update_post_meta($order_id, '_mlshop_user_id', $user_id);
+        update_post_meta($order_id, '_mlshop_items', array(array('id' => $post_id, 'qty' => 1, 'price' => $price, 'title' => $title)));
+        update_post_meta($order_id, '_mlshop_total', $price);
+        update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
+        update_post_meta($order_id, '_mlshop_status', 'pending');
+        update_post_meta($order_id, '_mlshop_currency', mlshop_get_option('currency_symbol', 'HK$'));
+        update_post_meta($order_id, '_mlshop_paywall_post', $post_id);
+        update_post_meta($order_id, '_mlshop_created', current_time('mysql'));
+
+        return $order_id;
+    }
+
+    /**
+     * 创建积分充值订单（不经过购物车）。
+     *
+     * @param int    $user_id
+     * @param float  $credit  充值积分数
+     * @param float  $price   应付金额（货币）
+     * @param string $gateway_id
+     * @return int|WP_Error
+     */
+    public static function create_recharge($user_id, $credit, $price, $gateway_id)
+    {
+        $user_id = (int) $user_id;
+        $credit  = (float) $credit;
+        $price   = (float) $price;
+        if (!$user_id) {
+            return new WP_Error('invalid', __('用户无效。', 'moonlight-shop'));
+        }
+        if ($credit <= 0 || $price <= 0) {
+            return new WP_Error('invalid', __('充值金额无效。', 'moonlight-shop'));
+        }
+
+        $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
+        $order_id = wp_insert_post(array(
+            'post_title'  => 'MLS-RC-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_type'   => 'mlshop_order',
+            'post_status' => 'mlshop_pending',
+            'post_author' => $user_id,
+        ));
+        if (is_wp_error($order_id)) {
+            return $order_id;
+        }
+
+        update_post_meta($order_id, '_mlshop_user_id', $user_id);
+        update_post_meta($order_id, '_mlshop_type', 'recharge');
+        update_post_meta($order_id, '_mlshop_credit_amount', $credit);
+        update_post_meta($order_id, '_mlshop_items', array(
+            array('title' => sprintf(__('%s %s 充值', 'moonlight-shop'), $credit, $credit_name), 'qty' => 1, 'subtotal' => $price),
+        ));
+        update_post_meta($order_id, '_mlshop_total', $price);
+        update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
+        update_post_meta($order_id, '_mlshop_status', 'pending');
+        update_post_meta($order_id, '_mlshop_currency', mlshop_get_option('currency_symbol', 'HK$'));
+        update_post_meta($order_id, '_mlshop_created', current_time('mysql'));
+
+        return $order_id;
+    }
+
+    /**
+     * 创建会员升级订单（不经过购物车）。
+     *
+     * @param int    $user_id
+     * @param string $level  目标等级 key（gold/diamond/monthly/premium）
+     * @param float  $price  应付金额
+     * @param string $gateway_id
+     * @return int|WP_Error
+     */
+    public static function create_membership($user_id, $level, $price, $gateway_id)
+    {
+        $user_id = (int) $user_id;
+        $price   = (float) $price;
+        if (!$user_id) {
+            return new WP_Error('invalid', __('用户无效。', 'moonlight-shop'));
+        }
+        if ($price <= 0) {
+            return new WP_Error('invalid', __('升级价格无效。', 'moonlight-shop'));
+        }
+        $label = class_exists('MLUC_Membership') ? MLUC_Membership::get_level_label($level) : $level;
+        $order_id = wp_insert_post(array(
+            'post_title'  => 'MLS-MB-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_type'   => 'mlshop_order',
+            'post_status' => 'mlshop_pending',
+            'post_author' => $user_id,
+        ));
+        if (is_wp_error($order_id)) {
+            return $order_id;
+        }
+        update_post_meta($order_id, '_mlshop_user_id', $user_id);
+        update_post_meta($order_id, '_mlshop_type', 'membership');
+        update_post_meta($order_id, '_mlshop_membership_target', $level);
+        update_post_meta($order_id, '_mlshop_items', array(
+            array('title' => sprintf(__('%s 升级', 'moonlight-shop'), $label), 'qty' => 1, 'subtotal' => $price),
+        ));
+        update_post_meta($order_id, '_mlshop_total', $price);
+        update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
+        update_post_meta($order_id, '_mlshop_status', 'pending');
+        update_post_meta($order_id, '_mlshop_currency', mlshop_get_option('currency_symbol', 'HK$'));
+        update_post_meta($order_id, '_mlshop_created', current_time('mysql'));
+
+        return $order_id;
+    }
+
+    /**
+     * 标记订单为已支付并触发交付。
+     *
+     * @param int    $order_id
+     * @param string $gateway 支付网关 ID（可选，记录交易来源）
+     * @param string $txn_id  网关交易号 / Payment Intent（可选）
+     */
+    public static function mark_paid($order_id, $gateway = '', $txn_id = '')
+    {
+        if ($gateway) {
+            update_post_meta($order_id, '_mlshop_payment_gateway', $gateway);
+        }
+        if ($txn_id) {
+            update_post_meta($order_id, '_mlshop_payment_id', $txn_id);
+        }
+        return self::set_status($order_id, 'paid');
+    }
+
+    public static function mark_processing($order_id)
+    {
+        return self::set_status($order_id, 'processing');
+    }
+
+    /**
+     * 标记订单为已完成（管理员确认收货后调用）。
+     *
+     * @param int $order_id
+     */
+    public static function mark_completed($order_id)
+    {
+        return self::set_status($order_id, 'completed');
+    }
+
+    /**
+     * 标记订单为已退款（会自动回滚库存）。
+     *
+     * @param int $order_id
+     */
+    public static function mark_refunded($order_id)
+    {
+        return self::set_status($order_id, 'refunded');
+    }
+
+    /**
+     * 标记订单为已取消（pending 阶段取消会自动回滚库存）。
+     *
+     * @param int $order_id
+     */
+    public static function mark_cancelled($order_id)
+    {
+        return self::set_status($order_id, 'cancelled');
+    }
+
+    /**
+     * 标记订单为支付失败（允许从 failed 重新回到 pending 重试）。
+     *
+     * @param int    $order_id
+     * @param string $message 失败原因（可选）
+     */
+    public static function mark_failed($order_id, $message = '')
+    {
+        return self::set_status($order_id, 'failed', array('message' => $message));
+    }
+
+    /**
+     * 统一的状态变更入口：校验转换合法性、同步 post_status 与 meta、
+     * 在需要时回滚库存，并触发 mlshop_order_<status> 钩子。
+     *
+     * @param int    $order_id
+     * @param string $new   目标状态（pending/paid/processing/completed/failed/refunded/cancelled）
+     * @param array  $extra 附加数据（如 failed 的 message）
+     * @return bool|WP_Error
+     */
+    public static function set_status($order_id, $new, $extra = array())
+    {
+        $new     = strtolower($new);
+        $current = self::get_status($order_id);
+        if ($current === $new) {
+            return true;
+        }
+        if (!self::can_transition($current, $new)) {
+            return new WP_Error(
+                'invalid_transition',
+                sprintf(__('订单状态不允许从 %s 变更为 %s。', 'moonlight-shop'), $current, $new)
+            );
+        }
+
+        // 库存回滚：pending/processing 取消或失败，或已付款后退款
+        if (in_array($new, array('cancelled', 'failed'), true) && in_array($current, array('pending', 'processing'), true)) {
+            self::restore_stock($order_id);
+        }
+        if ('refunded' === $new && in_array($current, array('paid', 'processing', 'completed'), true)) {
+            self::restore_stock($order_id);
+        }
+
+        // 资金回退：退款 / 已付款后取消时，余额支付回补钱包、充值订单回收已发积分
+        if (in_array($new, array('refunded', 'cancelled'), true)) {
+            self::maybe_reverse_funds($order_id);
+            self::maybe_release_coupon($order_id);
+        }
+
+        wp_update_post(array('ID' => $order_id, 'post_status' => 'mlshop_' . $new));
+        update_post_meta($order_id, '_mlshop_status', $new);
+
+        if ('failed' === $new && !empty($extra['message'])) {
+            update_post_meta($order_id, '_mlshop_fail_message', sanitize_text_field($extra['message']));
+        }
+
+        do_action('mlshop_order_status_changed', $order_id, $current, $new);
+        do_action('mlshop_order_' . $new, $order_id);
+        return true;
+    }
+
+    /**
+     * 读取订单当前状态（meta 为权威来源）。
+     */
+    public static function get_status($order_id)
+    {
+        $status = get_post_meta($order_id, '_mlshop_status', true);
+        return $status ? $status : 'pending';
+    }
+
+    /**
+     * 判断订单是否处于某状态。
+     */
+    public static function is_status($order_id, $status)
+    {
+        return self::get_status($order_id) === $status;
+    }
+
+    /**
+     * 状态转换白名单。
+     */
+    public static function get_allowed_transitions($from)
+    {
+        $map = array(
+            'pending'    => array('paid', 'failed', 'cancelled', 'processing'),
+            'paid'       => array('processing', 'completed', 'refunded', 'cancelled'),
+            // 允许 processing -> paid：订单可能已被管理员/物流流程先置为「处理中」，
+            // 此时网关回调( Stripe/PayPal webhook )再 mark_paid 会被拒绝并静默失败，
+            // 造成「已收款但不交付/不授予会员」。交付类钩子均有幂等标记，重复触发安全。
+            'processing' => array('paid', 'completed', 'refunded', 'cancelled', 'failed'),
+            'completed'  => array('refunded'),
+            'failed'     => array('pending', 'cancelled'),
+            'refunded'   => array(),
+            'cancelled'  => array(),
+        );
+        return isset($map[$from]) ? $map[$from] : array();
+    }
+
+    /**
+     * 校验 from -> to 是否为合法转换。
+     */
+    public static function can_transition($from, $to)
+    {
+        return in_array($to, self::get_allowed_transitions($from), true);
+    }
+
+    /**
+     * 回滚订单商品的库存（仅作用于 mlshop_product 且有库存配置的商品）。
+     */
+    private static function restore_stock($order_id)
+    {
+        $items = get_post_meta($order_id, '_mlshop_items', true);
+        if (!is_array($items)) {
+            return;
+        }
+        foreach ($items as $item) {
+            if (empty($item['id'])) {
+                continue;
+            }
+            $pid = (int) $item['id'];
+            if (get_post_type($pid) !== 'mlshop_product') {
+                continue;
+            }
+            if ('cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
+                continue; // 卡密库存由交付時管理，回滾不在此處
+            }
+            $stock = (int) get_post_meta($pid, '_mlshop_stock', true);
+            update_post_meta($pid, '_mlshop_stock', $stock + (int) $item['qty']);
+        }
+    }
+
+    /**
+     * 退款 / 已付款后取消时回退资金（幂等），防止资损：
+     *  - 余额支付订单：把已扣钱包余额回补给用户；
+     *  - 充值订单：回收已入账的积分（用户已花掉则记录告警，不重复回退）。
+     * 未实际付款的 pending 取消（无 payment_id）不触发余额回补。
+     */
+    private static function maybe_reverse_funds($order_id)
+    {
+        if (get_post_meta($order_id, '_mlshop_funds_reversed', true)) {
+            return;
+        }
+        $uid     = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        $type    = get_post_meta($order_id, '_mlshop_type', true);
+        $gateway = get_post_meta($order_id, '_mlshop_payment_gateway', true);
+
+        if ('balance' === $gateway && $uid > 0 && get_post_meta($order_id, '_mlshop_payment_id', true)) {
+            $total = (float) get_post_meta($order_id, '_mlshop_total', true);
+            if ($total > 0) {
+                MLSHOP_Credit::add($uid, $total, sprintf(__('订单 #%d 退款回补余额', 'moonlight-shop'), $order_id));
+            }
+        }
+
+        if ('recharge' === $type && $uid > 0 && get_post_meta($order_id, '_mlshop_recharge_granted', true)) {
+            $credit = (float) get_post_meta($order_id, '_mlshop_credit', true);
+            if ($credit > 0) {
+                $remaining = MLSHOP_Credit::spend($uid, $credit, sprintf(__('订单 #%d 退款回收充值积分', 'moonlight-shop'), $order_id));
+                if (false === $remaining) {
+                    update_post_meta($order_id, '_mlshop_recharge_revoke_short', $credit);
+                }
+            }
+        }
+
+        update_post_meta($order_id, '_mlshop_funds_reversed', '1');
+    }
+
+    /**
+     * 订单取消 / 退款时回补优惠券名额（幂等），避免名额被占死。
+     *
+     * 仅对确实用过券（_mlshop_coupon_code 存在）且尚未回补的订单生效。
+     */
+    private static function maybe_release_coupon($order_id)
+    {
+        if (get_post_meta($order_id, '_mlshop_coupon_released', true)) {
+            return;
+        }
+        $code = get_post_meta($order_id, '_mlshop_coupon_code', true);
+        if (!$code) {
+            return;
+        }
+        if (class_exists('MLSHOP_Coupon')) {
+            MLSHOP_Coupon::release($code);
+        }
+        update_post_meta($order_id, '_mlshop_coupon_released', '1');
+    }
+
+    /**
+     * 注册 WP-Cron 事件（若尚未调度）。DISABLE_WP_CRON 环境下不会自动触发，
+     * 因此同时提供惰性过期（maybe_expire）作为兜底。
+     */
+    public static function maybe_schedule_cron()
+    {
+        if (!wp_next_scheduled('mlshop_expire_pending_orders')) {
+            wp_schedule_event(time(), 'hourly', 'mlshop_expire_pending_orders');
+        }
+    }
+
+    /**
+     * 惰性过期：查看订单时若已超时才取消（不依赖 cron）。
+     *
+     * @param int $order_id
+     */
+    public static function maybe_expire($order_id)
+    {
+        $minutes = (int) mlshop_get_option('order_expire_minutes', 30);
+        if ($minutes <= 0) {
+            return;
+        }
+        if (self::get_status($order_id) !== 'pending') {
+            return;
+        }
+        // 线下(扫码)订单本就等待管理员确认收款，不参与自动过期。
+        // 关键（2026-08-30 修复）：必须读 `_mlshop_gateway`（建单时写入的「下单网关」），
+        // 不能读 `_mlshop_payment_gateway` —— 后者只在 mark_paid() 付款成功时才写入，
+        // 而本方法只处理 pending 未付款订单，该 meta 此刻必然为空 → 豁免 100% 失效，
+        // 会把等待人工确认收款的线下订单误判超时而取消（用户可能已转账，引发纠纷）。
+        if ('manual' === get_post_meta($order_id, '_mlshop_gateway', true)) {
+            return;
+        }
+        $created = get_post_meta($order_id, '_mlshop_created', true);
+        if (!$created) {
+            return;
+        }
+        $ts = strtotime($created);
+        if ($ts && (current_time('timestamp') - $ts) > $minutes * 60) {
+            self::mark_cancelled($order_id);
+        }
+    }
+
+    /**
+     * 批量取消所有超时的未支付订单（由 WP-Cron 调用）。
+     */
+    public static function expire_pending_orders()
+    {
+        $minutes = (int) mlshop_get_option('order_expire_minutes', 30);
+        if ($minutes <= 0) {
+            return;
+        }
+        $orders = get_posts(array(
+            'post_type'      => 'mlshop_order',
+            'posts_per_page' => 200,
+            'post_status'    => 'mlshop_pending',
+            'fields'         => 'ids',
+            'orderby'        => 'date',
+            'order'          => 'ASC',
+        ));
+        foreach ($orders as $id) {
+            self::maybe_expire($id);
+        }
+    }
+
+    public static function get_user_orders($user_id, $limit = 20)
+    {
+        return get_posts(array(
+            'post_type'      => 'mlshop_order',
+            'posts_per_page' => $limit,
+            'post_status'    => array('mlshop_pending', 'mlshop_paid', 'mlshop_processing', 'mlshop_completed', 'mlshop_failed', 'mlshop_refunded', 'mlshop_cancelled'),
+            'meta_key'       => '_mlshop_user_id',
+            'meta_value'     => $user_id,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ));
+    }
+
+    /**
+     * 单个订单查看短代码：[mlshop_order id="123"]。
+     */
+    public function shortcode_order($atts)
+    {
+        $atts = shortcode_atts(array('id' => 0), $atts, 'mlshop_order');
+        $order_id = (int) $atts['id'];
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+            return '';
+        }
+        if (!current_user_can('edit_posts') && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            return '<p>' . esc_html__('无权查看该订单。', 'moonlight-shop') . '</p>';
+        }
+        self::maybe_expire($order_id);
+        ob_start();
+        mlshop_get_template('order', array(
+            'order_id' => $order_id,
+            'back_url' => mlshop_get_orders_url(),
+        ));
+        return ob_get_clean();
+    }
+}
