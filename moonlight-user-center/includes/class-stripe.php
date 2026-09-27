@@ -231,7 +231,13 @@ class MLUC_Stripe
         $payload = $request->get_body();
         $sig     = $request->get_header('stripe-signature');
 
-        if ('' !== $secret) {
+        // 安全硬化（审计 S2/M6）：webhook secret 未配置时直接拒绝（503），
+        // 不再「跳过验签继续处理」——公开端点在无验签情况下每次都会触发一次
+        // 对 Stripe 的回查 API 调用（放大/DoS 向量），且设置页应将 secret 视为必填。
+        if ('' === $secret) {
+            return new WP_REST_Response(array('error' => 'webhook secret not configured'), 503);
+        }
+        {
             if (!$sig || !preg_match('/t=(\d+)/i', $sig, $tm) || !preg_match_all('/v1=([a-f0-9]+)/i', $sig, $vm)) {
                 return new WP_REST_Response(array('error' => 'bad signature'), 400);
             }

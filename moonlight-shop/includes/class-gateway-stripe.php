@@ -237,6 +237,15 @@ class MLSHOP_Gateway_Stripe extends MLSHOP_Gateway
             status_header(200);
             exit;
         }
+        // 金额复核（对齐计划书第二十三节「必须验证金额」）：session 金额（最小单位）
+        // 必须与本地订单总额一致才标记 paid；不符则拒绝并留痕，回 200 避免 Stripe 无限重试。
+        $amount_total = isset($session['amount_total']) ? (int) $session['amount_total'] : -1;
+        $expect_minor = self::to_minor_units((float) get_post_meta($order_id, '_mlshop_total', true));
+        if ($amount_total < 0 || $amount_total !== $expect_minor) {
+            update_post_meta($order_id, '_mlshop_pay_amount_mismatch', sprintf('stripe:%s', (string) $amount_total));
+            status_header(200);
+            exit;
+        }
         $current = get_post_meta($order_id, '_mlshop_status', true);
         if ('paid' === $current || in_array($current, array('processing', 'completed', 'refunded'), true)) {
             status_header(200);
@@ -247,6 +256,15 @@ class MLSHOP_Gateway_Stripe extends MLSHOP_Gateway
         status_header(200);
         echo 'OK';
         exit;
+    }
+
+    /**
+     * 金额 → 最小单位（分）。HKD/USD 等两位小数货币 ×100；JPY/KRW 零小数货币 ×1。
+     */
+    public static function to_minor_units($amount)
+    {
+        $zero_decimal = in_array(strtoupper((string) mlshop_get_option('currency', 'HKD')), array('JPY', 'KRW'), true);
+        return (int) round((float) $amount * ($zero_decimal ? 1 : 100));
     }
 
     /**

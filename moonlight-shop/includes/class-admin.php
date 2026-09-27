@@ -103,13 +103,13 @@ class MLSHOP_Admin
             'store_email'             => array('type' => 'string',  'sanitize' => 'sanitize_email'),
             'stripe_test_mode'        => array('type' => 'integer', 'sanitize' => 'absint'),
             'stripe_test_publishable' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
-            'stripe_test_secret'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_test_secret'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'stripe_publishable'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
-            'stripe_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
-            'stripe_webhook_secret'   => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'stripe_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'stripe_webhook_secret'   => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'paypal_sandbox'          => array('type' => 'integer', 'sanitize' => 'absint'),
             'paypal_client_id'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
-            'paypal_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'paypal_secret'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'paypal_webhook_id'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'pay_enabled'             => array('type' => 'integer', 'sanitize' => 'absint'),
             'credit_name'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
@@ -151,9 +151,17 @@ class MLSHOP_Admin
             'email_footer'            => array('type' => 'string',  'sanitize' => 'sanitize_textarea_field'),
         );
         foreach ($keys as $key => $conf) {
+            $sanitize = $conf['sanitize'];
+            if (!empty($conf['secret'])) {
+                // 密钥字段：脱敏保存（空提交 = 保持原值），修复审计 M4
+                $sk = $key;
+                $sanitize = function ($value) use ($sk) {
+                    return mlshop_sanitize_secret_keep($sk, $value);
+                };
+            }
             register_setting($group, 'mlshop_' . $key, array(
                 'type'              => $conf['type'],
-                'sanitize_callback' => $conf['sanitize'],
+                'sanitize_callback' => $sanitize,
                 'default'           => '',
             ));
         }
@@ -656,7 +664,10 @@ class MLSHOP_Admin
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Test Secret Key', 'moonlight-shop'); ?></th>
-                        <td><input type="password" name="mlshop_stripe_test_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_test_secret', '')); ?>" class="regular-text" placeholder="sk_test_..."></td>
+                        <td>
+                            <input type="password" name="mlshop_stripe_test_secret" value="" class="regular-text" placeholder="sk_test_..." autocomplete="new-password">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_test_secret', '')))); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Live Publishable Key', 'moonlight-shop'); ?></th>
@@ -664,13 +675,17 @@ class MLSHOP_Admin
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Live Secret Key', 'moonlight-shop'); ?></th>
-                        <td><input type="password" name="mlshop_stripe_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_secret', '')); ?>" class="regular-text" placeholder="sk_live_..."></td>
+                        <td>
+                            <input type="password" name="mlshop_stripe_secret" value="" class="regular-text" placeholder="sk_live_..." autocomplete="new-password">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_secret', '')))); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Webhook Signing Secret', 'moonlight-shop'); ?></th>
                         <td>
-                            <input type="password" name="mlshop_stripe_webhook_secret" value="<?php echo esc_attr(mlshop_get_option('stripe_webhook_secret', '')); ?>" class="regular-text" placeholder="whsec_...">
+                            <input type="password" name="mlshop_stripe_webhook_secret" value="" class="regular-text" placeholder="whsec_..." autocomplete="new-password">
                             <p class="description">
+                                <?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_webhook_secret', '')))); ?><br>
                                 <?php esc_html_e('在 Stripe Dashboard → Developers → Webhooks 新增端點：', 'moonlight-shop'); ?>
                                 <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($webhook_url); ?></code>
                             </p>
@@ -749,7 +764,10 @@ class MLSHOP_Admin
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Secret', 'moonlight-shop'); ?></th>
-                        <td><input type="password" name="mlshop_paypal_secret" value="<?php echo esc_attr(mlshop_get_option('paypal_secret', '')); ?>" class="regular-text"></td>
+                        <td>
+                            <input type="password" name="mlshop_paypal_secret" value="" class="regular-text" autocomplete="new-password">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('paypal_secret', '')))); ?></p>
+                        </td>
                     </tr>
                     <tr>
                         <th><?php esc_html_e('Webhook ID', 'moonlight-shop'); ?></th>

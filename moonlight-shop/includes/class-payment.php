@@ -222,16 +222,14 @@ class MLSHOP_Payment
             }
             $stored = (string) get_post_meta($order_id, '_mlshop_paypal_order', true);
             $token  = isset($_GET['token']) ? sanitize_text_field($_GET['token']) : '';
-            // token 防伪：必须与下单时保存的 PayPal 单号一致，
-            // 防止用他人（或自己另一笔小额）订单的 token 伪造 capture。
-            if ($stored && $token && $stored !== $token) {
+            // token 防伪（修复审计 L2）：必须与下单时保存的 PayPal 单号严格一致。
+            // 本地无保存值（极端遗留数据）时不再信任客户端 token，放弃 capture——
+            // 仍可靠 webhook 或管理员确认完成收款，绝不因信任 URL 而扩大伪造面。
+            if (!$stored || !$token || $stored !== $token) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
             }
-            $paypal_order_id = $stored ? $stored : $token;
-            if (!$paypal_order_id) {
-                return;
-            }
+            $paypal_order_id = $stored;
             $gateway = $this->get_gateway('paypal');
             if (!$gateway || !method_exists($gateway, 'capture')) {
                 return;

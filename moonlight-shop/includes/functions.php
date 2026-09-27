@@ -402,7 +402,6 @@ function mlshop_atomic_decrement_post_meta($post_id, $meta_key, $amount)
 
 /**
  * 原子增加数值型 post meta（库存回滚 / 退款回补等）。
- *
  * 与 mlshop_atomic_decrement_post_meta 对称：库存回滚也必须原子，
  * 避免「读取 → 相加 → 写回」在并发退款/取消时丢失回补量。
  * postmeta 无 (post_id, meta_key) 唯一索引，先 UPDATE，无行再 INSERT。
@@ -569,4 +568,36 @@ function mlshop_cas_post_meta($post_id, $meta_key, $expected, $new_value)
         wp_cache_delete((int) $post_id, 'post_meta');
     }
     return (bool) $affected;
+}
+
+/**
+ * 支付密钥脱敏展示（修复审计 M4）：设置页只显示尾 4 位，完整值永不回显进 HTML。
+ *
+ * @param string $value
+ * @return string 形如 "••••AB12"；空值返回空串
+ */
+function mlshop_mask_secret($value)
+{
+    $value = trim((string) $value);
+    if ('' === $value) {
+        return '';
+    }
+    return '••••' . substr($value, -4);
+}
+
+/**
+ * 支付密钥保存策略（修复审计 M4）：设置页输入框不再回显原值，
+ * 因此「提交为空 = 保持原值不变」，只有用户输入了新值才覆盖。
+ *
+ * @param string $key   配置键（不含 mlshop_ 前缀）
+ * @param string $value 表单提交值
+ * @return string 应落库的值
+ */
+function mlshop_sanitize_secret_keep($key, $value)
+{
+    $value = trim((string) $value);
+    if ('' === $value) {
+        return trim((string) mlshop_get_option($key, ''));
+    }
+    return sanitize_text_field($value);
 }
