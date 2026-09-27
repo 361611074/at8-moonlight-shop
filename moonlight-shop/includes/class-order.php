@@ -625,8 +625,9 @@ class MLSHOP_Order
             }
             $chk_stock = (int) get_post_meta($chk_pid, '_mlshop_stock', true);
             if ('cardkey' === get_post_meta($chk_pid, '_mlshop_type', true)) {
-                $pool = (string) get_post_meta($chk_pid, '_mlshop_cardkeys', true);
-                $pool_count = count(array_filter(array_map('trim', explode("\n", $pool))));
+                // 卡密以库存池真实可售数为准（加密批次模型 available 计数；
+                // 未迁移的旧商品自动回落到明文池行数），计数器只是冗余显示。
+                $pool_count = Moonlight_Card_Stock::available($chk_pid);
                 if ($pool_count > 0) {
                     $chk_stock = ($chk_stock > 0) ? min($chk_stock, $pool_count) : $pool_count;
                 }

@@ -29,6 +29,7 @@ class MLSHOP_Admin
         add_action('admin_post_mlshop_test_paypal', array($this, 'test_paypal'));
         add_action('admin_post_mlshop_test_order_email', array($this, 'test_order_email'));
         add_action('admin_post_mlshop_order_set_status', array($this, 'order_set_status'));
+        add_action('admin_post_mlshop_card_batch_status', array($this, 'card_batch_status'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin'));
     }
 
@@ -66,9 +67,9 @@ class MLSHOP_Admin
             wp_enqueue_style('mlshop-settings', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-settings.css', array(), MLSHOP_VERSION);
         }
 
-        // 设置页 / 群发邮件页：美化样式 + 导航脚本
+        // 设置页 / 群发邮件页 / 卡密库存页：美化样式 + 导航脚本
         $page = isset($_GET['page']) ? sanitize_key($_GET['page']) : '';
-        if ('mlshop-settings' === $page || 'mlshop-bulk-email' === $page) {
+        if ('mlshop-settings' === $page || 'mlshop-bulk-email' === $page || 'mlshop-card-stock' === $page) {
             wp_enqueue_style('wp-color-picker');
             wp_enqueue_style('mlshop-settings', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-settings.css', array('wp-color-picker'), MLSHOP_VERSION);
             wp_enqueue_script('mlshop-admin', MLSHOP_PLUGIN_URL . 'assets/js/mlshop-admin.js', array('jquery', 'wp-color-picker'), MLSHOP_VERSION, true);
@@ -91,6 +92,15 @@ class MLSHOP_Admin
             'manage_options',
             'mlshop-settings',
             array($this, 'render_settings')
+        );
+        // 卡密库存（加密批次模型）：批次列表 / 批量导入 / 掩码查看与单条解密
+        add_submenu_page(
+            'edit.php?post_type=mlshop_product',
+            __('卡密库存', 'moonlight-shop'),
+            __('卡密库存', 'moonlight-shop'),
+            'manage_options',
+            'mlshop-card-stock',
+            array($this, 'render_card_stock')
         );
     }
 
@@ -999,6 +1009,402 @@ class MLSHOP_Admin
                 ), 60);
             }
         }
+        wp_safe_redirect($redirect);
+        exit;
+    }
+
+    /* ---------------- 卡密库存（加密批次模型） ---------------- */
+
+    /** 单次导入行数上限。 */
+    const CARD_IMPORT_MAX_LINES = 5000;
+
+    /**
+     * 卡密库存管理页：商品选择器 + 批次表 + 批量导入 + 掩码查看 / 单条解密。
+     *
+     * 解密查看全部写审计日志（option _mlshop_card_audit，环形 100 条）：
+     * 掩码展开 action=mask、单条明文 action=reveal、损坏行 action=corrupt。
+     */
+    public function render_card_stock()
+    {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        $page_url = admin_url('edit.php?post_type=mlshop_product&page=mlshop-card-stock');
+
+        // ---- 批量导入（POST → PRG 跳转）----
+        if (isset($_POST['mlshop_card_import'])) {
+            check_admin_referer('mlshop_card_import');
+            $this->handle_card_import($page_url); // 失败也 redirect（统一走通知），不返回。
+        }
+
+        // ---- 单条「查看完整」（POST + nonce + 二次确认字段 confirm=1）----
+        $reveal_plain = '';
+        $reveal_error = '';
+        $reveal_meta_id = 0;
+        if (isset($_POST['mlshop_card_reveal'])) {
+            check_admin_referer('mlshop_card_reveal');
+            $reveal_meta_id = isset($_POST['meta_id']) ? absint($_POST['meta_id']) : 0;
+            $confirm = isset($_POST['confirm']) ? sanitize_key(wp_unslash($_POST['confirm'])) : '';
+            if ('1' !== $confirm) {
+                $reveal_error = __('未通过二次确认（confirm），已取消查看。', 'moonlight-shop');
+            } elseif (!$reveal_meta_id) {
+                $reveal_error = __('参数无效。', 'moonlight-shop');
+            } else {
+                $plain = Moonlight_Card_Stock::reveal($reveal_meta_id);
+                if (false === $plain) {
+                    $reveal_error = __('解密失败：记录不存在、已损坏或权限不足。', 'moonlight-shop');
+                } else {
+                    $reveal_plain = $plain; // 仅本次响应内展示，不落任何存储。
+                }
+            }
+        }
+
+        $product_id = isset($_GET['product_id']) ? absint($_GET['product_id']) : 0;
+        $view_batch = isset($_GET['view_batch']) ? absint($_GET['view_batch']) : 0;
+        // 展开校验：批次必须属于当前所选商品，防止跨商品探测。
+        if ($view_batch && $product_id) {
+            $batch_post = get_post($view_batch);
+            if (!$batch_post || (int) $batch_post->post_parent !== $product_id) {
+                $view_batch = 0;
+            }
+        } else {
+            $view_batch = 0;
+        }
+        $view_rows = $view_batch ? Moonlight_Card_Stock::preview($view_batch, 100) : array();
+        ?>
+        <div class="wrap mlshop-admin-settings">
+            <h1><?php esc_html_e('卡密库存', 'moonlight-shop'); ?></h1>
+            <p class="description"><?php esc_html_e('卡密以加密批次入库（AES-256-CBC，明文不落库）。停用批次后其卡密不再参与发货；每次查看（含掩码展开）都会记录审计日志。', 'moonlight-shop'); ?></p>
+
+            <h2 class="mlshop-card-title"><?php esc_html_e('选择商品', 'moonlight-shop'); ?></h2>
+            <form method="get">
+                <input type="hidden" name="post_type" value="mlshop_product">
+                <input type="hidden" name="page" value="mlshop-card-stock">
+                <select name="product_id">
+                    <?php echo $this->card_product_options($product_id); // phpcs:ignore WordPress.Security.EscapeOutput -- 内部已 esc_html/esc_attr。 ?>
+                </select>
+                <button type="submit" class="button"><?php esc_html_e('查看批次', 'moonlight-shop'); ?></button>
+            </form>
+
+            <?php if ($reveal_plain || $reveal_error) : ?>
+                <div class="notice <?php echo $reveal_plain ? 'notice-success' : 'notice-error'; ?>">
+                    <?php if ($reveal_plain) : ?>
+                        <p><strong><?php esc_html_e('卡密明文（已记录审计）：', 'moonlight-shop'); ?></strong>
+                            <code style="font-size:14px;"><?php echo esc_html($reveal_plain); ?></code>
+                            <span class="description">(meta_id: <?php echo (int) $reveal_meta_id; ?>)</span></p>
+                        <p class="description"><?php esc_html_e('请立即复制保存；此明文不再展示（刷新后消失）。', 'moonlight-shop'); ?></p>
+                    <?php else : ?>
+                        <p><?php echo esc_html($reveal_error); ?></p>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($product_id) : ?>
+                <?php $batches = Moonlight_Card_Stock::batches($product_id); ?>
+                <h2 class="mlshop-card-title"><?php esc_html_e('批次列表', 'moonlight-shop'); ?></h2>
+                <?php if (empty($batches)) : ?>
+                    <p class="description"><?php esc_html_e('该商品暂无卡密批次。', 'moonlight-shop'); ?></p>
+                <?php else : ?>
+                    <table class="widefat striped">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('批次名', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('总数', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('可售', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('已售', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('状态', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('过期时间', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('创建时间', 'moonlight-shop'); ?></th>
+                                <th><?php esc_html_e('操作', 'moonlight-shop'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php foreach ($batches as $b) :
+                            $toggle_status = $b['disabled'] ? 'publish' : 'draft';
+                            $toggle_url = wp_nonce_url(
+                                admin_url('admin-post.php?action=mlshop_card_batch_status&batch_id=' . (int) $b['id'] . '&status=' . $toggle_status),
+                                'mlshop_card_batch_status_' . (int) $b['id']
+                            );
+                            $view_url = add_query_arg(array('product_id' => $product_id, 'view_batch' => (int) $b['id']), $page_url);
+                            if ((int) $b['id'] === $view_batch) {
+                                $view_url = add_query_arg(array('product_id' => $product_id, 'view_batch' => 0), $page_url);
+                            }
+                            ?>
+                            <tr>
+                                <td><strong><?php echo esc_html($b['name']); ?></strong></td>
+                                <td><?php echo (int) $b['total']; ?></td>
+                                <td><?php echo (int) $b['available']; ?></td>
+                                <td><?php echo (int) $b['sold']; ?></td>
+                                <td><?php echo esc_html($b['disabled'] ? __('已停用', 'moonlight-shop') : __('启用中', 'moonlight-shop')); ?></td>
+                                <td>
+                                    <?php
+                                    if ($b['expires'] > 0) {
+                                        echo esc_html($b['expires'] <= time()
+                                            ? __('已过期', 'moonlight-shop')
+                                            : date_i18n('Y-m-d H:i', $b['expires']));
+                                    } else {
+                                        esc_html_e('永不', 'moonlight-shop');
+                                    }
+                                    ?>
+                                </td>
+                                <td><?php echo esc_html($b['date']); ?></td>
+                                <td>
+                                    <a class="button" href="<?php echo esc_url($toggle_url); ?>">
+                                        <?php echo esc_html($b['disabled'] ? __('启用', 'moonlight-shop') : __('停用', 'moonlight-shop')); ?>
+                                    </a>
+                                    <a class="button" href="<?php echo esc_url($view_url); ?>">
+                                        <?php echo ((int) $b['id'] === $view_batch) ? esc_html__('收起', 'moonlight-shop') : esc_html__('查看卡密', 'moonlight-shop'); ?>
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <p class="description"><?php esc_html_e('过期批次自动停止售卖；停用批次可随时重新启用。', 'moonlight-shop'); ?></p>
+                <?php endif; ?>
+
+                <?php if ($view_batch && is_array($view_rows)) : ?>
+                    <h3 class="mlshop-card-title"><?php esc_html_e('卡密列表（掩码，前 100 条）', 'moonlight-shop'); ?></h3>
+                    <?php if (empty($view_rows)) : ?>
+                        <p class="description"><?php esc_html_e('该批次暂无卡密。', 'moonlight-shop'); ?></p>
+                    <?php else : ?>
+                        <table class="widefat striped">
+                            <thead>
+                                <tr>
+                                    <th style="width:5em;">#</th>
+                                    <th><?php esc_html_e('卡密（掩码）', 'moonlight-shop'); ?></th>
+                                    <th><?php esc_html_e('状态', 'moonlight-shop'); ?></th>
+                                    <th style="width:10em;"><?php esc_html_e('操作', 'moonlight-shop'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <?php $i = 0; foreach ($view_rows as $row) : $i++; ?>
+                                <tr>
+                                    <td><?php echo (int) $i; ?></td>
+                                    <td><code><?php echo esc_html($row['masked']); ?></code></td>
+                                    <td><?php echo esc_html($this->card_status_label($row['status'])); ?></td>
+                                    <td>
+                                        <form method="post" style="display:inline;"
+                                              onsubmit="return confirm('<?php echo esc_attr__('确定查看完整卡密？此操作将记入审计日志。', 'moonlight-shop'); ?>');">
+                                            <input type="hidden" name="meta_id" value="<?php echo (int) $row['meta_id']; ?>">
+                                            <input type="hidden" name="confirm" value="1">
+                                            <?php wp_nonce_field('mlshop_card_reveal'); ?>
+                                            <button type="submit" name="mlshop_card_reveal" value="1" class="button-link">
+                                                <?php esc_html_e('查看完整', 'moonlight-shop'); ?>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endif; ?>
+
+            <h2 class="mlshop-card-title"><?php esc_html_e('批量导入卡密', 'moonlight-shop'); ?></h2>
+            <form method="post">
+                <?php wp_nonce_field('mlshop_card_import'); ?>
+                <table class="form-table">
+                    <tr>
+                        <th><label for="mlshop_card_product"><?php esc_html_e('商品', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <select name="product_id" id="mlshop_card_product">
+                                <?php echo $this->card_product_options($product_id); // phpcs:ignore WordPress.Security.EscapeOutput ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_card_batch_name"><?php esc_html_e('批次名', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_card_batch_name" name="mlshop_card_batch_name" class="regular-text"
+                                   placeholder="<?php esc_attr_e('留空自动命名（导入 Ymd-His）', 'moonlight-shop'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_card_expires_days"><?php esc_html_e('过期天数', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" step="1" id="mlshop_card_expires_days" name="mlshop_card_expires_days" value="0" class="small-text">
+                            <p class="description"><?php esc_html_e('0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_card_keys"><?php esc_html_e('卡密（每行一条）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_card_keys" name="mlshop_card_keys" rows="10" class="large-text code"></textarea>
+                            <p class="description">
+                                <?php printf(esc_html__('每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。', 'moonlight-shop'), (int) self::CARD_IMPORT_MAX_LINES); ?>
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    <button type="submit" name="mlshop_card_import" value="1" class="button button-primary">
+                        <?php esc_html_e('导入卡密', 'moonlight-shop'); ?>
+                    </button>
+                </p>
+            </form>
+        </div>
+        <?php
+    }
+
+    /**
+     * 批量导入 POST 处理：校验 → import() → PRG 跳转（结果走统一通知）。
+     *
+     * @param string $page_url 回跳地址。
+     */
+    private function handle_card_import($page_url)
+    {
+        $pid  = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+        $days = isset($_POST['mlshop_card_expires_days']) ? absint($_POST['mlshop_card_expires_days']) : 0;
+        $name = isset($_POST['mlshop_card_batch_name']) ? sanitize_text_field(wp_unslash($_POST['mlshop_card_batch_name'])) : '';
+        $raw  = isset($_POST['mlshop_card_keys']) ? (string) wp_unslash($_POST['mlshop_card_keys']) : '';
+
+        $lines = array();
+        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
+            $line = trim((string) $line);
+            if ('' !== $line) {
+                $lines[] = $line;
+            }
+        }
+
+        $redirect = add_query_arg('product_id', $pid, $page_url);
+        if (!$pid || !get_post($pid)) {
+            $this->card_notice(false, __('请选择有效商品后再导入。', 'moonlight-shop'), $redirect);
+        }
+        if (empty($lines)) {
+            $this->card_notice(false, __('卡密内容为空，未导入。', 'moonlight-shop'), $redirect);
+        }
+        if (count($lines) > self::CARD_IMPORT_MAX_LINES) {
+            $this->card_notice(false, sprintf(__('单次最多导入 %d 行（当前 %d 行），请分批导入。', 'moonlight-shop'), self::CARD_IMPORT_MAX_LINES, count($lines)), $redirect);
+        }
+
+        $expires = $days > 0 ? time() + $days * DAY_IN_SECONDS : 0;
+        $res = Moonlight_Card_Stock::import($pid, $lines, $name, $expires);
+        if (is_array($res) && $res['imported'] > 0) {
+            $msg = sprintf(
+                /* translators: %1$d：导入数；%2$d：重复跳过数；%3$d：批次 ID */
+                __('导入成功：%1$d 条入池，跳过重复 %2$d 条（批次 #%3$d）。', 'moonlight-shop'),
+                (int) $res['imported'],
+                (int) $res['duplicates'],
+                (int) $res['batch_id']
+            );
+            $this->card_notice(true, $msg, $redirect);
+        }
+        $this->card_notice(false, __('没有导入任何新卡密（可能全部与库存池中已有卡密重复）。', 'moonlight-shop'), $redirect);
+    }
+
+    /**
+     * 批次启用 / 停用（admin_post，GET + nonce）。
+     */
+    public function card_batch_status()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die(esc_html__('权限不足。', 'moonlight-shop'));
+        }
+        $batch_id = isset($_GET['batch_id']) ? absint($_GET['batch_id']) : 0;
+        $status   = isset($_GET['status']) ? sanitize_key(wp_unslash($_GET['status'])) : '';
+        check_admin_referer('mlshop_card_batch_status_' . $batch_id);
+
+        $pid    = 0;
+        $batch  = $batch_id ? get_post($batch_id) : null;
+        if ($batch && Moonlight_Card_Stock::CPT === $batch->post_type) {
+            $pid = (int) $batch->post_parent;
+        }
+        $ok = Moonlight_Card_Stock::set_batch_status($batch_id, $status);
+        set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+            'gateway' => 'CARD',
+            'success' => (bool) $ok,
+            'message' => $ok
+                ? ($status === 'publish' ? __('批次已启用。', 'moonlight-shop') : __('批次已停用。', 'moonlight-shop'))
+                : __('批次状态更新失败。', 'moonlight-shop'),
+        ), 60);
+        $referer = wp_get_referer();
+        $fallback = admin_url('edit.php?post_type=mlshop_product&page=mlshop-card-stock' . ($pid ? '&product_id=' . $pid : ''));
+        wp_safe_redirect($referer ?: $fallback);
+        exit;
+    }
+
+    /**
+     * 商品下拉选项（卡密商品优先，其余商品附后）。
+     *
+     * @param int $selected 当前选中 ID。
+     * @return string HTML（已转义）。
+     */
+    private function card_product_options($selected)
+    {
+        $cardkey_ids = get_posts(array(
+            'post_type'      => 'mlshop_product',
+            'post_status'    => 'any',
+            'posts_per_page' => 200,
+            'fields'         => 'ids',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'meta_query'     => array(array('key' => '_mlshop_type', 'value' => 'cardkey')),
+        ));
+        $all_ids = get_posts(array(
+            'post_type'      => 'mlshop_product',
+            'post_status'    => 'any',
+            'posts_per_page' => 200,
+            'fields'         => 'ids',
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+        ));
+        $others = array_values(array_diff(array_map('intval', (array) $all_ids), array_map('intval', (array) $cardkey_ids)));
+
+        $html = '<option value="0">' . esc_html__('— 选择商品 —', 'moonlight-shop') . '</option>';
+        foreach (array(
+            __('卡密商品', 'moonlight-shop') => (array) $cardkey_ids,
+            __('其他商品', 'moonlight-shop') => $others,
+        ) as $label => $ids) {
+            if (empty($ids)) {
+                continue;
+            }
+            $html .= '<optgroup label="' . esc_attr($label) . '">';
+            foreach ($ids as $id) {
+                $title = get_the_title($id);
+                if (!$title) {
+                    $title = '#' . (int) $id;
+                }
+                $html .= '<option value="' . esc_attr($id) . '" ' . selected((int) $selected, (int) $id, false) . '>'
+                    . esc_html($title . ' (#' . (int) $id . ')') . '</option>';
+            }
+            $html .= '</optgroup>';
+        }
+        return $html;
+    }
+
+    /**
+     * 卡密行状态键 → 显示名。
+     *
+     * @param string $meta_key
+     * @return string
+     */
+    private function card_status_label($meta_key)
+    {
+        $map = array(
+            Moonlight_Card_Stock::ST_AVAILABLE => __('可售', 'moonlight-shop'),
+            Moonlight_Card_Stock::ST_SOLD      => __('已售', 'moonlight-shop'),
+            Moonlight_Card_Stock::ST_USED      => __('已核销', 'moonlight-shop'),
+            Moonlight_Card_Stock::ST_EXPIRED   => __('已过期/停用', 'moonlight-shop'),
+        );
+        return isset($map[$meta_key]) ? $map[$meta_key] : (string) $meta_key;
+    }
+
+    /**
+     * 卡密页操作结果通知（transient + PRG 跳转）。
+     *
+     * @param bool   $success
+     * @param string $message
+     * @param string $redirect
+     */
+    private function card_notice($success, $message, $redirect)
+    {
+        set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+            'gateway' => 'CARD',
+            'success' => (bool) $success,
+            'message' => $message,
+        ), 60);
         wp_safe_redirect($redirect);
         exit;
     }

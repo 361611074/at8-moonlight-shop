@@ -266,6 +266,83 @@ class Moonlight_Migrations
     }
 
     /**
+     * M4：存量明文卡密池（_mlshop_cardkeys，每行一条）导入加密批次模型（Moonlight_Card_Stock）。
+     *
+     * 幂等：仅处理「meta 非空 且 无 _mlshop_cardkeys_migrated 标记」的商品；
+     * 导入完成后写标记并把原 meta 置空（明文不落库）。分块 200 商品/次，循环到完成。
+     *
+     * @return bool
+     */
+    public static function m4_migrate_cardkeys()
+    {
+        $done    = 0;
+        $imported_total = 0;
+        do {
+            $post_ids = static::find_unmigrated_cardkey_products(200);
+            $chunk    = count((array) $post_ids);
+            foreach ((array) $post_ids as $pid) {
+                $pid  = (int) $pid;
+                $pool = (string) get_post_meta($pid, '_mlshop_cardkeys', true);
+                $lines = array_values(array_filter(array_map('trim', explode("\n", $pool))));
+                $imported = 0;
+                if (!empty($lines)) {
+                    $res = static::import_cardkeys($pid, $lines, '迁移 ' . date('Ymd-His'));
+                    if (is_array($res)) {
+                        $imported = (int) $res['imported'];
+                    }
+                }
+                // 幂等标记 + 明文池置空（即使池为空也写标记，避免重复扫描）。
+                update_post_meta($pid, '_mlshop_cardkeys_migrated', 1);
+                update_post_meta($pid, '_mlshop_cardkeys', '');
+                $done++;
+                $imported_total += $imported;
+            }
+        } while ($chunk >= 200);
+        self::log('m4_migrate_cardkeys', sprintf('migrated %d products, imported %d cardkeys', $done, $imported_total));
+        return true;
+    }
+
+    /**
+     * 卡密导入入口（@internal 供单元测试以子类覆盖接行模型桩；
+     * 生产路径即 Moonlight_Card_Stock::import，无任何额外逻辑）。
+     *
+     * @param int    $product_id
+     * @param array  $lines
+     * @param string $batch_name
+     * @return array {batch_id, imported, duplicates}
+     */
+    protected static function import_cardkeys($product_id, $lines, $batch_name)
+    {
+        return Moonlight_Card_Stock::import($product_id, $lines, $batch_name);
+    }
+
+    /**
+     * 查找待迁移商品（存在非空 _mlshop_cardkeys 且无 _mlshop_cardkeys_migrated 标记）。
+     * protected static：供单元测试以行模型桩子类覆盖（不触 $wpdb）。
+     *
+     * @param int $limit 分块大小。
+     * @return int[]
+     */
+    protected static function find_unmigrated_cardkey_products($limit)
+    {
+        global $wpdb;
+        $ids = $wpdb->get_col(
+            $wpdb->prepare(
+                "SELECT p.ID FROM {$wpdb->posts} p
+                 INNER JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = '_mlshop_cardkeys' AND m.meta_value <> ''
+                 WHERE p.post_type = 'mlshop_product'
+                   AND NOT EXISTS (
+                       SELECT 1 FROM {$wpdb->postmeta} f
+                       WHERE f.post_id = p.ID AND f.meta_key = '_mlshop_cardkeys_migrated'
+                   )
+                 LIMIT %d",
+                (int) $limit
+            )
+        );
+        return array_map('intval', (array) $ids);
+    }
+
+    /**
      * 2.0.0 总入口。
      */
     public static function run_initial()
@@ -281,6 +358,10 @@ class Moonlight_Migrations
         $r3 = self::m3_migrate_mluc_orders();
         if (is_wp_error($r3)) {
             return $r3;
+        }
+        $r4 = self::m4_migrate_cardkeys();
+        if (is_wp_error($r4)) {
+            return $r4;
         }
         return true;
     }

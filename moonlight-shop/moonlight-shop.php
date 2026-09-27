@@ -68,6 +68,9 @@ add_action('plugins_loaded', function () {
     // 新架构核心层（DB_VERSION 升级机制等）
     Moonlight_DB_Migrator::init();
 
+    // 卡密库存服务（加密批次模型）：注册批次 CPT 等钩子
+    Moonlight_Card_Stock::init();
+
     MLSHOP_Product::get_instance();
     MLSHOP_Product_Pay_Meta::get_instance();
     MLSHOP_Credit::get_instance();

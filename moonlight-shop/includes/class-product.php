@@ -348,7 +348,6 @@ class MLSHOP_Product
         $stock = get_post_meta($post->ID, '_mlshop_stock', true);
         $stock = $stock === '' ? -1 : (int) $stock;
         $file  = get_post_meta($post->ID, '_mlshop_file', true);
-        $cardkeys = get_post_meta($post->ID, '_mlshop_cardkeys', true);
         $limit = get_post_meta($post->ID, '_mlshop_download_limit', true);
         $limit = $limit === '' ? 7 : (int) $limit;
         $grant_level = get_post_meta($post->ID, '_mlshop_membership_level', true);
@@ -455,8 +454,30 @@ class MLSHOP_Product
             </label>
         </p>
         <p>
-            <label><?php esc_html_e('卡密池（每行一条，售出后自动扣减）', 'moonlight-shop'); ?><br>
-                <textarea name="mlshop_cardkeys" rows="6" class="widefat"><?php echo esc_textarea($cardkeys); ?></textarea>
+            <label><?php esc_html_e('新增卡密（每行一条，保存后加密入库存池，明文不落库）', 'moonlight-shop'); ?><br>
+                <textarea name="mlshop_cardkeys" rows="6" class="widefat"></textarea>
+                <span class="description">
+                <?php
+                // 卡密库存池统计（加密批次模型）。历史明文池由迁移步骤导入并清空。
+                $card_batch_count = 0;
+                $card_available   = 0;
+                $card_migrated    = get_post_meta($post->ID, '_mlshop_cardkeys_migrated', true);
+                if (class_exists('Moonlight_Card_Stock')) {
+                    $card_batch_count = count(Moonlight_Card_Stock::batches($post->ID));
+                    $card_available   = Moonlight_Card_Stock::available($post->ID);
+                }
+                if ($card_batch_count > 0 || $card_migrated) {
+                    printf(
+                        /* translators: %1$d：批次数；%2$d：可售卡密数 */
+                        esc_html__('当前库存池：%1$d 个批次，可售 %2$d 条（在「商城 → 卡密库存」管理批次）。历史明文池已迁移并清空（标记 _mlshop_cardkeys_migrated）。', 'moonlight-shop'),
+                        (int) $card_batch_count,
+                        (int) $card_available
+                    );
+                } else {
+                    esc_html_e('保存后每行卡密加密为一个新批次入库；存量明文卡密池将在升级迁移中自动导入并清空。', 'moonlight-shop');
+                }
+                ?>
+                </span>
             </label>
         </p>
         <?php
@@ -496,7 +517,6 @@ class MLSHOP_Product
             'mlshop_download_limit'  => 'int',
             'mlshop_download_count'  => 'int',
             'mlshop_membership_level' => 'key',
-            'mlshop_cardkeys'        => 'textarea',
             'mlshop_gallery'         => 'gallery',
         );
         foreach ($fields as $field => $type) {
@@ -521,6 +541,23 @@ class MLSHOP_Product
                 $val = sanitize_textarea_field($val);
             }
             update_post_meta($post_id, '_' . $field, $val);
+        }
+
+        // 卡密：textarea 非空 = 追加一个新加密批次（明文不落库，导入后 textarea 保持空白）。
+        // 仅完整编辑页（携带 meta nonce）处理；Quick Edit / Bulk Edit 不提交该字段，
+        // 即使伪造提交也因缺 nonce 而被跳过，避免内联保存误触发导入。
+        if ($is_full_edit && isset($_POST['mlshop_cardkeys']) && class_exists('Moonlight_Card_Stock')) {
+            $raw_lines = preg_split('/\r\n|\r|\n/', (string) wp_unslash($_POST['mlshop_cardkeys']));
+            $clean = array();
+            foreach ((array) $raw_lines as $line) {
+                $line = trim((string) $line);
+                if ('' !== $line) {
+                    $clean[] = $line;
+                }
+            }
+            if (!empty($clean)) {
+                Moonlight_Card_Stock::import($post_id, $clean, '商品编辑导入 ' . date('Ymd-His'));
+            }
         }
     }
 

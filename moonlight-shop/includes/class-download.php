@@ -85,7 +85,7 @@ class MLSHOP_Download
                     $delivery[] = array('product_id' => $pid, 'type' => 'download', 'token' => $token);
                 }
             } elseif ($type === 'cardkey') {
-                $key = $this->pop_cardkey($pid);
+                $key = $this->pop_cardkey($pid, $order_id, $user_id);
                 if ($key) {
                     $delivery[] = array('product_id' => $pid, 'type' => 'cardkey', 'key' => $key);
                 }
@@ -98,35 +98,33 @@ class MLSHOP_Download
     }
 
     /**
-     * 从卡密池弹出一条并扣减库存。
+     * 弹出一条卡密并扣减库存计数器。
+     *
+     * 实际弹出逻辑委托 Moonlight_Card_Stock::pop（加密批次模型 + CAS 原子认领；
+     * 批次未迁移的旧商品自动回落到旧明文池 CAS 路径，行为兼容）。
+     *
+     * @param int $product_id 商品 ID。
+     * @param int $order_id   订单 ID（写入卡密售出记录）。
+     * @param int $user_id    购买用户 ID（写入卡密售出记录）。
+     * @return string|false 卡密明文。
      */
-    private function pop_cardkey($product_id)
+    private function pop_cardkey($product_id, $order_id = 0, $user_id = 0)
     {
-        // CAS 循环：并发购买时若池子被其他请求改动则重读重试，确保同一张卡密不会发给两个人。
-        for ($i = 0; $i < 3; $i++) {
-            $pool  = (string) get_post_meta($product_id, '_mlshop_cardkeys', true);
-            $lines = array_filter(array_map('trim', explode("\n", $pool)));
-            if (empty($lines)) {
-                return false;
-            }
-            $key         = array_shift($lines);
-            $leftover    = implode("\n", $lines);
-            $cas_applied = mlshop_cas_post_meta($product_id, '_mlshop_cardkeys', $pool, $leftover);
-            if (!$cas_applied) {
-                continue; // 期间被并发修改，重读池子再试
-            }
-            $this->decrease_stock($product_id, 1);
-            return $key;
+        $key = Moonlight_Card_Stock::pop((int) $product_id, (int) $order_id, (int) $user_id);
+        if (false === $key) {
+            return false;
         }
-        return false;
+        // 计数器仍随批次发货扣减（冗余显示；真实库存以卡密池为准）。
+        $this->decrease_stock($product_id, 1);
+        return $key;
     }
 
     /**
      * 扣减库存（原子）。_mlshop_stock 为空或 0 视为不限量。
      *
-     * 卡密商品的真实库存是池子（_mlshop_cardkeys，CAS 弹出保证不超发），
+     * 卡密商品的真实库存是卡密库存池（Moonlight_Card_Stock 批次 + CAS 弹出保证不超发），
      * 该计数器只是冗余显示：扣减失败（并发竞态）不「清零兜底」，保持原值即可，
-     * 由下单前的池行数预检拦截真实超卖。
+     * 由下单前的库存池预检拦截真实超卖。
      */
     private function decrease_stock($product_id, $qty)
     {

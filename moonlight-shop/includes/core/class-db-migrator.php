@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
 class Moonlight_DB_Migrator
 {
     const OPTION     = 'moonlight_db_version';
-    const DB_VERSION = '2.0.0';
+    const DB_VERSION = '2.1.0';
 
     public static function init()
     {
@@ -29,11 +29,15 @@ class Moonlight_DB_Migrator
 
     /**
      * 版本步进表：'目标版本' => 回调。回调内部必须自带幂等。
+     *
+     * 2.1.0：存量明文卡密池 → 加密批次模型（m4_migrate_cardkeys）。
+     * 已在 2.0.0 的站点升级时只跑 m4（run_initial 内亦包含 m4，保证全新安装路径同样执行）。
      */
     public static function steps()
     {
         return array(
             '2.0.0' => array('Moonlight_Migrations', 'run_initial'),
+            '2.1.0' => array('Moonlight_Migrations', 'm4_migrate_cardkeys'),
         );
     }
 
