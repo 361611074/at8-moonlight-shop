@@ -449,6 +449,12 @@ class MLSHOP_Product
             </label>
         </p>
         <p>
+            <label><?php esc_html_e('下载次数上限（0 = 不限）', 'moonlight-shop'); ?><br>
+                <input type="number" min="0" name="mlshop_download_count" value="<?php echo esc_attr((int) get_post_meta($post->ID, '_mlshop_download_count', true)); ?>" class="widefat">
+                <span class="description"><?php esc_html_e('每个下载链接允许下载的总次数；0 表示不限次数。', 'moonlight-shop'); ?></span>
+            </label>
+        </p>
+        <p>
             <label><?php esc_html_e('卡密池（每行一条，售出后自动扣减）', 'moonlight-shop'); ?><br>
                 <textarea name="mlshop_cardkeys" rows="6" class="widefat"><?php echo esc_textarea($cardkeys); ?></textarea>
             </label>
@@ -488,6 +494,7 @@ class MLSHOP_Product
             'mlshop_stock'           => 'int',
             'mlshop_file'            => 'int',
             'mlshop_download_limit'  => 'int',
+            'mlshop_download_count'  => 'int',
             'mlshop_membership_level' => 'key',
             'mlshop_cardkeys'        => 'textarea',
             'mlshop_gallery'         => 'gallery',

@@ -68,13 +68,19 @@ class MLSHOP_Download
                 $file_id = (int) get_post_meta($pid, '_mlshop_file', true);
                 $limit   = (int) get_post_meta($pid, '_mlshop_download_limit', true);
                 $limit   = $limit > 0 ? $limit : 7;
+                // 下载次数上限（0 = 不限），交付时随 token 一起冻结进授权数据
+                $max_downloads = (int) get_post_meta($pid, '_mlshop_download_count', true);
                 if ($file_id) {
                     $token = wp_generate_password(32, false);
+                    $expires = time() + $limit * DAY_IN_SECONDS;
                     set_transient('mlshop_dl_' . $token, array(
                         'order_id'   => $order_id,
                         'product_id' => $pid,
                         'user_id'    => $user_id,
                         'file_id'    => $file_id,
+                        'max'        => $max_downloads, // 0 = 不限次数
+                        'used'       => 0,
+                        'expires'    => $expires,       // 刷新计数时用于保留原有效期
                     ), $limit * DAY_IN_SECONDS);
                     $delivery[] = array('product_id' => $pid, 'type' => 'download', 'token' => $token);
                 }
@@ -155,10 +161,45 @@ class MLSHOP_Download
             wp_die(__('文件不存在。', 'moonlight-shop'), '', array('response' => 404));
         }
 
+        // 下载次数限制（Phase 4）：max=0 不限；超限拒绝并保留 token（未消耗本次）。
+        $max  = isset($data['max']) ? (int) $data['max'] : 0;
+        $used = isset($data['used']) ? (int) $data['used'] : 0;
+        if ($max > 0 && $used >= $max) {
+            wp_die(
+                sprintf(__('下载次数已达上限（%d 次）。如需重新获取请联系站长。', 'moonlight-shop'), $max),
+                '',
+                array('response' => 403)
+            );
+        }
+
+        // 计数累加（尽力而为：并发两次下载可能少计 1 次，不会多拒）。
+        $data['used'] = $used + 1;
+        $expires = isset($data['expires']) ? (int) $data['expires'] : 0;
+        $ttl = ($expires > time()) ? max(60, $expires - time()) : HOUR_IN_SECONDS;
+        set_transient('mlshop_dl_' . $token, $data, $ttl);
+
+        // 下载日志（订单侧留痕，白名单字段，不含敏感信息；token 仅记前 8 位用于关联）
+        $dl_log = get_post_meta((int) $data['order_id'], '_mlshop_download_log', true);
+        $dl_log = is_array($dl_log) ? $dl_log : array();
+        $dl_log[] = array(
+            'at'      => current_time('mysql'),
+            'user_id' => get_current_user_id(),
+            'product' => (int) $data['product_id'],
+            'token'   => substr($token, 0, 8),
+        );
+        update_post_meta((int) $data['order_id'], '_mlshop_download_log', array_slice($dl_log, -50));
+
         header('Content-Type: application/octet-stream');
         $download_name = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($file));
         header('Content-Disposition: attachment; filename="' . $download_name . '"');
         header('Content-Length: ' . filesize($file));
+
+        // 扩展点（计划书第十节）：服务器支持 X-Sendfile / X-Accel-Redirect 时，
+        // 由主题或服务器插件返回 true 并自行输出对应头（如 header('X-Accel-Redirect: ...')），
+        // 插件即不再用 PHP readfile 流式输出。
+        if (apply_filters('moonlight_download_sendfile', false, $file, $data)) {
+            exit;
+        }
         readfile($file);
         exit;
     }
@@ -189,6 +230,12 @@ class MLSHOP_Download
                 $url = add_query_arg('mlshop_download', $d['token'], home_url());
                 echo '<div class="mlshop-download-item">';
                 echo '<span>' . esc_html($product ? $product->post_title : '') . '</span>';
+                // 剩余次数提示（max=0 不限）
+                $info = get_transient('mlshop_dl_' . $d['token']);
+                if (is_array($info) && (int) $info['max'] > 0) {
+                    $left = max(0, (int) $info['max'] - (int) $info['used']);
+                    echo ' <small class="description">(' . esc_html(sprintf(__('剩余 %d 次', 'moonlight-shop'), $left)) . ')</small>';
+                }
                 echo ' <a class="mlshop-btn" href="' . esc_url($url) . '">' . esc_html__('下载', 'moonlight-shop') . '</a>';
                 echo '</div>';
             }
