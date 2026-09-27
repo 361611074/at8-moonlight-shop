@@ -62,13 +62,13 @@ class MLUC_Assets
         wp_enqueue_script('mluc-script', MLUC_PLUGIN_URL . 'assets/js/mluc.js', array('jquery'), MLUC_VERSION, true);
         wp_localize_script('mluc-script', 'MLUC', mluc_ajax_data());
         wp_localize_script('mluc-script', 'mluc_i18n', array(
-            'op_failed'           => __('操作失败', 'moonlight-user-center'),
-            'network_error_retry' => __('网络错误，请重试', 'moonlight-user-center'),
-            'uploading'           => __('上传中…', 'moonlight-user-center'),
-            'upload_failed'       => __('上传失败', 'moonlight-user-center'),
-            'network_error'       => __('网络错误', 'moonlight-user-center'),
-            'switching'           => __('切換中…', 'moonlight-user-center'),
-            'avatar_updated'      => __('頭像已更新', 'moonlight-user-center'),
+            'op_failed'           => mluc_ui_label('av_op_failed', 'Operation failed.'),
+            'network_error_retry' => mluc_ui_label('av_network_retry', 'Network error. Please retry.'),
+            'uploading'           => mluc_ui_label('av_uploading', 'Uploading…'),
+            'upload_failed'       => mluc_ui_label('av_upload_failed', 'Upload failed.'),
+            'network_error'       => mluc_ui_label('av_network_error', 'Network error.'),
+            'switching'           => mluc_ui_label('av_switching', 'Switching…'),
+            'avatar_updated'      => mluc_ui_label('av_avatar_updated', 'Avatar updated.'),
         ));
     }
 
@@ -85,6 +85,13 @@ class MLUC_Assets
             return;
         }
         add_action('admin_head', array($this, 'print_tinymce_i18n'));
+
+        // 「付费功能（用户中心）」Meta Box 交互（文章 / 页面编辑器）。
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if ($screen && isset($screen->post_type) && in_array($screen->post_type, array('post', 'page'), true)) {
+            wp_enqueue_media();
+            wp_enqueue_script('mluc-pw-admin', MLUC_PLUGIN_URL . 'assets/js/mluc-pw-admin.js', array('jquery'), MLUC_VERSION, true);
+        }
     }
 
     /**

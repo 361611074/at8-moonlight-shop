@@ -34,7 +34,7 @@ class MLUC_Purchases
     public function register_tab($tabs)
     {
         $tabs['purchases'] = array(
-            'title'    => __('已購教材', 'moonlight-user-center'),
+            'title'    => mluc_ui_label('tab_purchases', __('Purchased Content', 'moonlight-user-center')),
             'icon'     => 'dashicons-cart',
             'callback' => array($this, 'tab_purchases'),
         );
@@ -109,7 +109,7 @@ class MLUC_Purchases
     public function shortcode_purchases()
     {
         if (!is_user_logged_in()) {
-            return '<p class="mluc-message">' . esc_html__('請先登入查看已購教材。', 'moonlight-user-center') . '</p>';
+            return '<p class="mluc-message">' . esc_html(mluc_ui_label('purchases_login', __('Please log in first to view your purchased content.', 'moonlight-user-center'))) . '</p>';
         }
         $purchases = self::get_user_purchases();
 
@@ -117,29 +117,29 @@ class MLUC_Purchases
         echo '<div class="mluc-purchases">';
         if (!empty($purchases)) {
             echo '<div class="mluc-table-scroll"><table class="mluc-table"><thead><tr>';
-            echo '<th>' . esc_html__('教材', 'moonlight-user-center') . '</th>';
-            echo '<th>' . esc_html__('類型', 'moonlight-user-center') . '</th>';
-            echo '<th>' . esc_html__('購買日期', 'moonlight-user-center') . '</th>';
-            echo '<th>' . esc_html__('操作', 'moonlight-user-center') . '</th>';
+            echo '<th>' . esc_html(mluc_ui_label('pu_th_item', __('Item', 'moonlight-user-center'))) . '</th>';
+            echo '<th>' . esc_html(mluc_ui_label('pu_th_type', __('Type', 'moonlight-user-center'))) . '</th>';
+            echo '<th>' . esc_html(mluc_ui_label('pu_th_date', __('Purchase Date', 'moonlight-user-center'))) . '</th>';
+            echo '<th>' . esc_html(mluc_ui_label('pu_th_action', __('Action', 'moonlight-user-center'))) . '</th>';
             echo '</tr></thead><tbody>';
             foreach ($purchases as $p) {
                 echo '<tr>';
                 echo '<td>' . esc_html($p['product_title']) . '</td>';
-                echo '<td>' . esc_html($p['type'] === 'cardkey' ? __('卡密', 'moonlight-user-center') : __('虛擬下載', 'moonlight-user-center')) . '</td>';
+                echo '<td>' . esc_html($p['type'] === 'cardkey' ? mluc_ui_label('pu_type_cardkey', __('Card Key', 'moonlight-user-center')) : mluc_ui_label('pu_type_virtual', __('Download', 'moonlight-user-center'))) . '</td>';
                 echo '<td>' . esc_html(date_i18n(get_option('date_format', 'Y-m-d'), $p['order_date'])) . '</td>';
                 echo '<td>';
                 $view_url = add_query_arg(array('tab' => 'orders', 'order_id' => $p['order_id']), mluc_get_account_url());
                 if (function_exists('mluc_get_account_url')) {
-                    echo '<a class="mluc-btn mluc-btn-small" href="' . esc_url($view_url) . '">' . esc_html__('查看訂單', 'moonlight-user-center') . '</a>';
+                    echo '<a class="mluc-btn mluc-btn-small" href="' . esc_url($view_url) . '">' . esc_html(mluc_ui_label('pu_view_order', __('View Order', 'moonlight-user-center'))) . '</a>';
                 } else {
-                    echo '<a class="mluc-btn mluc-btn-small" href="' . esc_url(get_permalink($p['order_id'])) . '">' . esc_html__('查看訂單', 'moonlight-user-center') . '</a>';
+                    echo '<a class="mluc-btn mluc-btn-small" href="' . esc_url(get_permalink($p['order_id'])) . '">' . esc_html(mluc_ui_label('pu_view_order', __('View Order', 'moonlight-user-center'))) . '</a>';
                 }
                 echo '</td>';
                 echo '</tr>';
             }
             echo '</tbody></table></div>';
         } else {
-            echo '<p class="mluc-empty">' . esc_html__('您暫無已購教材。', 'moonlight-user-center') . '</p>';
+            echo '<p class="mluc-empty">' . esc_html(mluc_ui_label('purchases_empty', __('You have no purchased content yet.', 'moonlight-user-center'))) . '</p>';
         }
         echo '</div>';
         return ob_get_clean();

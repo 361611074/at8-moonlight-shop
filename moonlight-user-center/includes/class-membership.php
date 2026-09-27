@@ -18,34 +18,34 @@ class MLUC_Membership
     /** @var array<string,array<string,mixed>> */
     private static $levels = array(
         'free' => array(
-            'label'       => '普通',
+            'label'       => 'Basic',
             'sort_order'  => 10,
             'expireable'  => false,
-            'description' => '可瀏覽基礎內容，購買付費教材。',
+            'description' => 'Browse basic content and purchase paid materials.',
         ),
         'monthly' => array(
-            'label'       => '月費',
+            'label'       => 'Monthly',
             'sort_order'  => 20,
             'expireable'  => true,
-            'description' => '解鎖月費教材與示範影片。',
+            'description' => 'Unlock monthly materials and demo videos.',
         ),
         'gold' => array(
-            'label'       => '黄金会员',
+            'label'       => 'Gold Member',
             'sort_order'  => 25,
             'expireable'  => true,
-            'description' => '享進階教材與工作紙下載。',
+            'description' => 'Access advanced materials and worksheet downloads.',
         ),
         'premium' => array(
-            'label'       => '高級',
+            'label'       => 'Premium',
             'sort_order'  => 30,
             'expireable'  => true,
-            'description' => '解鎖全部高級教材、示範影片與工作紙。',
+            'description' => 'Unlock all premium materials, demo videos and worksheets.',
         ),
         'diamond' => array(
-            'label'       => '钻石会员',
+            'label'       => 'Diamond Member',
             'sort_order'  => 35,
             'expireable'  => true,
-            'description' => '全站資源無限暢享，含所有新增內容。',
+            'description' => 'Unlimited access to all site resources, including new content.',
         ),
     );
 
@@ -384,7 +384,9 @@ class MLUC_Membership
      */
     public function render_profile_fields($user)
     {
-        if (!current_user_can('edit_user', $user->ID)) {
+        // 安全：仅管理员可见/可改会员等级。edit_user 对"用户本人"恒为真，
+        // 不能作为守卫，否则任何订阅者都能在个人资料页给自己升到最高等级（提权）。
+        if (!current_user_can('manage_options')) {
             return;
         }
         $current_level   = get_user_meta($user->ID, 'mluc_membership_level', true);
@@ -393,7 +395,7 @@ class MLUC_Membership
         if (!$current_level || !isset(self::get_levels()[$current_level])) {
             $current_level = $default_level;
         }
-        $expires_value = $current_expires ? date('Y-m-d', (int) $current_expires) : '';
+        $expires_value = $current_expires ? wp_date('Y-m-d', (int) $current_expires) : '';
         $expires_never = !$current_expires ? ' checked="checked"' : '';
         ?>
         <h2 id="mluc-membership"><?php echo esc_html__('会员等级', 'moonlight-user-center'); ?></h2>
@@ -422,6 +424,7 @@ class MLUC_Membership
                         <input type="checkbox" name="mluc_membership_expires_never" value="1"<?php echo $expires_never; ?> />
                         <?php echo esc_html__('永不过期', 'moonlight-user-center'); ?>
                     </label>
+                    <p class="description"><?php echo esc_html__('勾选「永不过期」时忽略日期；不勾选则到期时间为该日 23:59（站点时区）。', 'moonlight-user-center'); ?></p>
                 </td>
             </tr>
         </table>
@@ -433,18 +436,29 @@ class MLUC_Membership
      */
     public function save_profile_fields($user_id)
     {
-        if (!current_user_can('edit_user', $user_id)) {
+        // 安全：同 render，仅管理员可保存等级设置（edit_user 无法防本人提权）。
+        if (!current_user_can('manage_options')) {
             return;
         }
-        $level = isset($_POST['mluc_membership_level']) ? sanitize_key(wp_unslash($_POST['mluc_membership_level'])) : (self::free_enabled() ? 'free' : '');
+        // BUG 修复：字段未提交时不做任何改动（防止其他插件/表单触发 profile 保存钩子时把等级意外重置为 free）。
+        if (!isset($_POST['mluc_membership_level'])) {
+            return;
+        }
+        $level = sanitize_key(wp_unslash($_POST['mluc_membership_level']));
         $never = !empty($_POST['mluc_membership_expires_never']);
         $date  = isset($_POST['mluc_membership_expires_date']) ? sanitize_text_field(wp_unslash($_POST['mluc_membership_expires_date'])) : '';
         $expires = 0;
         if ($never) {
             $expires = 0;
         } elseif ($date) {
-            $ts = strtotime($date . ' 23:59:59');
-            $expires = $ts ? (int) $ts : 0;
+            // BUG 修复：按站点时区解析到期日 23:59（原实现走 UTC，导致 GMT+8 站点提前 8 小时到期）。
+            $dt = date_create_from_format('Y-m-d H:i:s', $date . ' 23:59:59', wp_timezone());
+            if ($dt instanceof DateTime) {
+                $expires = (int) $dt->getTimestamp();
+            } else {
+                $ts = strtotime($date . ' 23:59:59');
+                $expires = $ts ? (int) $ts : 0;
+            }
         }
         self::set_user_level($user_id, $level, $expires);
     }

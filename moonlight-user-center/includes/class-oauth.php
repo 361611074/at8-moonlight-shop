@@ -139,11 +139,19 @@ class MLUC_OAuth
         $p = $providers[$id];
         $creds = $this->get_creds($id);
         $state = wp_generate_password(12, false);
-        // state 同时记录 provider 与回跳意图，回调据此还原
+        // state 同时记录 provider、回跳意图与发起时的登录身份，回调据此还原
         set_transient('mluc_oauth_state_' . $state, array(
-            'provider' => $id,
-            'redirect' => $redirect_to ? esc_url_raw($redirect_to) : '',
+            'provider'  => $id,
+            'redirect'  => $redirect_to ? esc_url_raw($redirect_to) : '',
+            // 安全：记录发起授权时的用户。回调时若当前登录用户与之不同，
+            // 说明是别人发起的流程被用到本浏览器上（账户绑定劫持），一律拒绝。
+            'init_user' => get_current_user_id(),
         ), 600);
+        // 安全：state 需与浏览器会话绑定。仅靠 transient 校验时，攻击者可拿自己
+        // 生成的 state + 自己的授权 code 拼出回调链接，诱导已登录的受害者点击，
+        // 从而把攻击者的第三方身份绑到受害者账户（账户接管）。写入 cookie 后，
+        // 回调必须出示同一浏览器持有的 state 才被接受。
+        $this->set_state_cookie($state);
 
         $params = array(
             'response_type' => $p['response_type'],
@@ -156,6 +164,48 @@ class MLUC_OAuth
             $params['response_mode'] = $p['response_mode'];
         }
         return add_query_arg($params, $p['auth_url']);
+    }
+
+    /**
+     * 把 state 写入会话 cookie（HttpOnly + SameSite=Lax，10 分钟有效）。
+     * SameSite=Lax 保证第三方完成授权后的顶层 GET 回跳仍会携带本 cookie。
+     */
+    private function set_state_cookie($state)
+    {
+        if (headers_sent()) {
+            return;
+        }
+        $opts = array(
+            'expires'  => time() + 600,
+            'path'     => defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/',
+            'domain'   => defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '',
+            'secure'   => is_ssl(),
+            'httponly' => true,
+            'samesite' => 'Lax',
+        );
+        if (PHP_VERSION_ID >= 70300) {
+            setcookie('mluc_oauth_state', $state, $opts);
+        } else {
+            setcookie(
+                'mluc_oauth_state',
+                $state,
+                $opts['expires'],
+                $opts['path'] . '; SameSite=Lax',
+                $opts['domain'],
+                $opts['secure'],
+                $opts['httponly']
+            );
+        }
+    }
+
+    private function clear_state_cookie()
+    {
+        if (headers_sent()) {
+            return;
+        }
+        $path   = defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/';
+        $domain = defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '';
+        setcookie('mluc_oauth_state', '', time() - 3600, $path, $domain, is_ssl(), true);
     }
 
     /**
@@ -235,7 +285,21 @@ class MLUC_OAuth
         if (!$code || !$state || !is_array($st) || empty($st['provider']) || $st['provider'] !== $id) {
             $this->oauth_fail('state', __('安全校验失败（state 无效），请重试。', 'moonlight-user-center'));
         }
+        // 安全校验一：state 必须来自本浏览器会话（本浏览器确实发起过这次授权），
+        // 防止攻击者用自己的 state+code 构造回调链接让他人点击（登录 CSRF）。
+        $cookie_state = isset($_COOKIE['mluc_oauth_state']) ? sanitize_text_field(wp_unslash($_COOKIE['mluc_oauth_state'])) : '';
+        if ('' === $cookie_state || !hash_equals((string) $cookie_state, (string) $state)) {
+            $this->clear_state_cookie();
+            $this->oauth_fail('state', __('安全校验失败（state 不匹配），请重试。', 'moonlight-user-center'));
+        }
+        // 安全校验二：已登录时，发起授权的身份必须与当前身份一致，
+        // 否则就是别人的授权流程被套用到当前账户上（账户绑定劫持）。
+        if (is_user_logged_in() && isset($st['init_user']) && (int) $st['init_user'] !== get_current_user_id()) {
+            $this->clear_state_cookie();
+            $this->oauth_fail('state', __('安全校验失败（登录身份不一致），请重试。', 'moonlight-user-center'));
+        }
         delete_transient('mluc_oauth_state_' . $state);
+        $this->clear_state_cookie();
         $redirect_to = !empty($st['redirect']) ? $st['redirect'] : '';
 
         $token = $this->fetch_token($id, $code);

@@ -19,6 +19,19 @@ function mluc_get_option($key, $default = '')
 }
 
 /**
+ * 获取账户中心界面文案：后台「用户中心 → 设置 → 界面文案」可自定义，
+ * 未填写或留空时回退到内置默认（可传英文等其他语言）。
+ */
+function mluc_ui_label($key, $default = '')
+{
+    $labels = mluc_get_option('ui_labels', array());
+    if (is_array($labels) && isset($labels[$key]) && '' !== trim((string) $labels[$key])) {
+        return (string) $labels[$key];
+    }
+    return $default;
+}
+
+/**
  * 获取账户中心页面 URL。
  */
 function mluc_get_account_url()

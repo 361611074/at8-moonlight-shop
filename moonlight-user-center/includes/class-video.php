@@ -34,6 +34,78 @@ class MLUC_Video
         add_action('save_post_' . self::CPT, array($this, 'save_metabox'));
         add_shortcode('mluc_videos', array($this, 'shortcode_videos'));
         add_shortcode('mluc_video', array($this, 'shortcode_single'));
+        // 安全：单页直访兜底（[mluc_videos] 卡片会输出 the_permalink），未达等级一律拦截。
+        add_action('template_redirect', array($this, 'guard_single_access'));
+        // 安全：归档 / ?post_type= 枚举兜底（has_archive=false 挡不住查询变量方式）。
+        add_action('pre_get_posts', array($this, 'filter_archive_query'));
+    }
+
+    /**
+     * 当前用户可访问的等级 key 列表。
+     */
+    public static function accessible_levels()
+    {
+        $levels = array('free');
+        if (is_user_logged_in() && class_exists('MLUC_Membership')) {
+            $user_level = MLUC_Membership::get_user_level();
+            $all        = MLUC_Membership::get_levels();
+            foreach ($all as $key => $lv) {
+                if (MLUC_Membership::get_level_sort_order($key) <= MLUC_Membership::get_level_sort_order($user_level)) {
+                    $levels[] = $key;
+                }
+            }
+        }
+        return $levels;
+    }
+
+    /**
+     * 前台主查询（归档 / ?post_type= 枚举）按会员等级过滤。
+     */
+    public function filter_archive_query($q)
+    {
+        if (is_admin() || !$q->is_main_query()) {
+            return;
+        }
+        if (self::CPT !== $q->get('post_type') || $q->is_singular()) {
+            return;
+        }
+        if (current_user_can('edit_others_posts')) {
+            return;
+        }
+        $mq = array('relation' => 'OR');
+        foreach (self::accessible_levels() as $lvl) {
+            $mq[] = array('key' => self::META_LEVEL, 'value' => $lvl, 'compare' => '=');
+        }
+        $mq[] = array('key' => self::META_LEVEL, 'value' => '', 'compare' => 'NOT EXISTS');
+        $q->set('meta_query', $mq);
+    }
+
+    /**
+     * 影片单页访问控制：未登录引导登录，已登录但等级不足返回 403。
+     */
+    public function guard_single_access()
+    {
+        if (!is_singular(self::CPT)) {
+            return;
+        }
+        $post_id = (int) get_queried_object_id();
+        if (!$post_id) {
+            return;
+        }
+        if (current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        $min_lv = get_post_meta($post_id, self::META_LEVEL, true);
+        if ('' === (string) $min_lv) {
+            $min_lv = 'free';
+        }
+        if (class_exists('MLUC_Membership') && !MLUC_Membership::user_can_access($min_lv)) {
+            if (!is_user_logged_in()) {
+                auth_redirect();
+                exit;
+            }
+            wp_die(esc_html__('權限不足，無法觀看此影片。', 'moonlight-user-center'), 403);
+        }
     }
 
     public function register_cpt()
@@ -42,12 +114,21 @@ class MLUC_Video
             'labels' => array(
                 'name'          => __('示範影片', 'moonlight-user-center'),
                 'singular_name' => __('示範影片', 'moonlight-user-center'),
+                'add_new'       => __('新建影片', 'moonlight-user-center'),
                 'add_new_item'  => __('新增示範影片', 'moonlight-user-center'),
                 'edit_item'     => __('編輯示範影片', 'moonlight-user-center'),
             ),
+            // 安全收敛：与教材同理（关闭 REST / 归档 / 搜索收录），
+            // 保留单页链接供 [mluc_videos] 卡片跳转，
+            // 未授权访问由 template_redirect 上的等级拦截兜底（见 guard_single_access）。
             'public'              => true,
-            'has_archive'         => true,
-            'show_in_rest'        => true,
+            'publicly_queryable'  => true,
+            'has_archive'         => false,
+            'show_in_rest'        => false,
+            'show_ui'             => true,
+            'exclude_from_search' => true,
+            'show_in_nav_menus'   => false,
+            'show_in_admin_bar'   => false,
             'show_in_menu'        => false,
             'menu_icon'           => 'dashicons-video-alt3',
             'menu_position'       => 21,
@@ -171,16 +252,7 @@ class MLUC_Video
         $args = wp_parse_args($args, $defaults);
 
         // 按等级过滤（meta_query OR）
-        $levels = array('free');
-        if (is_user_logged_in() && class_exists('MLUC_Membership')) {
-            $user_level = MLUC_Membership::get_user_level();
-            $all = MLUC_Membership::get_levels();
-            foreach ($all as $key => $lv) {
-                if (MLUC_Membership::get_level_sort_order($key) <= MLUC_Membership::get_level_sort_order($user_level)) {
-                    $levels[] = $key;
-                }
-            }
-        }
+        $levels = self::accessible_levels();
         $level_query = array('relation' => 'OR');
         foreach ($levels as $lvl) {
             $level_query[] = array(

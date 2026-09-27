@@ -3,7 +3,7 @@
  * Plugin Name:      漫步白月光用户中心
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的 WordPress 用户中心，兼容 Astra 主题与 Elementor 页面构建器。提供前端登录、注册、找回密码、账户仪表盘、资料编辑、头像上传等功能。
- * Version:          1.3.1
+ * Version:          2.0.0
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -19,7 +19,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLUC_VERSION', '1.3.1');
+define('MLUC_VERSION', '2.0.0');
 define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLUC_PLUGIN_FILE', __FILE__);
@@ -71,8 +71,22 @@ add_action('plugins_loaded', function () {
     MLUC_OAuth::get_instance();
     MLUC_Hidecontent::get_instance();
     MLUC_Editor_Button::get_instance();
+    MLUC_Paywall::get_instance();
+    MLUC_Menu::get_instance();
+
+    // 支付 / License / 通知扩展模块（v2.0.0：Free + Pro 商业化体系）
+    MLUC_License_Manager::get_instance();
+    MLUC_License_Admin::get_instance();
+    MLUC_Account_Orders::get_instance();
+    MLUC_Email_Notifications::get_instance();
+    MLUC_System_Status::get_instance();
 
     if (did_action('elementor/loaded')) {
         MLUC_Elementor::get_instance();
     }
+
+    /**
+     * 插件加载完成：Pro 扩展与第三方在此挂载（Pro 通过本钩子介入，Free 不反向依赖）。
+     */
+    do_action('mluc_loaded');
 });

@@ -9,3 +9,15 @@ Thumbs.db
 
 # Local archives
 *.zip
+
+# Workspace tooling / temp (NOT part of the product repo)
+/aegiswaf/
+/at8waf/
+/_tools/
+/.audit-tmp/
+/.zcode/
+filelist.txt
+repo-info.json
+user-repos.json
+all-repos.json
+.zcodeignore

@@ -1,0 +1,11 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+
+# Build / deps (none currently, reserved)
+/node_modules/
+/vendor/
+
+# Local archives
+*.zip

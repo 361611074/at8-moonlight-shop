@@ -168,6 +168,81 @@ class MLUC_Settings
             'mluc_payment'
         );
 
+        // 在线支付（PayPal / Stripe）
+        add_settings_section(
+            'mluc_payment_online',
+            __('在线支付（PayPal / Stripe）', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_payment_online',
+            __('网关凭据', 'moonlight-user-center'),
+            array($this, 'render_online_payment_field'),
+            'mluc-settings',
+            'mluc_payment_online'
+        );
+
+        // 在线支付（支付宝）
+        add_settings_section(
+            'mluc_payment_alipay',
+            __('在线支付（支付宝）', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_payment_alipay',
+            __('支付宝配置', 'moonlight-user-center'),
+            array($this, 'render_alipay_field'),
+            'mluc-settings',
+            'mluc_payment_alipay'
+        );
+
+        // License / Pro
+        add_settings_section(
+            'mluc_license',
+            __('License / Pro', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_license',
+            __('授权设置', 'moonlight-user-center'),
+            array($this, 'render_license_field'),
+            'mluc-settings',
+            'mluc_license'
+        );
+
+        // 邮件通知
+        add_settings_section(
+            'mluc_email',
+            __('邮件通知', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_email',
+            __('通知开关', 'moonlight-user-center'),
+            array($this, 'render_email_field'),
+            'mluc-settings',
+            'mluc_email'
+        );
+
+        // 订单管理（所有支付方式通用）
+        add_settings_section(
+            'mluc_orders',
+            __('订单管理（所有支付方式通用）', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_orders',
+            __('超时自动关闭', 'moonlight-user-center'),
+            array($this, 'render_orders_field'),
+            'mluc-settings',
+            'mluc_orders'
+        );
+
         // 侧栏菜单图标（前端账户中心左侧导航）
         add_settings_section(
             'mluc_nav_icons',
@@ -181,6 +256,21 @@ class MLUC_Settings
             array($this, 'render_nav_icons_field'),
             'mluc-settings',
             'mluc_nav_icons'
+        );
+
+        // 界面文案（账户中心侧栏与提示文字，可改成英文等其他语言）
+        add_settings_section(
+            'mluc_ui_labels',
+            __('界面文案（账户中心）', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_ui_labels',
+            __('文字自定义', 'moonlight-user-center'),
+            array($this, 'render_ui_labels_field'),
+            'mluc-settings',
+            'mluc_ui_labels'
         );
 
         // 第三方登录
@@ -273,7 +363,9 @@ class MLUC_Settings
 
     /**
      * 会员等级定义表格：支持编辑 / 新增 / 删除等级。
-     * free 为系统基座等级（不可删除、价格/有效期恒为永久）。
+     * free 为系统基座等级（价格/有效期恒为永久），同样支持删除：
+     * 删除 free 等同关闭「普通会员」基座，未付费用户视为无等级；
+     * 重新勾选顶部「启用普通会员」开关即可恢复。
      */
     public function render_membership_field()
     {
@@ -301,7 +393,7 @@ class MLUC_Settings
             <?php esc_html_e('关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。', 'moonlight-user-center'); ?>
         </p>
         <p class="description">
-            <?php esc_html_e('在此新增、编辑或删除会员等级。删除某等级后，原拥有该等级的用户会自动降级为「普通」。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。', 'moonlight-user-center'); ?>
+            <?php esc_html_e('在此新增、编辑或删除会员等级（含 free 基座等级）。删除某等级后，原拥有该等级的用户会自动降级；删除 free 等级则未付费用户视为无任何等级身份，重新勾选上方「启用普通会员」即可恢复。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。', 'moonlight-user-center'); ?>
         </p>
         <table class="mluc-membership-table widefat">
             <thead>
@@ -337,12 +429,9 @@ class MLUC_Settings
                         <td><input type="color" name="<?php echo esc_attr($np); ?>[color]" value="<?php echo esc_attr($color); ?>"></td>
                         <td><input type="number" min="0" class="small-text" name="<?php echo esc_attr($np); ?>[sort_order]" value="<?php echo esc_attr($sort); ?>"></td>
                         <td>
-                            <?php if ($is_free) : ?>
-                                <span class="mluc-fixed-tag"><?php esc_html_e('不可删除', 'moonlight-user-center'); ?></span>
-                            <?php else : ?>
-                                <button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-user-center'); ?></button>
-                                <label class="mluc-del-check"><input type="checkbox" name="<?php echo esc_attr($np); ?>[delete]" value="1"> <?php esc_html_e('删除', 'moonlight-user-center'); ?></label>
-                            <?php endif; ?>
+                            <button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-user-center'); ?></button>
+                            <label class="mluc-del-check"><input type="checkbox" name="<?php echo esc_attr($np); ?>[delete]" value="1"> <?php esc_html_e('删除', 'moonlight-user-center'); ?></label>
+                            <?php if ($is_free) : ?><span class="description"><?php esc_html_e('删除 free 等同关闭普通会员基座', 'moonlight-user-center'); ?></span><?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -399,9 +488,17 @@ class MLUC_Settings
      */
     public function render_payment_field()
     {
-        $symbol       = mluc_get_option('pay_currency_symbol', 'HK$');
+        $symbol       = mluc_get_option('pay_currency_symbol', '$');
         $instructions = mluc_get_option('pay_manual_instructions', '');
+        $manual_on    = mluc_get_option('manual_enabled', 1);
         ?>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[manual_enabled]" value="1" <?php checked($manual_on, 1); ?>>
+                <?php esc_html_e('启用线下转账（Bank Transfer，管理员确认收款）', 'moonlight-user-center'); ?>
+            </label>
+            <span class="description"><?php esc_html_e('取消勾选后前台购买/付费墙不再出现线下转账选项；PayPal 与 Stripe 的启用开关在下方「在线支付」区块。', 'moonlight-user-center'); ?></span>
+        </p>
         <p>
             <label for="mluc_pay_currency"><?php esc_html_e('货币符号', 'moonlight-user-center'); ?></label>
             <input type="text" id="mluc_pay_currency" class="small-text" name="mluc_options[pay_currency_symbol]" value="<?php echo esc_attr($symbol); ?>">
@@ -414,6 +511,354 @@ class MLUC_Settings
             <?php esc_html_e('双插件同装时购买走商城支付流程，此说明不展示。仅装用户中心时，用户在账户中心「会员等级」选择等级购买，再按此说明完成转账；管理员在「会员订单」确认收款后等级自动开通。', 'moonlight-user-center'); ?>
         </p>
         <?php
+    }
+
+    /**
+     * 订单管理：Pending 订单超时自动关闭（对所有支付方式生效）。
+     */
+    public function render_orders_field()
+    {
+        $auto_hours = (int) mluc_get_option('order_auto_close_hours', 72);
+        ?>
+        <p>
+            <label for="mluc_pay_autoclose"><?php esc_html_e('Pending 订单自动关闭', 'moonlight-user-center'); ?></label>
+            <input type="number" id="mluc_pay_autoclose" class="small-text" name="mluc_options[order_auto_close_hours]" value="<?php echo esc_attr($auto_hours); ?>" min="0" max="8760">
+            <?php esc_html_e('小时（0 = 不自动关闭）', 'moonlight-user-center'); ?>
+            <span class="description"><?php esc_html_e('创建后超过该时长仍未完成支付的 Pending 订单将自动置为 Cancelled。对线下转账、PayPal、Stripe、支付宝全部生效，与上方各网关的启用开关无关。建议不小于 24 小时，以免误伤正在进行的在线支付。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[pay_debug_log]" value="1" <?php checked(!empty(mluc_get_option('pay_debug_log', 0))); ?>>
+                <?php esc_html_e('支付调试日志（在订单内记录网关交互上下文，排查用，平时建议关闭）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <?php
+    }
+
+    /**
+     * 在线支付设置：货币代码 + PayPal / Stripe 凭据。
+     */
+    public function render_online_payment_field()
+    {
+        $code        = mluc_get_option('pay_currency_code', 'USD');
+        $pp_enabled  = mluc_get_option('paypal_enabled', 0);
+        $pp_mode     = mluc_get_option('paypal_mode', 'sandbox');
+        $pp_cid      = mluc_get_option('paypal_client_id', '');
+        $pp_secret   = mluc_get_option('paypal_secret', '');
+        $st_enabled  = mluc_get_option('stripe_enabled', 0);
+        $st_pk       = mluc_get_option('stripe_pk', '');
+        $st_sk       = mluc_get_option('stripe_sk', '');
+        $st_wh       = mluc_get_option('stripe_webhook_secret', '');
+        $account_url = mluc_get_account_url();
+        $webhook_url = rest_url('mluc/v1/stripe-webhook');
+        ?>
+        <p>
+            <label for="mluc_currency_code"><strong><?php esc_html_e('货币代码（ISO 4217，两个网关共用）', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="text" id="mluc_currency_code" class="small-text" name="mluc_options[pay_currency_code]" value="<?php echo esc_attr($code); ?>" placeholder="USD" maxlength="3">
+            <span class="description"><?php esc_html_e('如 USD / HKD / EUR / JPY。需与会员等级价格币种一致。', 'moonlight-user-center'); ?></span>
+        </p>
+        <hr>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[paypal_enabled]" value="1" <?php checked($pp_enabled, 1); ?>>
+                <?php esc_html_e('启用 PayPal（前台 Smart Buttons，服务端扣款）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_pp_mode"><?php esc_html_e('模式', 'moonlight-user-center'); ?></label>
+            <select id="mluc_pp_mode" name="mluc_options[paypal_mode]">
+                <option value="sandbox" <?php selected($pp_mode, 'sandbox'); ?>><?php esc_html_e('沙盒（Sandbox）', 'moonlight-user-center'); ?></option>
+                <option value="live" <?php selected($pp_mode, 'live'); ?>><?php esc_html_e('正式（Live）', 'moonlight-user-center'); ?></option>
+            </select>
+        </p>
+        <p>
+            <label for="mluc_pp_cid"><?php esc_html_e('Client ID', 'moonlight-user-center'); ?></label><br>
+            <input type="text" id="mluc_pp_cid" class="large-text code" name="mluc_options[paypal_client_id]" value="<?php echo esc_attr($pp_cid); ?>" autocomplete="off">
+        </p>
+        <p>
+            <label for="mluc_pp_secret"><?php esc_html_e('Secret', 'moonlight-user-center'); ?></label><br>
+            <input type="password" id="mluc_pp_secret" class="large-text code" name="mluc_options[paypal_secret]" value="<?php echo esc_attr($pp_secret); ?>" autocomplete="new-password">
+        </p>
+        <hr>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[stripe_enabled]" value="1" <?php checked($st_enabled, 1); ?>>
+                <?php esc_html_e('启用 Stripe（Checkout 托管结账页，支持信用卡 / Apple Pay / Google Pay）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_st_pk"><?php esc_html_e('Publishable Key', 'moonlight-user-center'); ?></label><br>
+            <input type="text" id="mluc_st_pk" class="large-text code" name="mluc_options[stripe_pk]" value="<?php echo esc_attr($st_pk); ?>" placeholder="pk_live_... / pk_test_..." autocomplete="off">
+        </p>
+        <p>
+            <label for="mluc_st_sk"><?php esc_html_e('Secret Key', 'moonlight-user-center'); ?></label><br>
+            <input type="password" id="mluc_st_sk" class="large-text code" name="mluc_options[stripe_sk]" value="<?php echo esc_attr($st_sk); ?>" placeholder="sk_live_... / sk_test_..." autocomplete="new-password">
+        </p>
+        <p>
+            <label for="mluc_st_wh"><?php esc_html_e('Webhook Signing Secret（可选，兜底开通）', 'moonlight-user-center'); ?></label><br>
+            <input type="password" id="mluc_st_wh" class="large-text code" name="mluc_options[stripe_webhook_secret]" value="<?php echo esc_attr($st_wh); ?>" placeholder="whsec_..." autocomplete="new-password">
+        </p>
+        <p class="description">
+            <?php
+            echo esc_html(sprintf(
+                /* translators: %s: webhook URL */
+                __('如需 Webhook 兜底，在 Stripe 后台添加端点 %s ，订阅 checkout.session.completed 事件，并把 Signing Secret 填到上面。', 'moonlight-user-center'),
+                $webhook_url
+            ));
+            ?>
+        </p>
+        <p class="description">
+            <?php esc_html_e('回跳处理地址为账户中心页面，支付完成后自动校验并开通会员，无需管理员手动确认；线下转账流程保持不变。', 'moonlight-user-center'); ?>
+            <br><?php echo esc_html($account_url); ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * 界面文案：账户中心全部前台可见文案，可改成英文或其他语言。
+     * 分组展示：侧栏与通用 / 概览页 / 个人资料页 / 会员等级页 / 已购内容页 / 购买卡 / 操作提示。
+     * 留空则回退到插件内置默认。
+     */
+    public function render_ui_labels_field()
+    {
+        $fields = array(
+            __('侧栏与通用', 'moonlight-user-center') => array(
+                'tab_overview' => array('t' => '概览（侧栏）', 'd' => 'Overview'),
+                'tab_profile' => array('t' => '个人资料（侧栏）', 'd' => 'Profile'),
+                'tab_membership' => array('t' => '會員等級（侧栏）', 'd' => 'Membership Level'),
+                'tab_purchases' => array('t' => '已購內容（侧栏）', 'd' => 'Purchased Content'),
+                'tab_orders' => array('t' => '我的订单（侧栏）', 'd' => 'My Orders'),
+                'tab_licenses' => array('t' => '我的 License（侧栏）', 'd' => 'My Licenses'),
+                'tab_logout' => array('t' => '退出登录（侧栏）', 'd' => 'Log Out'),
+                'no_member' => array('t' => '未開通會員', 'd' => 'Non-member'),
+                'permanent' => array('t' => '永久有效', 'd' => 'Permanent'),
+                'th_level' => array('t' => '等級（表头）', 'd' => 'Level'),
+                'th_status' => array('t' => '狀態（表头）', 'd' => 'Status'),
+                'purchases_empty' => array('t' => '已购空提示', 'd' => 'You have no purchased content yet.'),
+                'purchases_login' => array('t' => '已购登录提示', 'd' => 'Please log in first to view your purchased content.'),
+            ),
+            __('概览页', 'moonlight-user-center') => array(
+                'greet_dawn' => array('t' => '凌晨好', 'd' => 'Good early morning'),
+                'greet_morning' => array('t' => '早上好', 'd' => 'Good morning'),
+                'greet_noon' => array('t' => '中午好', 'd' => 'Good midday'),
+                'greet_afternoon' => array('t' => '下午好', 'd' => 'Good afternoon'),
+                'greet_evening' => array('t' => '晚上好', 'd' => 'Good evening'),
+                'ov_phone_prefix' => array('t' => '電話：（前缀）', 'd' => 'Phone: '),
+                'ov_expire' => array('t' => '到期 %s（%s 为日期）', 'd' => 'Expires %s'),
+                'ov_expired' => array('t' => '已過期', 'd' => 'Expired'),
+                'ov_quick_title' => array('t' => '快捷操作（标题）', 'd' => 'Quick Actions'),
+                'ov_qa_profile_t' => array('t' => '编辑资料（卡片标题）', 'd' => 'Edit Profile'),
+                'ov_qa_profile_s' => array('t' => '编辑资料（副标题）', 'd' => 'Nickname / Phone / Bio'),
+                'ov_qa_member_t' => array('t' => '会员等级（卡片标题）', 'd' => 'Membership'),
+                'ov_qa_member_s' => array('t' => '会员等级（副标题）', 'd' => 'Benefits / Upgrade'),
+                'ov_qa_security_t' => array('t' => '账户安全（卡片标题）', 'd' => 'Account Security'),
+                'ov_qa_security_s' => array('t' => '账户安全（副标题）', 'd' => 'Password / Login'),
+                'ov_stats_title' => array('t' => '账户统计（标题）', 'd' => 'Account Stats'),
+                'ov_stat_reg' => array('t' => '註冊時間', 'd' => 'Registered on'),
+                'ov_stat_posts' => array('t' => '發布文章', 'd' => 'Posts'),
+                'ov_stat_comments' => array('t' => '評論', 'd' => 'Comments'),
+            ),
+            __('个人资料页', 'moonlight-user-center') => array(
+                'pf_avatar_title' => array('t' => '頭像（标题）', 'd' => 'Avatar'),
+                'pf_avatar_sub' => array('t' => '头像区说明', 'd' => 'Choose one from the avatar library below; avatars are maintained by the administrator.'),
+                'pf_avatar_current' => array('t' => '當前頭像', 'd' => 'Current Avatar'),
+                'pf_avatar_tip' => array('t' => '头像切换提示', 'd' => 'Click any avatar below to switch instantly, no save needed.'),
+                'pf_avatar_empty' => array('t' => '头像库为空提示', 'd' => 'No avatars have been uploaded yet. Please contact the administrator.'),
+                'av_op_failed' => array('t' => '头像：操作失败提示', 'd' => 'Operation failed.'),
+                'av_network_retry' => array('t' => '头像：网络错误请重试提示', 'd' => 'Network error. Please retry.'),
+                'av_uploading' => array('t' => '头像：上传中提示', 'd' => 'Uploading…'),
+                'av_upload_failed' => array('t' => '头像：上传失败提示', 'd' => 'Upload failed.'),
+                'av_network_error' => array('t' => '头像：网络错误提示', 'd' => 'Network error.'),
+                'av_switching' => array('t' => '头像：切换中提示', 'd' => 'Switching…'),
+                'av_avatar_updated' => array('t' => '头像：已更新提示', 'd' => 'Avatar updated.'),
+                'pf_base_title' => array('t' => '基礎資料（标题）', 'd' => 'Basic Information'),
+                'pf_base_sub' => array('t' => '基础资料说明', 'd' => 'This information appears on your public profile and article bylines.'),
+                'pf_email' => array('t' => '電郵（字段）', 'd' => 'Email'),
+                'pf_email_sub' => array('t' => '電郵说明', 'd' => 'To change your email, please contact the administrator.'),
+                'pf_display' => array('t' => '顯示名稱', 'd' => 'Display Name'),
+                'pf_nickname' => array('t' => '昵稱', 'd' => 'Nickname'),
+                'pf_phone' => array('t' => '電話', 'd' => 'Phone'),
+                'pf_phone_ph' => array('t' => '電話占位提示', 'd' => 'e.g. 9123 4567'),
+                'pf_url' => array('t' => '個人網站', 'd' => 'Website'),
+                'pf_bio' => array('t' => '個人簡介', 'd' => 'Bio'),
+                'pf_save' => array('t' => '保存資料（按钮）', 'd' => 'Save Changes'),
+                'pf_pass_title' => array('t' => '修改密碼（标题）', 'd' => 'Change Password'),
+                'pf_pass_sub' => array('t' => '修改密码说明', 'd' => 'For account security, change your password regularly. You will need to log in again after changing it.'),
+                'pf_old_pass' => array('t' => '原密碼', 'd' => 'Current Password'),
+                'pf_new_pass' => array('t' => '新密碼', 'd' => 'New Password'),
+                'pf_new_pass_sub' => array('t' => '新密码说明', 'd' => 'At least 6 characters.'),
+                'pf_pass_save' => array('t' => '更新密碼（按钮）', 'd' => 'Update Password'),
+            ),
+            __('会员等级页', 'moonlight-user-center') => array(
+                'mb_current_title' => array('t' => '當前會員等級（标题）', 'd' => 'Current Membership'),
+                'mb_free_tip' => array('t' => 'Free 会员提示', 'd' => 'You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos.'),
+                'mb_none_tip' => array('t' => '未开通提示', 'd' => 'You do not have a membership yet. Upgrade to unlock more materials and demo videos.'),
+                'mb_expired_tip' => array('t' => '已过期提示', 'd' => 'Your membership has expired. Please renew to continue.'),
+                'mb_expire_date' => array('t' => '到期日：%s（%s 为日期）', 'd' => 'Expires: %s'),
+                'mb_permanent' => array('t' => '永久會員', 'd' => 'Lifetime member'),
+                'mb_table_title' => array('t' => '會員等級對照（标题）', 'd' => 'Membership Levels'),
+                'mb_table_sub' => array('t' => '等级对照说明', 'd' => 'Compare the benefits and your current status of each level.'),
+                'mb_th_desc' => array('t' => '描述（表头）', 'd' => 'Description'),
+                'mb_st_current' => array('t' => '當前', 'd' => 'Current'),
+                'mb_st_included' => array('t' => '已包含', 'd' => 'Included'),
+                'mb_st_locked' => array('t' => '未解鎖', 'd' => 'Locked'),
+                'mb_upgrade_title' => array('t' => '開通 / 升級會員（标题）', 'd' => 'Buy / Upgrade Membership'),
+            ),
+            __('已购内容页', 'moonlight-user-center') => array(
+                'pu_th_item' => array('t' => '教材（表头）', 'd' => 'Item'),
+                'pu_th_type' => array('t' => '類型（表头）', 'd' => 'Type'),
+                'pu_th_date' => array('t' => '購買日期（表头）', 'd' => 'Purchase Date'),
+                'pu_th_action' => array('t' => '操作（表头）', 'd' => 'Action'),
+                'pu_type_cardkey' => array('t' => '卡密', 'd' => 'Card Key'),
+                'pu_type_virtual' => array('t' => '虛擬下載', 'd' => 'Download'),
+                'pu_view_order' => array('t' => '查看訂單（按钮）', 'd' => 'View Order'),
+            ),
+            __('购买卡（开通/升级会员）', 'moonlight-user-center') => array(
+                'buy_ok' => array('t' => '付款成功提示', 'd' => 'Payment successful. Your membership has been activated.'),
+                'buy_failed' => array('t' => '付款失败提示', 'd' => 'Payment was not completed or verification failed. Please try again or contact the administrator.'),
+                'buy_cancelled' => array('t' => '已取消支付提示', 'd' => 'Payment cancelled. The order remains pending.'),
+                'buy_validity_days' => array('t' => '有效期 %d 天（%d 为天数）', 'd' => 'Valid for %d days'),
+                'buy_btn' => array('t' => '購買（按钮）', 'd' => 'Buy'),
+                'buy_instructions' => array('t' => '付款說明（标题）', 'd' => 'Payment Instructions'),
+                'buy_instructions_body' => array('t' => '付款說明（正文，后台未填「付款说明」时显示）', 'd' => 'Please complete the transfer as instructed below. Your membership will be activated once the administrator confirms your payment.'),
+                'buy_gateway_manual' => array('t' => '线下转账（网关名称）', 'd' => 'Bank Transfer (admin confirms payment)'),
+                'buy_gateway_paypal' => array('t' => 'PayPal（网关名称）', 'd' => 'PayPal (Online Payment)'),
+                'buy_gateway_stripe' => array('t' => 'Stripe（网关名称）', 'd' => 'Stripe (Credit Card)'),
+                'buy_gateway_alipay' => array('t' => '支付宝（网关名称）', 'd' => 'Alipay (支付宝)'),
+                'buy_login_required' => array('t' => '请先登录提示', 'd' => 'Please log in first.'),
+                'buy_use_shop' => array('t' => '请使用商城购买提示', 'd' => 'Please use the shop upgrade flow to purchase membership.'),
+                'buy_module_missing' => array('t' => '会员模块未加载提示', 'd' => 'Membership module is not loaded.'),
+                'buy_invalid_level' => array('t' => '无效等级提示', 'd' => 'Invalid membership level.'),
+                'buy_no_price' => array('t' => '等级未定价提示', 'd' => 'This level has no price set and cannot be purchased yet.'),
+                'buy_level_too_low' => array('t' => '等级不低于所选提示', 'd' => 'Your current membership level is not lower than the selected one. No need to purchase.'),
+                'buy_invalid_gateway' => array('t' => '支付方式无效提示', 'd' => 'Invalid payment method.'),
+                'buy_no_gateway' => array('t' => '无可用支付方式提示', 'd' => 'No payment method is available. Please contact the administrator.'),
+                'buy_too_many' => array('t' => '下单过于频繁提示', 'd' => 'Too many orders in a short period. Please try again later.'),
+                'buy_order_failed' => array('t' => '订单创建失败提示', 'd' => 'Failed to create the order. Please try again later.'),
+                'buy_order_paypal' => array('t' => '订单已建立（PayPal）提示', 'd' => 'Order created. Please complete the PayPal payment.'),
+                'buy_order_stripe' => array('t' => '订单已建立（Stripe）提示', 'd' => 'Order created. Redirecting to Stripe…'),
+                'buy_order_alipay' => array('t' => '订单已建立（支付宝）提示', 'd' => 'Order created. Redirecting to Alipay…'),
+                'buy_order_manual' => array('t' => '订单已建立（线下转账）提示', 'd' => 'Order created. Please complete the transfer as instructed. Your membership will be activated once the administrator confirms your payment.'),
+                'buy_history' => array('t' => '我的購買記錄（标题）', 'd' => 'My Purchase History'),
+                'buy_th_order' => array('t' => '訂單（表头）', 'd' => 'Order'),
+                'buy_th_amount' => array('t' => '金額（表头）', 'd' => 'Amount'),
+                'buy_th_date' => array('t' => '日期（表头）', 'd' => 'Date'),
+                'buy_st_pending' => array('t' => '待確認', 'd' => 'Pending'),
+                'buy_st_paid' => array('t' => '已收款', 'd' => 'Paid'),
+                'buy_st_cancelled' => array('t' => '已取消', 'd' => 'Cancelled'),
+                'buy_pp_load_fail' => array('t' => 'PayPal 组件加载失败提示', 'd' => 'Failed to load PayPal. Please refresh the page and try again.'),
+                'buy_pp_confirming' => array('t' => '正在確認付款提示', 'd' => 'Confirming payment...'),
+                'buy_pp_error' => array('t' => 'PayPal 付款异常提示', 'd' => 'PayPal payment error. Please try again or contact the administrator.'),
+                'buy_pp_goto' => array('t' => '请完成 PayPal 付款提示', 'd' => 'Please complete the PayPal payment below.'),
+                'buy_net_error' => array('t' => '網絡異常提示', 'd' => 'Network error. Please try again later.'),
+            ),
+            __('我的订单 / 我的 License 页', 'moonlight-user-center') => array(
+                'od_title' => array('t' => '我的订单（标题）', 'd' => 'My Orders'),
+                'od_empty' => array('t' => '无订单提示', 'd' => 'You have no orders yet.'),
+                'od_th_no' => array('t' => '订单号（表头）', 'd' => 'Order No.'),
+                'od_th_item' => array('t' => '商品（表头）', 'd' => 'Item'),
+                'od_th_gateway' => array('t' => '支付方式（表头）', 'd' => 'Method'),
+                'lic_title' => array('t' => '我的 License（标题）', 'd' => 'My Licenses'),
+                'lic_empty' => array('t' => '无 License 提示', 'd' => 'You have no licenses yet. Purchase a Pro plan to get one.'),
+                'lic_th_key' => array('t' => 'License（表头）', 'd' => 'License'),
+                'lic_th_product' => array('t' => '产品（表头）', 'd' => 'Product'),
+                'lic_th_site' => array('t' => '授权站点（表头）', 'd' => 'Site'),
+                'lic_th_expires' => array('t' => '到期（表头）', 'd' => 'Expires'),
+                'lic_st_active' => array('t' => '有效', 'd' => 'Active'),
+                'lic_st_inactive' => array('t' => '未激活', 'd' => 'Inactive'),
+                'lic_st_expired' => array('t' => '已过期', 'd' => 'Expired'),
+                'lic_st_revoked' => array('t' => '已撤销', 'd' => 'Revoked'),
+                'lic_st_suspended' => array('t' => '已暂停', 'd' => 'Suspended'),
+            ),
+            __('隐藏内容锁定卡（hidecontent）', 'moonlight-user-center') => array(
+                'hc_title_reply' => array('t' => '评论后可查看（卡片标题）', 'd' => 'Comment to View'),
+                'hc_title_logged' => array('t' => '登录后可查看（卡片标题）', 'd' => 'Log in to View'),
+                'hc_title_vip1' => array('t' => '会员可查看（卡片标题）', 'd' => 'Members Only'),
+                'hc_title_payshow' => array('t' => '付费后可查看（卡片标题）', 'd' => 'Purchase to View'),
+            ),
+            __('付费墙（文章付费）', 'moonlight-user-center') => array(
+                'pw_mode_read' => array('t' => '付费阅读（标签）', 'd' => 'Paid Read'),
+                'pw_mode_download' => array('t' => '付费下载（标签）', 'd' => 'Paid Download'),
+                'pw_mode_image' => array('t' => '付费图片（标签）', 'd' => 'Paid Gallery'),
+                'pw_mode_video' => array('t' => '付费视频（标签）', 'd' => 'Paid Video'),
+                'pw_default_title' => array('t' => '默认卡片标题（后台未填时）', 'd' => 'Premium Content'),
+                'pw_btn_unlock' => array('t' => '解锁按钮', 'd' => 'Unlock Now'),
+                'pw_login_btn' => array('t' => '登录后购买（按钮）', 'd' => 'Log In to Purchase'),
+                'pw_gated' => array('t' => '等级不足提示', 'd' => 'Your membership level cannot purchase this content. Please upgrade your membership.'),
+                'pw_gated_level' => array('t' => '等级门槛提示（%s 为等级名）', 'd' => 'This content is available to %s members and above. Please upgrade your membership.'),
+                'pw_already' => array('t' => '已解锁提示', 'd' => 'You already have access to this content.'),
+                'pw_not_needed' => array('t' => '无需付费提示', 'd' => 'This content does not require payment.'),
+                'pw_no_price' => array('t' => '未定价提示', 'd' => 'This content has no price set and cannot be purchased yet.'),
+                'pw_disabled' => array('t' => '付费功能关闭提示', 'd' => 'Paid content is not available.'),
+                'pw_sales_note' => array('t' => '已售提示（%d 为数量）', 'd' => 'Sold: %d'),
+                'pw_expire_note' => array('t' => '时效提示（%d 数量 / %s 单位）', 'd' => 'Access expires %d %s after purchase.'),
+                'pw_unit_hour' => array('t' => '时效单位：小时', 'd' => 'hour(s)'),
+                'pw_unit_day' => array('t' => '时效单位：天', 'd' => 'day(s)'),
+                'pw_unit_month' => array('t' => '时效单位：个月', 'd' => 'month(s)'),
+                'pw_order_manual' => array('t' => '订单已建立（线下转账）提示', 'd' => 'Order created. Please complete the bank transfer as instructed. The content will be unlocked once the administrator confirms your payment.'),
+                'pw_order_stripe' => array('t' => '订单已建立（Stripe）提示', 'd' => 'Order created. Redirecting to Stripe…'),
+                'pw_order_alipay' => array('t' => '订单已建立（支付宝）提示', 'd' => 'Order created. Redirecting to Alipay…'),
+                'pw_instructions_title' => array('t' => '付款说明（标题）', 'd' => 'Payment Instructions'),
+                'pw_dl_default_btn' => array('t' => '下载按钮默认文字', 'd' => 'Download'),
+                'pw_dl_invalid' => array('t' => '下载链接无效提示', 'd' => 'This download link is invalid or has expired.'),
+                'pw_dl_not_owned' => array('t' => '未购买下载提示', 'd' => 'You have not purchased this content.'),
+                'pw_dl_missing' => array('t' => '文件不存在提示', 'd' => 'File not found.'),
+                'pw_demo_link' => array('t' => '在线演示（链接文字）', 'd' => 'Live Demo'),
+                'pw_view_full' => array('t' => '查看大图（链接文字）', 'd' => 'View Full Size'),
+                'pw_locked_item' => array('t' => '锁定图片占位文字', 'd' => 'Locked'),
+                'pw_locked_video' => array('t' => '锁定视频占位文字', 'd' => 'Locked video. Purchase to watch.'),
+                'pw_ok_reload' => array('t' => '支付成功提示', 'd' => 'Payment successful. Reloading…'),
+            ),
+            __('登录 / 注册 / 找回密码页', 'moonlight-user-center') => array(
+                'lg_title' => array('t' => '登录（标题）', 'd' => 'Log In'),
+                'lg_user' => array('t' => '用户名或邮箱', 'd' => 'Username or Email'),
+                'lg_pass' => array('t' => '密码', 'd' => 'Password'),
+                'lg_remember' => array('t' => '记住我', 'd' => 'Remember Me'),
+                'lg_btn' => array('t' => '登录（按钮）', 'd' => 'Log In'),
+                'lg_forgot' => array('t' => '忘记密码？', 'd' => 'Forgot password?'),
+                'lg_register' => array('t' => '立即注册', 'd' => 'Register now'),
+                'lp_title' => array('t' => '找回密码（标题）', 'd' => 'Lost Password'),
+                'lp_user' => array('t' => '找回密码：用户名或邮箱', 'd' => 'Username or Email'),
+                'lp_btn' => array('t' => '发送重置链接', 'd' => 'Send Reset Link'),
+                'lp_back' => array('t' => '返回登录', 'd' => 'Back to Log In'),
+                'rg_title' => array('t' => '注册账户（标题）', 'd' => 'Create Account'),
+                'rg_user' => array('t' => '注册：用户名', 'd' => 'Username'),
+                'rg_email' => array('t' => '注册：邮箱', 'd' => 'Email'),
+                'rg_pass' => array('t' => '注册：密码', 'd' => 'Password'),
+                'rg_btn' => array('t' => '注册（按钮）', 'd' => 'Register'),
+                'rg_login' => array('t' => '已有账户？去登录', 'd' => 'Already have an account? Log in'),
+            ),
+            __('操作提示（保存/修改密码等）', 'moonlight-user-center') => array(
+                'msg_login_required' => array('t' => '请先登录。', 'd' => 'Please log in first.'),
+                'msg_account_login' => array('t' => '请先 %s 后查看账户中心。（%s 为登录链接）', 'd' => 'Please %s to view the account center.'),
+                'msg_login_link' => array('t' => '登录（链接文字）', 'd' => 'log in'),
+                'msg_profile_updated' => array('t' => '资料已更新。', 'd' => 'Profile updated.'),
+                'msg_nickname_empty' => array('t' => '昵称不能为空。', 'd' => 'Nickname cannot be empty.'),
+                'msg_pass_fields' => array('t' => '请填写原密码和新密码。', 'd' => 'Please enter your current and new password.'),
+                'msg_pass_len' => array('t' => '新密码至少 6 位。', 'd' => 'The new password must be at least 6 characters.'),
+                'msg_pass_wrong' => array('t' => '原密码不正确。', 'd' => 'The current password is incorrect.'),
+                'msg_pass_changed' => array('t' => '密码已修改，请重新登录。', 'd' => 'Password changed. Please log in again.'),
+            ),
+        );
+        $saved = mluc_get_option('ui_labels', array());
+        if (!is_array($saved)) {
+            $saved = array();
+        }
+        echo '<p class="description">' . esc_html__('修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。', 'moonlight-user-center') . '</p>';
+        echo '<table class="form-table" role="presentation">';
+        foreach ($fields as $group => $items) {
+            printf('<tr><th colspan="2" style="text-align:left;background:#f6f7f7;"><strong>%s</strong></th></tr>', esc_html($group));
+            foreach ($items as $key => $f) {
+                printf(
+                    '<tr><th scope="row"><label for="mluc_ui_%1$s">%2$s</label></th><td><input type="text" id="mluc_ui_%1$s" class="regular-text" name="mluc_options[ui_labels][%1$s]" value="%3$s" placeholder="%4$s" autocomplete="off"></td></tr>',
+                    esc_attr($key),
+                    esc_html($f['t']),
+                    esc_attr(isset($saved[$key]) ? (string) $saved[$key] : ''),
+                    esc_attr($f['d'])
+                );
+            }
+        }
+        echo '</table>';
     }
 
     /**
@@ -587,6 +1032,124 @@ class MLUC_Settings
     }
 
     /**
+     * 支付宝配置：启用开关 / 模式 / App ID / 应用私钥 / 支付宝公钥。
+     * 密钥脱敏：已配置时输入框留空 = 保持不变；绝不回显明文（§18）。
+     */
+    public function render_alipay_field()
+    {
+        $enabled   = mluc_get_option('alipay_enabled', 0);
+        $mode      = mluc_get_option('alipay_mode', 'sandbox');
+        $app_id    = mluc_get_option('alipay_app_id', '');
+        $priv_set  = '' !== trim((string) mluc_get_option('alipay_private_key', ''));
+        $pub_set   = '' !== trim((string) mluc_get_option('alipay_public_key', ''));
+        $priv_hint = $priv_set
+            ? sprintf(__('已配置（尾 4 位 …%s），留空保持不变', 'moonlight-user-center'), esc_html(self::key_tail(mluc_get_option('alipay_private_key', ''))))
+            : __('未配置', 'moonlight-user-center');
+        $pub_hint = $pub_set
+            ? sprintf(__('已配置（尾 4 位 …%s），留空保持不变', 'moonlight-user-center'), esc_html(self::key_tail(mluc_get_option('alipay_public_key', ''))))
+            : __('未配置', 'moonlight-user-center');
+        ?>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[alipay_enabled]" value="1" <?php checked($enabled, 1); ?>>
+                <?php esc_html_e('启用支付宝（电脑网站支付，跳转式，仅支持 CNY）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_ali_mode"><?php esc_html_e('环境', 'moonlight-user-center'); ?></label>
+            <select id="mluc_ali_mode" name="mluc_options[alipay_mode]">
+                <option value="sandbox" <?php selected($mode, 'sandbox'); ?>><?php esc_html_e('沙盒（Sandbox）', 'moonlight-user-center'); ?></option>
+                <option value="production" <?php selected($mode, 'production'); ?>><?php esc_html_e('正式（Production）', 'moonlight-user-center'); ?></option>
+            </select>
+            <span class="description"><?php esc_html_e('生产环境涉及真实收款，切换前请确认应用与密钥均为正式环境。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label for="mluc_ali_appid"><strong><?php esc_html_e('App ID', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="text" id="mluc_ali_appid" class="regular-text code" name="mluc_options[alipay_app_id]" value="<?php echo esc_attr($app_id); ?>" autocomplete="off">
+        </p>
+        <p>
+            <label for="mluc_ali_priv"><strong><?php esc_html_e('应用私钥（RSA2）', 'moonlight-user-center'); ?></strong></label><br>
+            <textarea id="mluc_ali_priv" class="large-text code" rows="4" name="mluc_options[alipay_private_key]" placeholder="<?php echo esc_attr($priv_hint); ?>" autocomplete="new-password"></textarea>
+            <span class="description"><?php echo esc_html__('支持 PKCS#1 / PKCS#8，可带或不含 PEM 头。仅保存在本站数据库，不写入代码与日志。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label for="mluc_ali_pub"><strong><?php esc_html_e('支付宝公钥（RSA2）', 'moonlight-user-center'); ?></strong></label><br>
+            <textarea id="mluc_ali_pub" class="large-text code" rows="4" name="mluc_options[alipay_public_key]" placeholder="<?php echo esc_attr($pub_hint); ?>" autocomplete="new-password"></textarea>
+            <span class="description"><?php echo esc_html__('注意：填支付宝公钥（开放平台「接口加签方式」页查看），不是应用公钥。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p class="description">
+            <?php
+            echo esc_html(sprintf(
+                /* translators: %s: notify URL */
+                __('在支付宝开放平台无需手动配置异步地址，本插件下单时自动携带 notify_url：%s（服务器需可公网访问）。', 'moonlight-user-center'),
+                MLUC_Gateway_Alipay::notify_url()
+            ));
+            ?>
+        </p>
+        <p class="description">
+            <?php
+            echo esc_html(sprintf(
+                /* translators: %s: 当前货币代码 */
+                __('支付宝仅支持 CNY 结算。当前货币代码为 %1$s，需改为 CNY 后前台才会出现支付宝选项。', 'moonlight-user-center'),
+                MLUC_Payments::currency_code()
+            ));
+            ?>
+        </p>
+        <?php
+    }
+
+    /**
+     * 取密钥尾 4 位（脱敏展示用）。
+     */
+    private static function key_tail($raw)
+    {
+        $body = preg_replace('/\s+/', '', (string) $raw);
+        return substr($body, -4);
+    }
+
+    /**
+     * License / Pro 设置：远程 License Server + 支付自动颁发等级。
+     */
+    public function render_license_field()
+    {
+        $server      = mluc_get_option('license_server_url', '');
+        $auto_levels = (array) mluc_get_option('license_auto_levels', array());
+        ?>
+        <p>
+            <label for="mluc_lic_server"><strong><?php esc_html_e('License Server 地址（可选）', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="url" id="mluc_lic_server" class="large-text code" name="mluc_options[license_server_url]" value="<?php echo esc_attr($server); ?>" placeholder="https://license.example.com">
+            <span class="description"><?php echo esc_html__('留空 = 本地验证模式（License 存本站）。配置后走远程验证：结果缓存 12 小时；网络失败进入 7 天宽限期，期间 Pro 功能照常，绝不因 Server 故障影响 Free 功能。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label for="mluc_lic_auto"><strong><?php esc_html_e('支付成功自动颁发 License 的会员等级', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="text" id="mluc_lic_auto" class="regular-text code" name="mluc_options[license_auto_levels_csv]" value="<?php echo esc_attr(implode(',', $auto_levels)); ?>" placeholder="monthly,gold">
+            <span class="description"><?php echo esc_html__('填等级标识（后台「会员等级定义」中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 moonlight-user-center-pro License（到期时长跟随等级有效期）。', 'moonlight-user-center'); ?></span>
+        </p>
+        <?php
+    }
+
+    /**
+     * 邮件通知开关。
+     */
+    public function render_email_field()
+    {
+        ?>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[email_purchase_enabled]" value="1" <?php checked(!empty(mluc_get_option('email_purchase_enabled', 1))); ?>>
+                <?php esc_html_e('支付成功后向购买用户发送邮件', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[email_license_reminder_enabled]" value="1" <?php checked(!empty(mluc_get_option('email_license_reminder_enabled', 1))); ?>>
+                <?php esc_html_e('License 到期前 7 天发送续费提醒邮件（每日检查一次）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <?php
+    }
+
+    /**
      * 清洗提交值。复选框未勾选时不提交，必须显式记为 0。
      */
     public function sanitize_options($input)
@@ -611,6 +1174,66 @@ class MLUC_Settings
             ? sanitize_text_field(wp_unslash($input['pay_currency_symbol'])) : '';
         $options['pay_manual_instructions'] = isset($input['pay_manual_instructions'])
             ? sanitize_textarea_field(wp_unslash($input['pay_manual_instructions'])) : '';
+        // 支付方式开关（线下转账）+ 订单自动关闭（对所有网关生效）
+        $options['manual_enabled'] = !empty($input['manual_enabled']) ? 1 : 0;
+        $options['order_auto_close_hours'] = max(0, min(8760, (int) ($input['order_auto_close_hours'] ?? 72)));
+
+        // 在线支付（PayPal / Stripe）
+        $code = strtoupper(sanitize_text_field(wp_unslash($input['pay_currency_code'] ?? '')));
+        $options['pay_currency_code'] = preg_match('/^[A-Z]{3}$/', $code) ? $code : 'USD';
+        $options['paypal_enabled']    = !empty($input['paypal_enabled']) ? 1 : 0;
+        $pp_mode = sanitize_key(wp_unslash($input['paypal_mode'] ?? 'sandbox'));
+        $options['paypal_mode']       = in_array($pp_mode, array('sandbox', 'live'), true) ? $pp_mode : 'sandbox';
+        $options['paypal_client_id']  = isset($input['paypal_client_id']) ? sanitize_text_field(wp_unslash($input['paypal_client_id'])) : '';
+        $options['paypal_secret']     = isset($input['paypal_secret']) ? sanitize_text_field(wp_unslash($input['paypal_secret'])) : '';
+        $options['stripe_enabled']    = !empty($input['stripe_enabled']) ? 1 : 0;
+        $options['stripe_pk']         = isset($input['stripe_pk']) ? sanitize_text_field(wp_unslash($input['stripe_pk'])) : '';
+        $options['stripe_sk']         = isset($input['stripe_sk']) ? sanitize_text_field(wp_unslash($input['stripe_sk'])) : '';
+        $options['stripe_webhook_secret'] = isset($input['stripe_webhook_secret']) ? sanitize_text_field(wp_unslash($input['stripe_webhook_secret'])) : '';
+
+        // 在线支付（支付宝）。密钥脱敏：留空 = 保持既有配置；绝不写空值覆盖。
+        $options['alipay_enabled'] = !empty($input['alipay_enabled']) ? 1 : 0;
+        $ali_mode = sanitize_key(wp_unslash($input['alipay_mode'] ?? 'sandbox'));
+        $options['alipay_mode']    = in_array($ali_mode, array('sandbox', 'production'), true) ? $ali_mode : 'sandbox';
+        $options['alipay_app_id']  = isset($input['alipay_app_id']) ? sanitize_text_field(wp_unslash($input['alipay_app_id'])) : '';
+        foreach (array('alipay_private_key', 'alipay_public_key') as $ali_key) {
+            $val = isset($input[$ali_key]) ? trim((string) wp_unslash($input[$ali_key])) : '';
+            if ('' !== $val) {
+                $options[$ali_key] = sanitize_textarea_field($val);
+            }
+        }
+
+        // License / Pro
+        $options['license_server_url'] = isset($input['license_server_url'])
+            ? esc_url_raw(trim((string) wp_unslash($input['license_server_url']))) : '';
+        $auto_csv = isset($input['license_auto_levels_csv']) ? (string) wp_unslash($input['license_auto_levels_csv']) : '';
+        $auto_levels = array();
+        foreach (explode(',', $auto_csv) as $lv) {
+            $lv = sanitize_key(trim($lv));
+            if ('' !== $lv) {
+                $auto_levels[] = $lv;
+            }
+        }
+        $options['license_auto_levels'] = array_values(array_unique($auto_levels));
+
+        // 邮件通知开关
+        $options['email_purchase_enabled']       = !empty($input['email_purchase_enabled']) ? 1 : 0;
+        $options['email_license_reminder_enabled'] = !empty($input['email_license_reminder_enabled']) ? 1 : 0;
+
+        // 支付调试日志（排查用）
+        $options['pay_debug_log'] = !empty($input['pay_debug_log']) ? 1 : 0;
+
+        // 界面文案（数组，逐项清洗；空值回退默认由 mluc_ui_label 处理）
+        $options['ui_labels'] = array();
+        if (isset($input['ui_labels']) && is_array($input['ui_labels'])) {
+            foreach ($input['ui_labels'] as $k => $v) {
+                $key = sanitize_key(wp_unslash($k));
+                if ('' === $key) {
+                    continue;
+                }
+                $options['ui_labels'][$key] = sanitize_text_field(wp_unslash($v));
+            }
+        }
 
         // 侧栏菜单图标：每项存 ['type' => 'dashicon'|'image', 'value' => 类名 | attachment_id]
         // 兼容旧裸字符串数据（自动包成 dashicon 结构）；失效附件降级为空。
@@ -658,7 +1281,7 @@ class MLUC_Settings
                 if (!is_array($v)) {
                     continue;
                 }
-                // 无 JS 回退：勾选「删除」的非 free 等级直接跳过
+                // 无 JS 回退：勾选「删除」的等级（含 free 基座）直接跳过
                 if (!empty($v['delete']) && '__new__' !== substr((string) $raw_key, 0, 7)) {
                     continue;
                 }
@@ -700,6 +1323,10 @@ class MLUC_Settings
             }
             // free 基座是否保留由「启用普通会员」开关决定（见 MLUC_Membership::get_levels()）
             $options['membership_levels'] = $clean;
+            // free 等级被删除时强制关闭普通会员基座，避免 get_levels() 又把 free 补回来
+            if (!isset($clean['free'])) {
+                $options['free_level_enabled'] = 0;
+            }
         } else {
             $existing = mluc_get_option('membership_levels', array());
             if (is_array($existing)) {

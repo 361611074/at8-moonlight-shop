@@ -116,11 +116,30 @@ class MLUC_Auth
     }
 
     /**
+     * 基于 IP 的简单节流：超限直接拒绝。防撞库爆破 / 垃圾注册 / 重置邮件轰炸。
+     *
+     * @param string $bucket 场景标识（login/register/lostpw）
+     * @param int    $limit  窗口内允许次数
+     * @param int    $window 窗口秒数
+     */
+    private function throttle($bucket, $limit, $window)
+    {
+        $ip  = isset($_SERVER['REMOTE_ADDR']) ? preg_replace('/[^0-9a-fA-F:.]/', '', (string) $_SERVER['REMOTE_ADDR']) : '';
+        $key = 'mluc_rl_' . md5($bucket . '|' . $ip);
+        $hits = (int) get_transient($key);
+        if ($hits >= $limit) {
+            mluc_send_json(false, __('尝试过于频繁，请稍后再试。', 'moonlight-user-center'));
+        }
+        set_transient($key, $hits + 1, $window);
+    }
+
+    /**
      * AJAX 登录。
      */
     public function ajax_login()
     {
         check_ajax_referer('mluc_nonce', 'nonce');
+        $this->throttle('login', 10, 10 * MINUTE_IN_SECONDS);
 
         $user_login = sanitize_user(isset($_POST['user_login']) ? $_POST['user_login'] : '');
         $password   = isset($_POST['password']) ? $_POST['password'] : '';
@@ -128,15 +147,6 @@ class MLUC_Auth
 
         if (empty($user_login) || empty($password)) {
             mluc_send_json(false, __('请输入账号和密码。', 'moonlight-user-center'));
-        }
-
-        // 防爆破限速：按 IP + 用户名计数，10 分钟内失败达 5 次后锁定。
-        // 插件需自包含该防护（分发到其他站点时不依赖主机层安全插件）。
-        $ip = isset($_SERVER['REMOTE_ADDR']) ? preg_replace('/[^0-9a-fA-F:.]/', '', (string) $_SERVER['REMOTE_ADDR']) : '';
-        $rl_key   = 'mluc_ll_' . md5($ip . '|' . $user_login);
-        $attempts = (int) get_transient($rl_key);
-        if ($attempts >= 5) {
-            mluc_send_json(false, __('登录尝试过于频繁，请 10 分钟后再试。', 'moonlight-user-center'));
         }
 
         $creds = array(
@@ -148,12 +158,13 @@ class MLUC_Auth
         $user = wp_signon($creds, is_ssl());
 
         if (is_wp_error($user)) {
-            set_transient($rl_key, $attempts + 1, 600);
+            // 防用户名枚举：账号不存在与密码错误返回统一提示。
+            $code = $user->get_error_code();
+            if ('invalid_username' === $code || 'incorrect_password' === $code) {
+                mluc_send_json(false, __('Incorrect username or password.', 'moonlight-user-center'));
+            }
             mluc_send_json(false, mluc_translate_wp_error($user));
         }
-
-        // 登录成功：清除该账号的失败计数
-        delete_transient($rl_key);
 
         wp_set_current_user($user->ID);
         wp_set_auth_cookie($user->ID, $remember);
@@ -177,9 +188,27 @@ class MLUC_Auth
     public function ajax_register()
     {
         check_ajax_referer('mluc_nonce', 'nonce');
+        $this->throttle('register', 5, HOUR_IN_SECONDS);
 
         if (!get_option('users_can_register')) {
             mluc_send_json(false, __('当前站点已关闭注册。', 'moonlight-user-center'));
+        }
+
+        // 蜜罐字段：正常用户不可见不填写，机器人常全量填写。
+        $hp = isset($_POST['mluc_hp']) ? trim((string) $_POST['mluc_hp']) : '';
+        if ('' !== $hp) {
+            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-user-center'));
+        }
+        // 一次性渲染令牌：注册页渲染时由服务端签发 transient，提交时校验即焚。
+        // 既保证最短填写时间（≥3 秒），又防重放，且不依赖客户端时钟。
+        $tk = isset($_POST['mluc_tk']) ? sanitize_text_field(wp_unslash($_POST['mluc_tk'])) : '';
+        $tk_key = 'mluc_reg_tk_' . md5($tk);
+        $tk_time = $tk ? get_transient($tk_key) : false;
+        if ($tk) {
+            delete_transient($tk_key);
+        }
+        if (false === $tk_time || (time() - (int) $tk_time) < 3) {
+            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-user-center'));
         }
 
         $user_login = sanitize_user(isset($_POST['user_login']) ? $_POST['user_login'] : '');
@@ -223,6 +252,7 @@ class MLUC_Auth
     public function ajax_lost_password()
     {
         check_ajax_referer('mluc_nonce', 'nonce');
+        $this->throttle('lostpw', 5, HOUR_IN_SECONDS);
 
         $user_login = isset($_POST['user_login']) ? trim($_POST['user_login']) : '';
         if (empty($user_login)) {

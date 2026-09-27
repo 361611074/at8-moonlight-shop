@@ -36,6 +36,82 @@ class MLUC_Material
         add_shortcode('mluc_downloads', array($this, 'shortcode_downloads'));
         add_action('admin_post_mluc_download', array($this, 'handle_download'));
         add_action('admin_post_nopriv_mluc_download', array($this, 'handle_download'));
+        // 安全：单页直访兜底（短代码卡片会输出 permalink），未达等级一律拦截。
+        add_action('template_redirect', array($this, 'guard_single_access'));
+        // 安全：归档/列表查询兜底。?post_type=mluc_material 这类查询不受 has_archive
+        // 控制，关闭归档后仍可被枚举，故对前台主查询强制追加等级过滤。
+        add_action('pre_get_posts', array($this, 'filter_archive_query'));
+    }
+
+    /**
+     * 当前用户可访问的等级 key 列表。
+     */
+    public static function accessible_levels()
+    {
+        $levels = array('free');
+        if (is_user_logged_in() && class_exists('MLUC_Membership')) {
+            $user_level = MLUC_Membership::get_user_level();
+            $all        = MLUC_Membership::get_levels();
+            foreach ($all as $key => $lv) {
+                if (MLUC_Membership::get_level_sort_order($key) <= MLUC_Membership::get_level_sort_order($user_level)) {
+                    $levels[] = $key;
+                }
+            }
+        }
+        return $levels;
+    }
+
+    /**
+     * 前台主查询（归档 / ?post_type= 枚举）按会员等级过滤。
+     * 短代码用的是独立 WP_Query，非主查询，不受影响。
+     */
+    public function filter_archive_query($q)
+    {
+        if (is_admin() || !$q->is_main_query()) {
+            return;
+        }
+        if (self::CPT !== $q->get('post_type') || $q->is_singular()) {
+            return;
+        }
+        if (current_user_can('edit_others_posts')) {
+            return;
+        }
+        $mq = array('relation' => 'OR');
+        foreach (self::accessible_levels() as $lvl) {
+            $mq[] = array('key' => self::META_LEVEL, 'value' => $lvl, 'compare' => '=');
+        }
+        $mq[] = array('key' => self::META_LEVEL, 'value' => '', 'compare' => 'NOT EXISTS');
+        $q->set('meta_query', $mq);
+    }
+
+    /**
+     * 教材单页访问控制：未登录引导登录，已登录但等级不足返回 403。
+     * 短代码列表本身已按等级过滤，此处只兜底直接访问 permalink 的情况。
+     */
+    public function guard_single_access()
+    {
+        if (!is_singular(self::CPT)) {
+            return;
+        }
+        $post_id = (int) get_queried_object_id();
+        if (!$post_id) {
+            return;
+        }
+        // 作者/编辑/管理员始终可见，便于预览
+        if (current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        $min_lv = get_post_meta($post_id, self::META_LEVEL, true);
+        if ('' === (string) $min_lv) {
+            $min_lv = 'free';
+        }
+        if (class_exists('MLUC_Membership') && !MLUC_Membership::user_can_access($min_lv)) {
+            if (!is_user_logged_in()) {
+                auth_redirect();
+                exit;
+            }
+            wp_die(esc_html__('權限不足，無法檢視此教材。', 'moonlight-user-center'), 403);
+        }
     }
 
     public function register_cpt()
@@ -44,12 +120,25 @@ class MLUC_Material
             'labels' => array(
                 'name'          => __('工作紙 / 教材', 'moonlight-user-center'),
                 'singular_name' => __('教材', 'moonlight-user-center'),
+                'add_new'       => __('新建教材', 'moonlight-user-center'),
                 'add_new_item'  => __('新增教材', 'moonlight-user-center'),
                 'edit_item'     => __('編輯教材', 'moonlight-user-center'),
             ),
+            // 安全收敛（原 public=true + show_in_rest=true + has_archive=true，
+            // 未登录访客可经 /wp-json/wp/v2/mluc_material 与归档页拿到全部高等级教材）：
+            //   - 关闭 REST：杜绝 JSON 接口批量拉取；
+            //   - 关闭归档：杜绝列表页枚举；
+            //   - 排除搜索：杜绝站内搜索泄露标题/摘要；
+            //   - 保留单页链接（短代码卡片会用 the_permalink），
+            //     由 template_redirect 上的等级拦截兜底（见 guard_single_access）。
             'public'              => true,
-            'has_archive'         => true,
-            'show_in_rest'        => true,
+            'publicly_queryable'  => true,
+            'has_archive'         => false,
+            'show_in_rest'        => false,
+            'show_ui'             => true,
+            'exclude_from_search' => true,
+            'show_in_nav_menus'   => false,
+            'show_in_admin_bar'   => false,
             'show_in_menu'        => false,
             'menu_icon'           => 'dashicons-media-document',
             'menu_position'       => 22,
@@ -139,16 +228,7 @@ class MLUC_Material
         );
         $args = wp_parse_args($args, $defaults);
 
-        $levels = array('free');
-        if (is_user_logged_in() && class_exists('MLUC_Membership')) {
-            $user_level = MLUC_Membership::get_user_level();
-            $all = MLUC_Membership::get_levels();
-            foreach ($all as $key => $lv) {
-                if (MLUC_Membership::get_level_sort_order($key) <= MLUC_Membership::get_level_sort_order($user_level)) {
-                    $levels[] = $key;
-                }
-            }
-        }
+        $levels = self::accessible_levels();
         $level_query = array('relation' => 'OR');
         foreach ($levels as $lvl) {
             $level_query[] = array(
@@ -289,14 +369,31 @@ class MLUC_Material
         if (!$file) {
             wp_die(esc_html__('文件未配置。', 'moonlight-user-center'));
         }
-        // 增加计数
-        update_user_meta(get_current_user_id(), 'mluc_material_dl_' . $post_id, $used + 1);
+        // 计数：读-改-写在并发下会重复计数（连点两次只记一次却被放行两次），
+        // 这里用 5 秒会话节流保证同一次下载只计一次，计数准确且不影响正常重试。
+        $lock_key = 'mluc_dl_lock_' . get_current_user_id() . '_' . $post_id;
+        if (!get_transient($lock_key)) {
+            set_transient($lock_key, 1, 5);
+            update_user_meta(get_current_user_id(), 'mluc_material_dl_' . $post_id, $used + 1);
+        }
 
         // 本地上传文件：直接流式输出，避免暴露真实下载地址（仍受登录/等级/次数限制保护）。
         $upload = wp_upload_dir();
         $local  = '';
         if (!empty($upload['baseurl']) && strpos($file, $upload['baseurl']) === 0) {
             $local = str_replace($upload['baseurl'], $upload['basedir'], $file);
+        }
+        // 安全：路径必须落在上传目录内。URL 形如
+        // /wp-content/uploads/../../../etc/passwd 会绕过前缀检查，
+        // 故用 realpath 解析后再比对真实前缀。
+        if ($local) {
+            $real      = realpath($local);
+            $base_real = !empty($upload['basedir']) ? realpath($upload['basedir']) : '';
+            if (!$real || !$base_real || 0 !== strpos($real, $base_real)) {
+                $local = '';
+            } else {
+                $local = $real;
+            }
         }
         if ($local && file_exists($local) && is_readable($local)) {
             $download_name = preg_replace('/[^A-Za-z0-9._-]/u', '_', basename($file));

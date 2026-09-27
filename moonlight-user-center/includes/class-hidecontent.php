@@ -23,10 +23,10 @@ class MLUC_Hidecontent
 {
     /** 类型注册表。 */
     public static $types = array(
-        'reply'   => array('label' => '评论后可查看', 'cta' => '评论后查看',   'icon' => '💬'),
-        'logged'  => array('label' => '登录后可查看', 'cta' => '登录后查看',   'icon' => '🔒'),
-        'vip1'    => array('label' => '会员可查看',   'cta' => '升级会员',     'icon' => '⭐'),
-        'payshow' => array('label' => '付费后可查看', 'cta' => '立即购买',     'icon' => '💎'),
+        'reply'   => array('label' => '评论后可查看', 'cta' => 'Comment to View', 'icon' => '💬'),
+        'logged'  => array('label' => '登录后可查看', 'cta' => 'Log in to View', 'icon' => '🔒'),
+        'vip1'    => array('label' => '会员可查看',   'cta' => 'Upgrade Membership', 'icon' => '⭐'),
+        'payshow' => array('label' => '付费后可查看', 'cta' => 'Buy Now', 'icon' => '💎'),
     );
 
     public static function get_instance()
@@ -89,8 +89,11 @@ class MLUC_Hidecontent
      */
     public static function user_can_view($type)
     {
-        // 作者本人 / 管理员永远可见，便于预览与排错
-        if (is_user_logged_in() && (current_user_can('edit_posts') || self::is_current_post_author())) {
+        // 作者本人 / 管理员永远可见，便于预览与排错。
+        // 安全：原用 edit_posts 判断，投稿者/作者等低权限角色也能看到全站任意文章的
+        // 隐藏内容（权限过宽）。改为：作者本人，或具备编辑他人文章权限的角色。
+        if (is_user_logged_in()
+            && (current_user_can('edit_others_posts') || current_user_can('manage_options') || self::is_current_post_author())) {
             return true;
         }
 
@@ -194,7 +197,11 @@ class MLUC_Hidecontent
             return false;
         }
         if (!MLSHOP_Pay_Access::is_paywalled($post_id)) {
-            // 文章本身没开付费墙，"payshow" 通用语义下退化为会员闸
+            // 文章本身没开商城付费墙：再看用户中心 Pro 付费墙（MLUC_Paywall）
+            if (class_exists('MLUC_Paywall') && MLUC_Paywall::is_paywalled($post_id)) {
+                return MLUC_Paywall::is_unlocked($post_id);
+            }
+            // 两套付费墙都没开，"payshow" 通用语义下退化为会员闸
             return false;
         }
         return (bool) MLSHOP_Pay_Access::is_unlocked($post_id, get_current_user_id());
@@ -207,7 +214,18 @@ class MLUC_Hidecontent
     {
         $info   = self::$types[$type];
         $type_esc = esc_attr($type);
-        $label  = esc_html__(isset($info['cta']) ? (string) $info['cta'] : '', 'moonlight-user-center');
+        // 锁定卡标题：走 mluc_ui_label（英文默认 + 后台可自定义）。
+        // $info['label'] 的中文仅用于后台编辑器下拉，不输出到前台。
+        $hc_titles = array(
+            'reply'   => 'Comment to View',
+            'logged'  => 'Log in to View',
+            'vip1'    => 'Members Only',
+            'payshow' => 'Purchase to View',
+        );
+        $title = mluc_ui_label(
+            'hc_title_' . $type,
+            isset($hc_titles[$type]) ? $hc_titles[$type] : 'Locked Content'
+        );
         $icon   = esc_html($info['icon']);
 
         $login_url    = function_exists('mluc_get_login_url')
@@ -223,22 +241,24 @@ class MLUC_Hidecontent
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($login_url),
-                    esc_html__('登录', 'moonlight-user-center')
+                    esc_html__('Log In', 'moonlight-user-center')
                 );
-                $tip = esc_html__('登录后即可查看下方内容。', 'moonlight-user-center');
+                $tip = esc_html__('Log in to view the content below.', 'moonlight-user-center');
                 break;
             case 'vip1':
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($account_url . '?tab=membership'),
-                    esc_html__('升级会员', 'moonlight-user-center')
+                    esc_html__('Upgrade Membership', 'moonlight-user-center')
                 );
-                $tip = esc_html__('此内容仅限月费会员以上查看。', 'moonlight-user-center');
+                $tip = esc_html__('This content is for Monthly members and above.', 'moonlight-user-center');
                 break;
             case 'payshow':
-                // 若当前文章本身启用了商城付费墙，跳到该文章触发解锁；否则跳会员购买
+                // 若当前文章启用了付费墙（商城或用户中心 Pro），跳到该文章触发解锁；否则跳会员购买
                 $target = home_url('/account/?tab=membership');
-                if (is_singular() && class_exists('MLSHOP_Pay_Access') && MLSHOP_Pay_Access::is_paywalled((int) get_queried_object_id())) {
+                if (is_singular() && class_exists('MLUC_Paywall') && MLUC_Paywall::is_paywalled((int) get_queried_object_id())) {
+                    $target = get_permalink((int) get_queried_object_id());
+                } elseif (is_singular() && class_exists('MLSHOP_Pay_Access') && MLSHOP_Pay_Access::is_paywalled((int) get_queried_object_id())) {
                     $target = get_permalink((int) get_queried_object_id());
                 } elseif (!is_user_logged_in()) {
                     $target = $login_url;
@@ -246,17 +266,17 @@ class MLUC_Hidecontent
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($target),
-                    esc_html__('立即购买', 'moonlight-user-center')
+                    esc_html__('Buy Now', 'moonlight-user-center')
                 );
-                $tip = esc_html__('购买后即可查看下方内容。', 'moonlight-user-center');
+                $tip = esc_html__('Purchase to view the content below.', 'moonlight-user-center');
                 break;
             case 'reply':
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s#respond">%s</a>',
                     esc_url(is_singular() ? get_permalink() : home_url('/')),
-                    esc_html__('发表评论', 'moonlight-user-center')
+                    esc_html__('Post a Comment', 'moonlight-user-center')
                 );
-                $tip = esc_html__('评论审核通过后即可查看下方内容。', 'moonlight-user-center');
+                $tip = esc_html__('Your comment must be approved before the content is revealed.', 'moonlight-user-center');
                 break;
             default:
                 $action = '';
@@ -276,7 +296,7 @@ class MLUC_Hidecontent
             $type_esc,
             $type_esc,
             $icon,
-            esc_html__(isset($info['label']) ? (string) $info['label'] : '', 'moonlight-user-center'),
+            esc_html($title),
             $tip,
             $action
         );
