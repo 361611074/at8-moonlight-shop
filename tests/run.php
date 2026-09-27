@@ -4,9 +4,15 @@
  * Covers Phase 2 core: price calculator (tier pricing, quote pipeline),
  * order state machine whitelist, migration helpers.
  * 物流第一批：Region Provider、地址簿、运费模板计价、自提报价。
+ * 物流第二批：状态机扩展（待发货/已发货/已签收）、标签单一来源、
+ *             发货单/轨迹、Provider 注册表、cron 同步与自动完成、Express100 解析器。
  */
 
 require __DIR__ . '/wp-stubs.php';
+require __DIR__ . '/../moonlight-shop/includes/functions.php'; // 标签单一来源等（mlshop_get_option 由此提供）
+require __DIR__ . '/../moonlight-shop/includes/core/interface-shipping-provider.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-provider-manual.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-provider-express100.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-price-calculator.php';
 require __DIR__ . '/../moonlight-shop/includes/class-shipping.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-region-provider.php';
@@ -14,6 +20,7 @@ require __DIR__ . '/../moonlight-shop/includes/core/class-address-book.php';
 require __DIR__ . '/../moonlight-shop/includes/class-order.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-migrations.php';
 require __DIR__ . '/../moonlight-shop/includes/core/class-card-stock.php';
+require __DIR__ . '/../moonlight-shop/includes/class-statistics.php';
 
 $pass = 0;
 $fail = 0;
@@ -471,5 +478,262 @@ $batches_before = count(Moonlight_Card_Stock_Test::batches(100));
 Moonlight_Migrations_Test::m4_migrate_cardkeys();
 check('m4 idempotent: no duplicate batches', count(Moonlight_Card_Stock_Test::batches(100)) === $batches_before && Moonlight_Card_Stock_Test::available(100) === 2);
 
+/* ================= 物流第二批：状态机扩展 / 发货单 / Provider / cron ================= */
+
+/** 测试辅助：直接建一条指定状态的订单（含 meta）。 */
+function __test_make_order($status, $meta = array())
+{
+    $id = wp_insert_post(array(
+        'post_type'   => 'mlshop_order',
+        'post_title'  => 'MLS-TEST-' . wp_generate_password(5, false, false),
+        'post_status' => 'mlshop_' . $status,
+        'post_author' => 1,
+    ));
+    update_post_meta($id, '_mlshop_status', $status);
+    update_post_meta($id, '_mlshop_user_id', 1);
+    foreach ($meta as $k => $v) {
+        update_post_meta($id, $k, $v);
+    }
+    return $id;
+}
+
+/** 测试用 Provider：固定返回预设轨迹结果（模拟快递100 各状态 / 失败）。 */
+class __Test_Shipping_Provider implements Moonlight_Shipping_Provider_Interface
+{
+    public static $result = array('status' => 'pending', 'events' => array(), 'ok' => true);
+    public function get_code() { return 'fake'; }
+    public function get_name() { return 'Fake'; }
+    public function is_available() { return true; }
+    public function get_supported_companies() { return array(); }
+    public function create_shipment($shipment) { return array('success' => true, 'tracking_no' => '', 'message' => ''); }
+    public function query_tracking($company_code, $tracking_no) { return self::$result; }
+}
+
+echo "== 物流第二批：状态机扩展 ==\n";
+check('paid -> awaiting_shipment allowed', MLSHOP_Order::can_transition('paid', 'awaiting_shipment'));
+check('awaiting_shipment -> shipped allowed', MLSHOP_Order::can_transition('awaiting_shipment', 'shipped'));
+check('shipped -> delivered allowed', MLSHOP_Order::can_transition('shipped', 'delivered'));
+check('delivered -> completed allowed', MLSHOP_Order::can_transition('delivered', 'completed'));
+check('delivered -> paid forbidden', !MLSHOP_Order::can_transition('delivered', 'paid'));
+check('awaiting_shipment -> completed forbidden', !MLSHOP_Order::can_transition('awaiting_shipment', 'completed'));
+check('awaiting_shipment -> cancelled allowed', MLSHOP_Order::can_transition('awaiting_shipment', 'cancelled'));
+check('shipped -> refunded allowed', MLSHOP_Order::can_transition('shipped', 'refunded'));
+check('delivered -> refunded allowed', MLSHOP_Order::can_transition('delivered', 'refunded'));
+check('paid 全量转换白名单', MLSHOP_Order::get_allowed_transitions('paid') === array('processing', 'awaiting_shipment', 'completed', 'refunded', 'cancelled'));
+
+$chain = __test_make_order('paid');
+check('set_status paid->awaiting_shipment', true === MLSHOP_Order::set_status($chain, 'awaiting_shipment'));
+check('set_status awaiting->shipped', true === MLSHOP_Order::set_status($chain, 'shipped'));
+check('set_status shipped->delivered', true === MLSHOP_Order::set_status($chain, 'delivered'));
+check('delivered 记录 _mlshop_delivered_at', '' !== (string) get_post_meta($chain, '_mlshop_delivered_at', true));
+check('set_status delivered->completed', true === MLSHOP_Order::set_status($chain, 'completed'));
+check('终态 completed', 'completed' === MLSHOP_Order::get_status($chain));
+check('delivered->completed 非法（已走完）', is_wp_error(MLSHOP_Order::set_status($chain, 'delivered')));
+
+echo "== 物流第二批：状态标签单一来源 ==\n";
+$labels = MLSHOP_Order::get_status_labels();
+check('标签表含三个新状态', isset($labels['awaiting_shipment'], $labels['shipped'], $labels['delivered'])
+    && '待发货' === $labels['awaiting_shipment'] && '已发货' === $labels['shipped'] && '已签收' === $labels['delivered']);
+check('get_status_label 单点取值', MLSHOP_Order::get_status_label('awaiting_shipment') === '待发货'
+    && MLSHOP_Order::get_status_label('shipped') === '已发货' && MLSHOP_Order::get_status_label('delivered') === '已签收');
+check('未知状态原样返回', MLSHOP_Order::get_status_label('bogus') === 'bogus');
+check('functions.php 旧标签函数与单一来源一致（全部状态）',
+    mlshop_get_order_status_label('pending') === $labels['pending']
+    && mlshop_get_order_status_label('awaiting_shipment') === $labels['awaiting_shipment']
+    && mlshop_get_order_status_label('delivered') === $labels['delivered']
+    && mlshop_get_order_status_label('cancelled') === $labels['cancelled']);
+check('functions.php 状态枚举与单一来源键一致（admin 筛选下拉同源）',
+    array_keys(mlshop_get_order_statuses()) === array_keys($labels));
+check('统计销售额口径 = 6 个已收款状态（含新三态）', MLSHOP_Order::get_revenue_statuses() === array('paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed'));
+check('销售额口径不含 pending/refunded/failed/cancelled',
+    !in_array('pending', MLSHOP_Order::get_revenue_statuses(), true) && !in_array('refunded', MLSHOP_Order::get_revenue_statuses(), true));
+
+// 统计分布图（render_svg_bar）委托单一来源标签
+$stats_obj = MLSHOP_Statistics::get_instance();
+$rm = new ReflectionMethod('MLSHOP_Statistics', 'render_svg_bar');
+$rm->setAccessible(true);
+$buckets = array_fill_keys(array_keys($labels), 1);
+$svg = $rm->invoke($stats_obj, $buckets);
+check('统计分布图渲染 10 个状态桶（含新三态）', 10 === substr_count($svg, '<rect '));
+check('统计分布图使用单一来源标签（待发货/已发货/已签收）',
+    false !== strpos($svg, '待发货') && false !== strpos($svg, '已发货') && false !== strpos($svg, '已签收'));
+
+// register_post_status 同步注册（后台列表筛选的数据源）
+MLSHOP_Order::register_post_type();
+$statuses_registered = isset($GLOBALS['__test_post_statuses']) ? $GLOBALS['__test_post_statuses'] : array();
+check('register_post_status 注册全部 10 个状态', count($statuses_registered) === 10
+    && isset($statuses_registered['mlshop_awaiting_shipment'], $statuses_registered['mlshop_shipped'], $statuses_registered['mlshop_delivered']));
+check('注册的状态标签来自单一来源', isset($statuses_registered['mlshop_awaiting_shipment']['label']) && '待发货' === $statuses_registered['mlshop_awaiting_shipment']['label']);
+
+echo "== 物流第二批：发货单创建 + 订单 shipped ==\n";
+__test_reset_card_env();
+$ship_order = __test_make_order('awaiting_shipment', array('_mlshop_items' => array(array('id' => 1, 'qty' => 2, 'price' => 10.0))));
+$sid = MLSHOP_Shipping::create_shipment($ship_order, array('company' => '顺丰速运', 'tracking_no' => 'SF100', 'note' => '易碎品轻放'));
+check('创建发货单返回 ID', is_int($sid) && $sid > 0);
+check('订单 awaiting_shipment -> shipped', 'shipped' === MLSHOP_Order::get_status($ship_order)
+    && 'mlshop_shipped' === get_post($ship_order)->post_status);
+$ship_row = MLSHOP_Shipping::read_shipment($sid);
+check('发货单挂到订单（post_parent）+ 标题=运单号', $ship_row['order_id'] === (int) $ship_order && 'SF100' === $ship_row['no'] && 'SF100' === get_post($sid)->post_title);
+check('发货单初始 transit + 公司名/代码（名称反查 SF）', 'transit' === $ship_row['status'] && '顺丰速运' === $ship_row['company'] && 'SF' === $ship_row['company_code']);
+check('发货单快照订单商品', $ship_row['items'] === array(array('id' => 1, 'qty' => 2, 'price' => 10.0)));
+$ship_events_json = json_decode((string) get_post_meta($sid, '_mlship_events', true), true);
+check('发货单轨迹首条（备注 + 交运事件，JSON 存储）', count($ship_row['events']) === 2
+    && '易碎品轻放' === $ship_row['events'][0]['desc']
+    && is_array($ship_events_json) && count($ship_events_json) === 2
+    && false !== strpos((string) $ship_events_json[1]['desc'], '已交运'));
+check('发货单状态标签映射', MLSHOP_Shipping::shipment_status_label('transit') === '运输中'
+    && MLSHOP_Shipping::shipment_status_label('delivered') === '已签收'
+    && MLSHOP_Shipping::shipment_status_label('exception') === '异常');
+
+// 多包裹：已发货订单可再补录一条发货单
+$sid2 = MLSHOP_Shipping::create_shipment($ship_order, array('company_code' => 'ZTO', 'company' => '中通快递', 'tracking_no' => 'ZT200'));
+check('已发货订单可补录第二条发货单（多包裹）', is_int($sid2) && $sid2 > 0 && count(MLSHOP_Shipping::get_shipments($ship_order)) === 2);
+
+echo "== 物流第二批：发货状态预检（非法转换拒绝） ==\n";
+$paid_order = __test_make_order('paid');
+check('paid 单发货被拒（invalid_transition）', is_wp_error(MLSHOP_Shipping::create_shipment($paid_order, array('company' => '顺丰速运', 'tracking_no' => 'X1')))
+    && 'invalid_transition' === MLSHOP_Shipping::create_shipment($paid_order, array('company' => '顺丰速运', 'tracking_no' => 'X1'))->get_error_code());
+check('被拒后不产生发货单', count(MLSHOP_Shipping::get_shipments($paid_order)) === 0);
+$no_no = __test_make_order('awaiting_shipment');
+check('缺运单号被拒', is_wp_error(MLSHOP_Shipping::create_shipment($no_no, array('company' => '顺丰速运'))));
+check('缺运单号不推进订单状态', 'awaiting_shipment' === MLSHOP_Order::get_status($no_no));
+
+echo "== 物流第二批：cron 轨迹同步（delivered 联动） ==\n";
+__test_reset_card_env();
+$syn_order = __test_make_order('awaiting_shipment');
+$sync_sid = MLSHOP_Shipping::create_shipment($syn_order, array('company' => '顺丰速运', 'tracking_no' => 'SF888', 'note' => '两件合包'));
+check('同步前订单为 shipped', 'shipped' === MLSHOP_Order::get_status($syn_order));
+__Test_Shipping_Provider::$result = array(
+    'status'  => 'delivered',
+    'events'  => array(array('time' => 1789000000, 'desc' => '快件已签收'), array('time' => 1788900000, 'desc' => '到达 广州转运中心', 'city' => '广州')),
+    'ok'      => true,
+);
+$processed = MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('同步处理了 1 条 transit 发货单', $processed === 1);
+check('轨迹 delivered → 发货单 delivered', MLSHOP_Shipping::SHIP_DELIVERED === get_post_meta($sync_sid, '_mlship_status', true));
+check('轨迹 delivered → 订单 shipped→delivered', 'delivered' === MLSHOP_Order::get_status($syn_order)
+    && 'mlshop_delivered' === get_post($syn_order)->post_status);
+check('订单记录 _mlshop_delivered_at', '' !== (string) get_post_meta($syn_order, '_mlshop_delivered_at', true));
+$events_after = json_decode((string) get_post_meta($sync_sid, '_mlship_events', true), true);
+check('新事件追加进 _mlship_events（原2条+新2条）', is_array($events_after) && count($events_after) === 4 && '快件已签收' === $events_after[2]['desc'] && '广州' === $events_after[3]['city']);
+// 幂等：同一批事件再次同步不重复追加
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+$events_idem = json_decode((string) get_post_meta($sync_sid, '_mlship_events', true), true);
+check('重复同步事件去重（仍 4 条）', count($events_idem) === 4);
+
+echo "== 物流第二批：cron 轨迹同步（exception 仅标记发货单） ==\n";
+__test_reset_card_env();
+$exc_order = __test_make_order('shipped');
+$exc_sid = MLSHOP_Shipping::create_shipment($exc_order, array('company' => '顺丰速运', 'tracking_no' => 'SF999'));
+__Test_Shipping_Provider::$result = array('status' => 'exception', 'events' => array(array('time' => 1789000000, 'desc' => '派送失败')), 'ok' => true);
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('轨迹 exception → 发货单 exception', 'exception' === get_post_meta($exc_sid, '_mlship_status', true));
+check('轨迹 exception → 订单状态不动（仍 shipped）', 'shipped' === MLSHOP_Order::get_status($exc_order));
+
+echo "== 物流第二批：查询失败计数与 24h 暂停 ==\n";
+__test_reset_card_env();
+$f_order = __test_make_order('shipped');
+$f_sid = MLSHOP_Shipping::create_shipment($f_order, array('company' => '顺丰速运', 'tracking_no' => 'F1'));
+__Test_Shipping_Provider::$result = null; // 模拟断网（query_tracking 抛异常/返回非法）
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('失败 1-2 次仅计数不暂停', (int) get_post_meta($f_sid, '_mlship_fail_count', true) === 2
+    && (int) get_post_meta($f_sid, '_mlship_sync_paused_until', true) === 0);
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('失败 3 次 → 记录 24h 暂停时间并清零计数', (int) get_post_meta($f_sid, '_mlship_sync_paused_until', true) > time()
+    && (int) get_post_meta($f_sid, '_mlship_fail_count', true) === 0);
+__Test_Shipping_Provider::$result = array('status' => 'delivered', 'events' => array(), 'ok' => true);
+$processed_paused = MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('暂停期内该单不再自动查询（processed=0，状态不动）', $processed_paused === 0 && 'transit' === get_post_meta($f_sid, '_mlship_status', true));
+// 成功即重置失败计数
+__test_reset_card_env();
+$r_order = __test_make_order('shipped');
+$r_sid = MLSHOP_Shipping::create_shipment($r_order, array('company' => '顺丰速运', 'tracking_no' => 'R1'));
+__Test_Shipping_Provider::$result = null;
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+__Test_Shipping_Provider::$result = array('status' => 'transit', 'events' => array(array('time' => 1789000000, 'desc' => '运输中')), 'ok' => true);
+MLSHOP_Shipping::run_shipping_sync(true, new __Test_Shipping_Provider());
+check('查询成功重置失败计数', (int) get_post_meta($r_sid, '_mlship_fail_count', true) === 0);
+check('manual Provider 跳过查询（processed=0）', 0 === MLSHOP_Shipping::run_shipping_sync(true, new Moonlight_Shipping_Provider_Manual()));
+
+echo "== 物流第二批：delivered 自动完成（auto_complete） ==\n";
+__test_reset_card_env();
+__test_set_option('auto_complete_days', 7);
+$now_ts = current_time('timestamp');
+$overdue = __test_make_order('delivered', array('_mlshop_delivered_at' => date('Y-m-d H:i:s', $now_ts - 8 * DAY_IN_SECONDS)));
+$fresh   = __test_make_order('delivered', array('_mlshop_delivered_at' => date('Y-m-d H:i:s', $now_ts - 3 * DAY_IN_SECONDS)));
+$nots    = __test_make_order('delivered'); // 无 _mlshop_delivered_at（历史/手工数据）
+$done = MLSHOP_Shipping::auto_complete_orders();
+check('超期 8 天（>7 天）→ completed', $done === 1 && 'completed' === MLSHOP_Order::get_status($overdue));
+check('未超期 3 天 → 保持 delivered', 'delivered' === MLSHOP_Order::get_status($fresh));
+check('无签收时间 → 不自动完成', 'delivered' === MLSHOP_Order::get_status($nots));
+$disabled = __test_make_order('delivered', array('_mlshop_delivered_at' => date('Y-m-d H:i:s', $now_ts - 30 * DAY_IN_SECONDS)));
+__test_set_option('auto_complete_days', 0);
+check('0 天 = 禁用自动完成', 0 === MLSHOP_Shipping::auto_complete_orders() && 'delivered' === MLSHOP_Order::get_status($disabled));
+
+echo "== 物流第二批：Express100 parse_response 解析器 ==\n";
+$ok_body = '{"message":"ok","status":"3","ischeck":"1","data":['
+    . '{"time":"2026-09-26 10:00:00","context":"快件已签收"},'
+    . '{"time":"2026-09-25 09:00:00","context":"快件已到达 广州转运中心","area":"广州"}]}';
+$p = Moonlight_Shipping_Provider_Express100::parse_response($ok_body);
+check('经典结构解析 ok=true', !empty($p['ok']));
+check('status=3 → delivered', 'delivered' === $p['status']);
+check('events 标准化（ftime→ts, context→desc, area→city）', count($p['events']) === 2
+    && '快件已签收' === $p['events'][0]['desc'] && $p['events'][0]['time'] > 0 && '广州' === $p['events'][1]['city']);
+$p2 = Moonlight_Shipping_Provider_Express100::parse_response('{"message":"ok","status":"1","data":[{"time":"2026-09-26 10:00:00","context":"运输中"}]}');
+check('status=1 → transit', 'transit' === $p2['status']);
+$p3 = Moonlight_Shipping_Provider_Express100::parse_response('{"code":"200","data":{"list":[{"ftime":1789000000,"desc":"派送中"}]}}');
+check('新版聚合结构（data.list）兼容', 'transit' === $p3['status'] && 1 === count($p3['events']) && 1789000000 === $p3['events'][0]['time']);
+$p4 = Moonlight_Shipping_Provider_Express100::parse_response('{"message":"ok"}');
+check('查询成功但无轨迹 → pending', 'pending' === $p4['status'] && array() === $p4['events'] && !empty($p4['ok']));
+$p5 = Moonlight_Shipping_Provider_Express100::parse_response('{"message":"参数错误"}');
+check('接口报错 → pending + ok=false', 'pending' === $p5['status'] && empty($p5['ok']));
+$p6 = Moonlight_Shipping_Provider_Express100::parse_response('{"message":"ok","data":[{"time"'); // 截断坏 JSON
+check('坏 JSON → pending + events 空', 'pending' === $p6['status'] && array() === $p6['events'] && false === $p6['ok']);
+$p7 = Moonlight_Shipping_Provider_Express100::parse_response('{"message":"ok","status":"4","data":[{"time":"2026-09-26 10:00:00","context":"派送失败"}]}');
+check('status=4 → exception', 'exception' === $p7['status']);
+__test_reset_card_env();
+check('express100 未配 Key 不可用', !(new Moonlight_Shipping_Provider_Express100())->is_available());
+__test_set_option('shipping_kuaidi100_key', 'k-1');
+check('express100 配置 Key 后可用', (new Moonlight_Shipping_Provider_Express100())->is_available());
+
+echo "== 物流第二批：Provider 注册表 ==\n";
+__test_reset_card_env();
+$providers = MLSHOP_Shipping::providers();
+$codes = array();
+foreach ($providers as $pr) { $codes[] = $pr->get_code(); }
+check('默认注册表 = manual + express100', in_array('manual', $codes, true) && in_array('express100', $codes, true));
+check('active_provider 默认 manual（零依赖基线）', 'manual' === MLSHOP_Shipping::active_provider()->get_code());
+$manual_p = MLSHOP_Shipping::get_provider('manual');
+check('manual 恒可用', $manual_p->is_available() === true);
+check('公司静态表含 9 家常见快递（顺丰/中通/圆通/申通/韵达/极兔/京东/EMS/邮政）', count($manual_p->get_supported_companies()) === 9
+    && 'SF' === $manual_p->get_supported_companies()[0]['code'] && '顺丰速运' === $manual_p->get_supported_companies()[0]['name']);
+check('express100 未配 Key 不可用', !MLSHOP_Shipping::get_provider('express100')->is_available());
+__test_set_option('shipping_kuaidi100_key', 'test-key-1234');
+check('express100 配置 Key 后可用', MLSHOP_Shipping::get_provider('express100')->is_available());
+__test_set_option('shipping_provider', 'express100');
+check('active_provider 跟随设置切换到 express100', 'express100' === MLSHOP_Shipping::active_provider()->get_code());
+__test_set_option('shipping_provider', 'bogus');
+check('所选 Provider 无效时回退 manual', 'manual' === MLSHOP_Shipping::active_provider()->get_code());
+check('manual query_tracking 恒 pending', 'pending' === $manual_p->query_tracking('SF', 'NOPE')['status']
+    && array() === $manual_p->query_tracking('SF', 'NOPE')['events']);
+
+echo "== 物流第二批：实物推进钩子（非自提 → 待发货） ==\n";
+__test_reset_card_env();
+$inst = MLSHOP_Shipping::get_instance();
+$phy = __test_make_order('paid', array('_mlshop_has_physical' => '1'));
+$inst->transition_physical($phy);
+check('实物非自提 paid → awaiting_shipment', 'awaiting_shipment' === MLSHOP_Order::get_status($phy));
+$pickup = __test_make_order('paid', array('_mlshop_has_physical' => '1', '_mlshop_pickup' => '1'));
+$inst->transition_physical($pickup);
+check('自提维持旧逻辑 paid → processing', 'processing' === MLSHOP_Order::get_status($pickup));
+$virtual = __test_make_order('paid', array('_mlshop_has_physical' => '0'));
+$inst->transition_physical($virtual);
+check('非实物订单不动（仍 paid）', 'paid' === MLSHOP_Order::get_status($virtual));
+$wrong = __test_make_order('pending', array('_mlshop_has_physical' => '1'));
+$inst->transition_physical($wrong);
+check('未付款订单不动（仍 pending）', 'pending' === MLSHOP_Order::get_status($wrong));
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
+

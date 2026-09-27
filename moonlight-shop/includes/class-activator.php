@@ -57,6 +57,12 @@ class MLSHOP_Activator
         if (!wp_next_scheduled('mlshop_expire_pending_orders')) {
             wp_schedule_event(time(), 'hourly', 'mlshop_expire_pending_orders');
         }
+
+        // 物流第二批：15 分钟自动物流轨迹查询（mlshop_15min 间隔由 MLSHOP_Shipping 的
+        // cron_schedules 过滤器注册；init 上的 maybe_schedule_sync 亦会自愈补注册）
+        if (!wp_next_scheduled('moonlight_shipping_sync')) {
+            wp_schedule_event(time(), 'mlshop_15min', 'moonlight_shipping_sync');
+        }
     }
 
     /**
@@ -103,6 +109,8 @@ class MLSHOP_Activator
         if ($timestamp) {
             wp_unschedule_event($timestamp, 'mlshop_expire_pending_orders');
         }
+        // 物流第二批：反注册自动物流查询调度
+        wp_clear_scheduled_hook('moonlight_shipping_sync');
         flush_rewrite_rules();
     }
 }

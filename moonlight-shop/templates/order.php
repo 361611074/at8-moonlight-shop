@@ -150,6 +150,48 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
         <p class="mlshop-order-failed-note"><?php esc_html_e('支付失败，请重新下单或更换支付方式。', 'moonlight-shop'); ?></p>
     <?php endif; ?>
 
+    <?php
+    // 物流第二批：发货单（公司 + 运单号 + 状态 + 轨迹时间线）
+    $shipments = class_exists('MLSHOP_Shipping') ? MLSHOP_Shipping::get_shipments($order_id) : array();
+    ?>
+    <?php if (!empty($shipments)) : ?>
+        <div class="mlshop-shipments">
+            <h3><?php esc_html_e('物流信息', 'moonlight-shop'); ?></h3>
+            <?php foreach ($shipments as $ship) : ?>
+                <div class="mlshop-shipment">
+                    <p class="mlshop-shipment-line">
+                        <strong><?php echo esc_html($ship['company'] !== '' ? $ship['company'] : '—'); ?></strong>
+                        <?php esc_html_e('运单号：', 'moonlight-shop'); ?>
+                        <code><?php echo esc_html($ship['no']); ?></code>
+                        <span class="mlshop-order-status status-<?php echo esc_attr($ship['status']); ?>"><?php echo esc_html($ship['status_label']); ?></span>
+                    </p>
+                    <?php if (!empty($ship['events'])) : ?>
+                        <ul class="mlshop-shipment-timeline">
+                            <?php foreach ($ship['events'] as $ev) : ?>
+                                <li>
+                                    <span class="mlshop-shipment-time"><?php echo esc_html(MLSHOP_Shipping::format_event_time(isset($ev['time']) ? $ev['time'] : '')); ?></span>
+                                    <?php echo esc_html(isset($ev['desc']) ? $ev['desc'] : ''); ?>
+                                    <?php if (!empty($ev['city'])) : ?>
+                                        <span class="mlshop-shipment-city">（<?php echo esc_html($ev['city']); ?>）</span>
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ('delivered' === $status && is_user_logged_in()) : ?>
+        <div class="mlshop-confirm-delivery-wrap">
+            <button type="button" class="mlshop-btn mlshop-confirm-delivery" data-order="<?php echo (int) $order_id; ?>">
+                <?php esc_html_e('确认收货', 'moonlight-shop'); ?>
+            </button>
+            <p class="mlshop-confirm-delivery-tip"><?php esc_html_e('收到商品请点击确认收货；超期未确认的订单将按商城设置自动完成。', 'moonlight-shop'); ?></p>
+        </div>
+    <?php endif; ?>
+
     <?php if (is_array($delivery) && $delivery) : ?>
         <div class="mlshop-delivery">
             <h3><?php esc_html_e('交付内容', 'moonlight-shop'); ?></h3>

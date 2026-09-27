@@ -800,4 +800,28 @@
             setRangeBar();
         });
     });
+
+    /**
+     * 物流第二批：用户确认收货（订单详情 delivered 状态按钮）。
+     * 提交 mlshop_confirm_delivery，成功后刷新页面展示「已完成」状态。
+     */
+    $(document).on('click', '.mlshop-confirm-delivery', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        if ($btn.prop('disabled')) {
+            return;
+        }
+        if (!window.confirm(mlshop_i18n.confirm_delivery || '确定已收到商品？确认后订单将完成。')) {
+            return;
+        }
+        $btn.prop('disabled', true);
+        post('mlshop_confirm_delivery', { order_id: $btn.data('order') }, function (res) {
+            if (res && res.success) {
+                location.reload();
+                return;
+            }
+            $btn.prop('disabled', false);
+            window.alert(res && res.message ? res.message : mlshop_i18n.network_error);
+        });
+    });
 })(jQuery);

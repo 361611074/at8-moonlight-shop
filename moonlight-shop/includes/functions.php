@@ -255,27 +255,21 @@ function mlshop_get_credit_rate()
 
 /**
  * 订单状态枚举（slug => 显示名）。
+ *
+ * 物流第二批重构：标签映射单一来源 = MLSHOP_Order::get_status_labels()
+ * （修复审计「标签映射三处重复」技术债；统计页 / 后台通知 / 前台模板均委托同一份）。
  */
 function mlshop_get_order_statuses()
 {
-    return apply_filters('mlshop_order_statuses', array(
-        'pending'    => __('待付款', 'moonlight-shop'),
-        'paid'       => __('已付款', 'moonlight-shop'),
-        'processing' => __('处理中', 'moonlight-shop'),
-        'completed'  => __('已完成', 'moonlight-shop'),
-        'failed'     => __('支付失败', 'moonlight-shop'),
-        'refunded'   => __('已退款', 'moonlight-shop'),
-        'cancelled'  => __('已取消', 'moonlight-shop'),
-    ));
+    return apply_filters('mlshop_order_statuses', MLSHOP_Order::get_status_labels());
 }
 
 /**
- * 订单状态显示名。
+ * 订单状态显示名（委托 MLSHOP_Order::get_status_label，未知状态原样返回）。
  */
 function mlshop_get_order_status_label($status)
 {
-    $statuses = mlshop_get_order_statuses();
-    return isset($statuses[$status]) ? $statuses[$status] : $status;
+    return MLSHOP_Order::get_status_label($status);
 }
 
 /**

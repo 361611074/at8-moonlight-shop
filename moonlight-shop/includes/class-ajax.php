@@ -39,6 +39,8 @@ class MLSHOP_Ajax
         add_action('wp_ajax_mlshop_address_save', array($this, 'address_save'));
         add_action('wp_ajax_mlshop_address_delete', array($this, 'address_delete'));
         add_action('wp_ajax_mlshop_address_list', array($this, 'address_list'));
+        // 物流第二批：用户确认收货（delivered → completed）
+        add_action('wp_ajax_mlshop_confirm_delivery', array($this, 'confirm_delivery'));
     }
 
     public function add_to_cart()
@@ -251,5 +253,41 @@ class MLSHOP_Ajax
         mlshop_send_json(true, '', array(
             'list' => Moonlight_Address_Book::get_list(get_current_user_id()),
         ));
+    }
+
+    /* ===================== 物流第二批：确认收货 ===================== */
+
+    /**
+     * 用户确认收货（登录 + mlshop_nonce）：订单 delivered → completed。
+     *
+     * 校验链：nonce → 登录 → 订单存在 → 属主（管理员 edit_posts 放行）→
+     * 当前状态必须为 delivered（其余状态一律拒绝，走状态机白名单）。
+     */
+    public function confirm_delivery()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!is_user_logged_in()) {
+            mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
+        }
+        if (!class_exists('MLSHOP_Order')) {
+            mlshop_send_json(false, __('订单模块不可用。', 'moonlight-shop'));
+        }
+        $order_id = isset($_POST['order_id']) ? (int) $_POST['order_id'] : 0;
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+            mlshop_send_json(false, __('订单不存在。', 'moonlight-shop'));
+        }
+        // 属主校验：仅订单所有者（或管理员）可确认收货
+        if (!current_user_can('edit_posts')
+            && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
+        }
+        if (MLSHOP_Order::get_status($order_id) !== 'delivered') {
+            mlshop_send_json(false, __('当前订单状态不支持确认收货。', 'moonlight-shop'));
+        }
+        $res = MLSHOP_Order::set_status($order_id, 'completed');
+        if (is_wp_error($res)) {
+            mlshop_send_json(false, $res->get_error_message());
+        }
+        mlshop_send_json(true, __('已确认收货，感谢您的购买！', 'moonlight-shop'));
     }
 }

@@ -104,6 +104,7 @@ class MLSHOP_Assets
             'faved'               => __('已收藏', 'moonlight-shop'),
             'select_gallery'      => __('选择商品相册', 'moonlight-shop'),
             'confirm_album'       => __('确认相册', 'moonlight-shop'),
+            'confirm_delivery'    => __('确定已收到商品？确认后订单将完成。', 'moonlight-shop'),
         ));
     }
 

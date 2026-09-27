@@ -71,6 +71,28 @@ $wpdb->query(
     "DELETE FROM {$wpdb->usermeta} WHERE meta_key = 'moonlight_addresses'"
 );
 
+// 6) 物流第二批：Provider 配置 / 自动查询 / 签收自动完成 option + 发货单 CPT（连带 _mlship_* meta）。
+$shipping_single_keys = array(
+    'shipping_provider', 'shipping_kuaidi100_key', 'shipping_kuaidi100_customer',
+    'shipping_auto_sync', 'auto_complete_days',
+);
+foreach ($shipping_single_keys as $k) {
+    delete_option('mlshop_' . $k);
+}
+delete_option('moonlight_shipping_last_sync');
+$shipment_ids = $wpdb->get_col(
+    $wpdb->prepare(
+        "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s",
+        'mlshop_shipment'
+    )
+);
+foreach ((array) $shipment_ids as $shipment_id) {
+    wp_delete_post((int) $shipment_id, true);
+}
+$wpdb->query(
+    "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '\\_mlshop\\_ship\\_%' OR meta_key LIKE '\\_mlship\\_%'"
+);
+
 // 4) 卡密库存预警防重复 transient（_transient_ 与 _transient_timeout_ 成对删除）。
 $wpdb->query(
     "DELETE FROM {$wpdb->options}

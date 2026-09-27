@@ -138,8 +138,8 @@ class MLSHOP_Order
 
         $user_id      = (int) get_post_meta($post->ID, '_mlshop_user_id', true);
         $user         = $user_id ? get_user_by('id', $user_id) : null;
-        $status_raw   = (string) get_post_meta($post->ID, '_mlshop_status', true); // pending/paid/processing/...
-        $status_label = self::status_label_zh($status_raw);
+        $status_raw   = (string) get_post_meta($post->ID, '_mlshop_status', true); // pending/paid/awaiting_shipment/...
+        $status_label = self::get_status_label($status_raw);
         $currency     = (string) get_post_meta($post->ID, '_mlshop_currency', true);
         $subtotal     = (float)  get_post_meta($post->ID, '_mlshop_subtotal', true);
         $shipping     = (float)  get_post_meta($post->ID, '_mlshop_shipping', true);
@@ -380,6 +380,65 @@ class MLSHOP_Order
         <input type="datetime-local" name="mlshop_tracking_time" value="<?php echo esc_attr(preg_replace('/\s+/', 'T', $time)); ?>" class="widefat">
         <p><strong><?php esc_html_e('备注', 'moonlight-shop'); ?></strong></p>
         <textarea name="mlshop_tracking_remark" rows="3" class="widefat" placeholder="例：已签收 / 客户改地址 / 退回原因 ..."><?php echo esc_textarea($remark); ?></textarea>
+
+        <?php
+        // ===== 物流第二批：发货单区块（可多条）=====
+        $shipments = class_exists('MLSHOP_Shipping') ? MLSHOP_Shipping::get_shipments($post->ID) : array();
+        if (!empty($shipments)) :
+            ?>
+            <p style="margin-top:14px;"><strong><?php esc_html_e('发货单', 'moonlight-shop'); ?>（<?php echo count($shipments); ?>）</strong></p>
+            <table class="widefat striped">
+                <thead>
+                    <tr>
+                        <th><?php esc_html_e('物流公司', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('运单号', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('状态', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('创建时间', 'moonlight-shop'); ?></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php foreach ($shipments as $ship) : ?>
+                    <tr>
+                        <td><?php echo esc_html($ship['company'] ?: '—'); ?></td>
+                        <td><code><?php echo esc_html($ship['no']); ?></code></td>
+                        <td><?php echo esc_html($ship['status_label']); ?></td>
+                        <td><?php echo esc_html($ship['created']); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+
+        <hr style="margin:14px 0 10px;">
+        <p><strong><?php esc_html_e('创建发货单并标记已发货', 'moonlight-shop'); ?></strong></p>
+        <p>
+            <select name="mlship_new_company_code" aria-label="<?php esc_attr_e('物流公司（Provider 支持列表）', 'moonlight-shop'); ?>">
+                <option value=""><?php esc_html_e('— 选择物流公司 —', 'moonlight-shop'); ?></option>
+                <?php
+                $provider  = class_exists('MLSHOP_Shipping') ? MLSHOP_Shipping::active_provider() : null;
+                $companies = $provider ? (array) $provider->get_supported_companies() : array();
+                foreach ($companies as $c) {
+                    if (empty($c['code']) || empty($c['name'])) {
+                        continue;
+                    }
+                    echo '<option value="' . esc_attr($c['code']) . '">' . esc_html($c['name']) . '</option>';
+                }
+                ?>
+            </select>
+        </p>
+        <input type="text" name="mlship_new_company" class="widefat" placeholder="<?php esc_attr_e('或手工输入公司名（非空时优先于下拉）', 'moonlight-shop'); ?>">
+        <p><strong><?php esc_html_e('运单号', 'moonlight-shop'); ?></strong></p>
+        <input type="text" name="mlship_new_no" class="widefat" placeholder="SF1234567890">
+        <p><strong><?php esc_html_e('发货备注', 'moonlight-shop'); ?></strong></p>
+        <input type="text" name="mlship_new_note" class="widefat" placeholder="<?php esc_attr_e('可选，写入轨迹首条', 'moonlight-shop'); ?>">
+        <p style="margin-top:10px;">
+            <button type="submit" name="mlshop_create_shipment" value="1" class="button button-primary">
+                <?php esc_html_e('创建发货单并标记已发货', 'moonlight-shop'); ?>
+            </button>
+        </p>
+        <p class="description">
+            <?php esc_html_e('订单需处于待发货/处理中状态；创建后订单自动转为「已发货」。同一订单可创建多条发货单（多包裹分开发货）。轨迹由自动查询（快递100 Provider）或人工维护。', 'moonlight-shop'); ?>
+        </p>
         <?php
     }
 
@@ -422,23 +481,40 @@ class MLSHOP_Order
         if (isset($_POST['mlshop_tracking_remark'])) {
             update_post_meta($post_id, '_mlshop_tracking_remark', sanitize_textarea_field(wp_unslash($_POST['mlshop_tracking_remark'])));
         }
+
+        // ===== 物流第二批：创建发货单并标记已发货 =====
+        // nonce（mlshop_order_meta）与 manage_options 均已在上方校验通过。
+        if (isset($_POST['mlshop_create_shipment']) && class_exists('MLSHOP_Shipping')) {
+            $company_code = isset($_POST['mlship_new_company_code']) ? sanitize_text_field(wp_unslash($_POST['mlship_new_company_code'])) : '';
+            $company_text = isset($_POST['mlship_new_company']) ? sanitize_text_field(wp_unslash($_POST['mlship_new_company'])) : '';
+            $ship_no      = isset($_POST['mlship_new_no']) ? sanitize_text_field(wp_unslash($_POST['mlship_new_no'])) : '';
+            $ship_note    = isset($_POST['mlship_new_note']) ? sanitize_textarea_field(wp_unslash($_POST['mlship_new_note'])) : '';
+
+            $res = MLSHOP_Shipping::create_shipment($post_id, array(
+                // 手工输入公司名优先：非空时忽略下拉代码，避免「名字与代码不配对」
+                'company_code' => ('' !== $company_text) ? '' : $company_code,
+                'company'      => $company_text,
+                'tracking_no'  => $ship_no,
+                'note'         => $ship_note,
+            ));
+            if (is_wp_error($res)) {
+                // 非法转换 / 参数缺失：后台提示（发货单不会半途创建）
+                set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                    'gateway' => 'SHIP',
+                    'success' => false,
+                    'message' => $res->get_error_message(),
+                ), 60);
+            } else {
+                set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
+                    'gateway' => 'SHIP',
+                    'success' => true,
+                    'message' => sprintf(__('发货单 #%1$d 已创建（运单号 %2$s），订单已标记为已发货。', 'moonlight-shop'), (int) $res, $ship_no),
+                ), 60);
+            }
+        }
     }
 
     /* === meta box 辅助函数 === */
-
-    private static function status_label_zh($raw)
-    {
-        $map = array(
-            'pending'    => __('待付款', 'moonlight-shop'),
-            'paid'       => __('已付款', 'moonlight-shop'),
-            'processing' => __('处理中', 'moonlight-shop'),
-            'completed'  => __('已完成', 'moonlight-shop'),
-            'failed'     => __('支付失败', 'moonlight-shop'),
-            'refunded'   => __('已退款', 'moonlight-shop'),
-            'cancelled'  => __('已取消', 'moonlight-shop'),
-        );
-        return isset($map[$raw]) ? $map[$raw] : $raw;
-    }
 
     private static function type_label_zh($raw)
     {
@@ -564,17 +640,10 @@ class MLSHOP_Order
      */
     public static function register_statuses()
     {
-        $statuses = array(
-            'mlshop_pending'    => __('待付款', 'moonlight-shop'),
-            'mlshop_paid'       => __('已付款', 'moonlight-shop'),
-            'mlshop_processing' => __('处理中', 'moonlight-shop'),
-            'mlshop_completed'  => __('已完成', 'moonlight-shop'),
-            'mlshop_failed'     => __('支付失败', 'moonlight-shop'),
-            'mlshop_refunded'   => __('已退款', 'moonlight-shop'),
-            'mlshop_cancelled'  => __('已取消', 'moonlight-shop'),
-        );
-        foreach ($statuses as $slug => $label) {
-            register_post_status($slug, array(
+        // 标签单一来源（物流第二批重构）：注册列表完全由 get_status_labels() 派生，
+        // 后台列表筛选 / 统计分布 / 前台展示共用同一份映射。
+        foreach (self::get_status_labels() as $key => $label) {
+            register_post_status('mlshop_' . $key, array(
                 'label'                     => $label,
                 'public'                    => false,
                 'internal'                  => true,
@@ -585,6 +654,58 @@ class MLSHOP_Order
                 'label_count'               => _n_noop($label . ' <span class="count">(%s)</span>', $label . ' <span class="count">(%s)</span>'),
             ));
         }
+    }
+
+    /**
+     * 全部订单状态 → 中文标签（单一来源，物流第二批新增三状态）。
+     *
+     * functions.php 的 mlshop_get_order_statuses()、统计页分布图、后台通知
+     * 均委托到这里（修复审计「标签映射三处重复」技术债）。
+     *
+     * @return array slug => label
+     */
+    public static function get_status_labels()
+    {
+        return apply_filters('mlshop_order_status_labels', array(
+            'pending'           => __('待付款', 'moonlight-shop'),
+            'paid'              => __('已付款', 'moonlight-shop'),
+            'processing'        => __('处理中', 'moonlight-shop'),
+            'awaiting_shipment' => __('待发货', 'moonlight-shop'),
+            'shipped'           => __('已发货', 'moonlight-shop'),
+            'delivered'         => __('已签收', 'moonlight-shop'),
+            'completed'         => __('已完成', 'moonlight-shop'),
+            'failed'            => __('支付失败', 'moonlight-shop'),
+            'refunded'          => __('已退款', 'moonlight-shop'),
+            'cancelled'         => __('已取消', 'moonlight-shop'),
+        ));
+    }
+
+    /**
+     * 单个状态 → 中文标签（未知状态原样返回）。
+     *
+     * @param string $status
+     * @return string
+     */
+    public static function get_status_label($status)
+    {
+        $labels = self::get_status_labels();
+        $status = (string) $status;
+        return isset($labels[$status]) ? $labels[$status] : $status;
+    }
+
+    /**
+     * 计入销售额（已收款口径）的状态集合（物流第二批扩容）。
+     *
+     * paid 之后的所有未流失状态（含 awaiting_shipment/shipped/delivered）
+     * 都算已收款；pending / failed / refunded / cancelled 不计。
+     *
+     * @return array
+     */
+    public static function get_revenue_statuses()
+    {
+        return apply_filters('mlshop_revenue_statuses', array(
+            'paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed',
+        ));
     }
 
     /**
@@ -942,7 +1063,7 @@ class MLSHOP_Order
      * 在需要时回滚库存，并触发 mlshop_order_<status> 钩子。
      *
      * @param int    $order_id
-     * @param string $new   目标状态（pending/paid/processing/completed/failed/refunded/cancelled）
+     * @param string $new   目标状态（pending/paid/processing/awaiting_shipment/shipped/delivered/completed/failed/refunded/cancelled）
      * @param array  $extra 附加数据（如 failed 的 message）
      * @return bool|WP_Error
      */
@@ -960,11 +1081,13 @@ class MLSHOP_Order
             );
         }
 
-        // 库存回滚：pending/processing 取消或失败，或已付款后退款
-        if (in_array($new, array('cancelled', 'failed'), true) && in_array($current, array('pending', 'processing'), true)) {
+        // 库存回滚：pending/processing/待发货 取消或失败，或已付款后退款。
+        // awaiting_shipment 取消 = 货未出库，回滚库存；shipped 之后取消属异常件，
+        // 库存不自动回滚（由管理员走 refunded 处理退货入库）。
+        if (in_array($new, array('cancelled', 'failed'), true) && in_array($current, array('pending', 'processing', 'awaiting_shipment'), true)) {
             self::restore_stock($order_id);
         }
-        if ('refunded' === $new && in_array($current, array('paid', 'processing', 'completed'), true)) {
+        if ('refunded' === $new && in_array($current, array('paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed'), true)) {
             self::restore_stock($order_id);
         }
 
@@ -976,6 +1099,11 @@ class MLSHOP_Order
 
         wp_update_post(array('ID' => $order_id, 'post_status' => 'mlshop_' . $new));
         update_post_meta($order_id, '_mlshop_status', $new);
+
+        // 物流第二批：签收时间戳（auto_complete 超期自动完成的判定依据）
+        if ('delivered' === $new) {
+            update_post_meta($order_id, '_mlshop_delivered_at', current_time('mysql'));
+        }
 
         if ('failed' === $new && !empty($extra['message'])) {
             update_post_meta($order_id, '_mlshop_fail_message', sanitize_text_field($extra['message']));
@@ -1004,21 +1132,31 @@ class MLSHOP_Order
     }
 
     /**
-     * 状态转换白名单。
+     * 状态转换白名单（物流第二批扩展：awaiting_shipment / shipped / delivered）。
+     *
+     * 实物链路：paid/processing → awaiting_shipment（待发货）
+     *   → shipped（管理员发货）→ delivered（轨迹推送/用户确认前的已签收态）
+     *   → completed（用户确认收货 或 auto_complete 超期自动完成）。
      */
     public static function get_allowed_transitions($from)
     {
         $map = array(
-            'pending'    => array('paid', 'failed', 'cancelled', 'processing'),
-            'paid'       => array('processing', 'completed', 'refunded', 'cancelled'),
+            'pending'           => array('paid', 'failed', 'cancelled', 'processing'),
+            'paid'              => array('processing', 'awaiting_shipment', 'completed', 'refunded', 'cancelled'),
             // 允许 processing -> paid：订单可能已被管理员/物流流程先置为「处理中」，
             // 此时网关回调( Stripe/PayPal webhook )再 mark_paid 会被拒绝并静默失败，
             // 造成「已收款但不交付/不授予会员」。交付类钩子均有幂等标记，重复触发安全。
-            'processing' => array('paid', 'completed', 'refunded', 'cancelled', 'failed'),
-            'completed'  => array('refunded'),
-            'failed'     => array('pending', 'cancelled'),
-            'refunded'   => array(),
-            'cancelled'  => array(),
+            'processing'        => array('paid', 'completed', 'awaiting_shipment', 'refunded', 'cancelled', 'failed'),
+            // 待发货：管理员发货 / 取消 / 退款（货未出库，取消需回滚库存）
+            'awaiting_shipment' => array('shipped', 'cancelled', 'refunded'),
+            // 已发货：签收（轨迹推送或人工）/ 取消 / 退款
+            'shipped'           => array('delivered', 'cancelled', 'refunded'),
+            // 已签收（待用户确认）：确认收货完成 / 退款
+            'delivered'         => array('completed', 'refunded'),
+            'completed'         => array('refunded'),
+            'failed'            => array('pending', 'cancelled'),
+            'refunded'          => array(),
+            'cancelled'         => array(),
         );
         return isset($map[$from]) ? $map[$from] : array();
     }
@@ -1165,23 +1303,33 @@ class MLSHOP_Order
 
     /**
      * 批量取消所有超时的未支付订单（由 WP-Cron 调用）。
+     *
+     * 物流第二批：同一 hourly 调度里顺带执行——
+     *  1) delivered 订单超期自动完成（auto_complete，option auto_complete_days）；
+     *  2) 发货轨迹自动查询兜底（15 分钟专用调度 moonlight_shipping_sync 是主路径，
+     *     这里做惰性兜底，带 10 分钟节流，页面加载绝不触发）。
      */
     public static function expire_pending_orders()
     {
         $minutes = (int) mlshop_get_option('order_expire_minutes', 30);
-        if ($minutes <= 0) {
-            return;
+        if ($minutes > 0) {
+            $orders = get_posts(array(
+                'post_type'      => 'mlshop_order',
+                'posts_per_page' => 200,
+                'post_status'    => 'mlshop_pending',
+                'fields'         => 'ids',
+                'orderby'        => 'date',
+                'order'          => 'ASC',
+            ));
+            foreach ($orders as $id) {
+                self::maybe_expire($id);
+            }
         }
-        $orders = get_posts(array(
-            'post_type'      => 'mlshop_order',
-            'posts_per_page' => 200,
-            'post_status'    => 'mlshop_pending',
-            'fields'         => 'ids',
-            'orderby'        => 'date',
-            'order'          => 'ASC',
-        ));
-        foreach ($orders as $id) {
-            self::maybe_expire($id);
+
+        // 物流第二批兜底（仅 cron 上下文调用本方法，页面加载不经过这里）
+        if (class_exists('MLSHOP_Shipping')) {
+            MLSHOP_Shipping::auto_complete_orders();
+            MLSHOP_Shipping::run_shipping_sync(false); // false = 带 10 分钟节流的兜底
         }
     }
 
@@ -1190,7 +1338,11 @@ class MLSHOP_Order
         return get_posts(array(
             'post_type'      => 'mlshop_order',
             'posts_per_page' => $limit,
-            'post_status'    => array('mlshop_pending', 'mlshop_paid', 'mlshop_processing', 'mlshop_completed', 'mlshop_failed', 'mlshop_refunded', 'mlshop_cancelled'),
+            'post_status'    => array(
+                'mlshop_pending', 'mlshop_paid', 'mlshop_processing',
+                'mlshop_awaiting_shipment', 'mlshop_shipped', 'mlshop_delivered',
+                'mlshop_completed', 'mlshop_failed', 'mlshop_refunded', 'mlshop_cancelled',
+            ),
             'meta_key'       => '_mlshop_user_id',
             'meta_value'     => $user_id,
             'orderby'        => 'date',

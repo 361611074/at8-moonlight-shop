@@ -11,6 +11,14 @@ if (!defined('ABSPATH')) {
     define('ABSPATH', __DIR__ . '/');
 }
 
+// 插件路径常量（class-shipping.php 显式 require Provider 文件时使用）
+if (!defined('MLSHOP_PLUGIN_DIR')) {
+    define('MLSHOP_PLUGIN_DIR', dirname(__DIR__) . '/moonlight-shop/');
+}
+if (!defined('MLSHOP_VERSION')) {
+    define('MLSHOP_VERSION', 'test');
+}
+
 error_reporting(E_ALL & ~E_DEPRECATED);
 
 if (!defined('HOUR_IN_SECONDS')) {
@@ -44,15 +52,22 @@ function do_action(...$args) {
     $GLOBALS['__test_actions'][(string) $tag][] = $args;
 }
 function get_current_user_id() { return $GLOBALS['__test_user_id'] ?? 0; }
-function current_time($type) { return '2026-09-27 12:00:00'; }
+// 生产语义：current_time('timestamp') 返回本地时间戳（int），'mysql' 返回 Y-m-d H:i:s 串。
+// 物流第二批的 auto_complete / 同步节流都基于该语义做时间比较。
+function current_time($type) {
+    return 'timestamp' === $type ? strtotime('2026-09-27 12:00:00') : '2026-09-27 12:00:00';
+}
 function get_option($key, $default = false) { return $GLOBALS['__test_options'][$key] ?? $default; }
 function update_option($key, $value) { $GLOBALS['__test_options'][$key] = $value; return true; }
 function delete_option($key) { unset($GLOBALS['__test_options'][$key]); return true; }
 function wp_generate_password($len, $special = true, $extra = true) { return substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789ABCDEFGHJKMNPQRSTUVWXYZ'), 0, $len); }
 function add_action(...$args) {}
+function add_filter(...$args) {}
 function wp_count_posts($cpt = null) { $o = new stdClass(); return $o; }
 function post_type_exists($t) { return false; }
 function register_post_type($t, $args = array()) { $GLOBALS['__test_post_types'][$t] = $args; return null; }
+function register_post_status($slug, $args = array()) { $GLOBALS['__test_post_statuses'][(string) $slug] = $args; return true; }
+function _n_noop($singular, $plural, $domain = 'default') { return array($singular, $plural); }
 function get_post_type($id) { $p = get_post($id); return $p ? $p->post_type : ''; }
 function get_the_title($id) { $p = get_post($id); return $p && isset($p->post_title) && '' !== $p->post_title ? $p->post_title : 'Product ' . (int) $id; }
 function wp_json_encode($data, $flags = 0) { return json_encode($data, $flags); }
@@ -73,8 +88,86 @@ function __($text, $domain = 'default') { return $text; }
 function _e($text, $domain = 'default') { echo $text; }
 function esc_html__($text, $domain = 'default') { return htmlspecialchars((string) $text, ENT_QUOTES); }
 function esc_attr__($text, $domain = 'default') { return htmlspecialchars((string) $text, ENT_QUOTES); }
+function esc_html($text) { return htmlspecialchars((string) $text, ENT_QUOTES); }
+function esc_attr($text) { return htmlspecialchars((string) $text, ENT_QUOTES); }
 
 /* ---------------- posts（行模型） ---------------- */
+
+/**
+ * 最小 $wpdb shim：真实 includes/functions.php（run.php 加载）中的
+ * mlshop_cas_post_meta 走 $wpdb->query(prepare(...))，这里把该 CAS UPDATE
+ * 映射到行模型；未识别的 SQL 一律返回 0（只读方法返回空）。
+ */
+class __Test_wpdb
+{
+    public $rows_affected = 0;
+    public $posts = 'wp_posts';
+    public $postmeta = 'wp_postmeta';
+    public $usermeta = 'wp_usermeta';
+    public $options = 'wp_options';
+
+    public function prepare($sql, ...$args)
+    {
+        if (1 === count($args) && is_array($args[0])) {
+            $args = $args[0];
+        }
+        $sql = (string) $sql;
+        // 逐个按占位符在 SQL 中的出现顺序替换（%s/%d/%f 就近匹配）
+        foreach ($args as $a) {
+            $best = false;
+            foreach (array('%s', '%d', '%f') as $ph) {
+                $pos = strpos($sql, $ph);
+                if (false !== $pos && (false === $best || $pos < $best[0])) {
+                    $best = array($pos, $ph);
+                }
+            }
+            if (false === $best) {
+                break;
+            }
+            list($pos, $ph) = $best;
+            if ('%s' === $ph) {
+                $rep = "'" . addslashes((string) $a) . "'";
+            } elseif ('%d' === $ph) {
+                $rep = (string) (int) $a;
+            } else {
+                $rep = (string) (float) $a;
+            }
+            $sql = substr_replace($sql, $rep, $pos, 2);
+        }
+        return $sql;
+    }
+
+    public function query($sql)
+    {
+        $sql = (string) $sql;
+        // CAS UPDATE postmeta（mlshop_cas_post_meta）：值匹配才更新（行模型）
+        if (preg_match("/UPDATE\s+`?\w*postmeta`?\s+SET\s+meta_value\s*=\s*'((?:[^']|\\')*)'\s+WHERE\s+post_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'((?:[^']|\\')*)'\s+AND\s+meta_value\s*=\s*'((?:[^']|\\')*)'\s*$/i", $sql, $m)) {
+            $new  = stripslashes($m[1]);
+            $pid  = (int) $m[2];
+            $key  = stripslashes($m[3]);
+            $old  = stripslashes($m[4]);
+            $this->rows_affected = 0;
+            foreach (array_keys($GLOBALS['__test_meta_rows']) as $i) {
+                $row = $GLOBALS['__test_meta_rows'][$i];
+                if ((int) $row['post_id'] === $pid && $row['meta_key'] === $key && (string) $row['meta_value'] === $old) {
+                    $GLOBALS['__test_meta_rows'][$i]['meta_value'] = $new;
+                    $this->rows_affected++;
+                }
+            }
+            return $this->rows_affected;
+        }
+        $this->rows_affected = 0;
+        return 0;
+    }
+
+    public function get_var($sql = null) { return null; }
+    public function get_results($sql = null, $mode = null) { return array(); }
+    public function get_row($sql = null, $mode = null) { return null; }
+    public function get_col($sql = null) { return array(); }
+    public function insert($table, $data, $format = array()) { return 1; }
+}
+
+$GLOBALS['wpdb'] = new __Test_wpdb();
 
 function wp_insert_post($args, $wp_error = false)
 {
@@ -139,6 +232,10 @@ function get_posts($args = array())
 /* ---------------- postmeta（行模型：同键多行 + meta_id 定位） ----------------
  *
  * 行结构：array('meta_id' => int, 'post_id' => int, 'meta_key' => string, 'meta_value' => mixed)
+ *
+ * 注：mlshop_get_option / mlshop_cas_post_meta 不再在此定义——
+ * run.php 在本文件之后 require 真实 includes/functions.php（同名函数语义与生产一致），
+ * 避免重复声明冲突。
  */
 
 function __test_add_meta_row($post_id, $key, $value)
@@ -227,21 +324,7 @@ function delete_post_meta($id, $key, $value = null)
     return $deleted;
 }
 
-/** 插件自带 CAS 助手（functions.php）的行模型版：值匹配才更新。 */
-function mlshop_cas_post_meta($post_id, $meta_key, $expected, $new_value)
-{
-    $matched = false;
-    foreach (array_keys($GLOBALS['__test_meta_rows']) as $i) {
-        $row = $GLOBALS['__test_meta_rows'][$i];
-        if ((int) $row['post_id'] === (int) $post_id
-            && $row['meta_key'] === (string) $meta_key
-            && (string) $row['meta_value'] === (string) $expected) {
-            $GLOBALS['__test_meta_rows'][$i]['meta_value'] = (string) $new_value;
-            $matched = true;
-        }
-    }
-    return $matched;
-}
+/** 插件自带 CAS 助手：生产实现由 includes/functions.php 提供（run.php 加载），此处不再重复定义。 */
 
 $GLOBALS['__test_options'] = array();
 $GLOBALS['__test_meta_rows'] = array();
@@ -318,20 +401,10 @@ function delete_user_meta($user_id, $meta_key, $meta_value = '')
 }
 
 /**
- * 插件配置读取（镜像生产 includes/functions.php 同名函数语义）：
- * 先读独立 option mlshop_$key，再回退 mlshop_options 数组，最后默认值。
+ * 插件配置读取：生产实现由 includes/functions.php 提供（run.php 加载），此处不再重复定义。
+ *
+ * 测试专用：设置商城配置（mlshop_get_option 能读到的独立 option 形态）。
  */
-function mlshop_get_option($key, $default = '')
-{
-    $val = get_option('mlshop_' . $key, null);
-    if (null !== $val) {
-        return $val;
-    }
-    $options = get_option('mlshop_options', array());
-    return isset($options[$key]) ? $options[$key] : $default;
-}
-
-/** 测试专用：设置商城配置（mlshop_get_option 能读到的独立 option 形态）。 */
 function __test_set_option($key, $value)
 {
     $GLOBALS['__test_options']['mlshop_' . $key] = $value;

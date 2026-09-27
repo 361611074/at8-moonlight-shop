@@ -117,9 +117,10 @@ class MLSHOP_Statistics
         $to_ts   = strtotime($range['to']   . ' 23:59:59');
 
         // WP_Query 拉订单 ID 列表（不在循环里 COUNT，无 LIMIT）
+        $order_post_stati = array_map(function ($k) { return 'mlshop_' . $k; }, array_keys(MLSHOP_Order::get_status_labels()));
         $ids = get_posts(array(
             'post_type'      => 'mlshop_order',
-            'post_status'    => array('mlshop_pending','mlshop_paid','mlshop_processing','mlshop_completed','mlshop_failed','mlshop_refunded','mlshop_cancelled'),
+            'post_status'    => $order_post_stati,
             'posts_per_page' => -1,
             'fields'         => 'ids',
             'date_query'     => array(
@@ -132,15 +133,17 @@ class MLSHOP_Statistics
             'no_found_rows'  => true,
         ));
 
-        // 桶：天/状态/商品
+        // 桶：天/状态/商品（状态桶 = 全部注册状态，键序即分布图展示顺序）
         $daily    = array();
-        $statuses = array_fill_keys(array('pending','paid','processing','completed','failed','refunded','cancelled'), 0);
+        $statuses = array_fill_keys(array_keys(MLSHOP_Order::get_status_labels()), 0);
         $products = array();
         $user_set = array();
 
-        $revenue      = 0.0; // 已付款 + 处理中 + 已完成
+        $revenue      = 0.0; // 已收款状态合计（paid 起，见 get_revenue_statuses）
         $paid_count   = 0;  // 计入销售额的订单数
         $refund_total = 0.0;
+
+        $revenue_statuses = MLSHOP_Order::get_revenue_statuses();
 
         foreach ($ids as $oid) {
             $oid = (int) $oid;
@@ -153,7 +156,8 @@ class MLSHOP_Statistics
 
             $statuses[$st] = (isset($statuses[$st]) ? $statuses[$st] : 0) + 1;
 
-            $in_revenue = in_array($st, array('paid','processing','completed'), true);
+            // 物流第二批：销售额口径扩为全部已收款状态（paid/processing/待发货/已发货/已签收/完成）
+            $in_revenue = in_array($st, $revenue_statuses, true);
             if ($in_revenue) {
                 $revenue += $total;
                 $paid_count++;
@@ -306,7 +310,7 @@ class MLSHOP_Statistics
             <div class="mlshop-stat-cards">
                 <?php
                 $cards = array(
-                    array('label' => __('总销售额', 'moonlight-shop'),   'value' => mlshop_format_price($stats['revenue']),       'sub' => sprintf(__('（已付款 + 处理中 + 完成）', 'moonlight-shop'))),
+                    array('label' => __('总销售额', 'moonlight-shop'),   'value' => mlshop_format_price($stats['revenue']),       'sub' => sprintf(__('（全部已收款状态：已付款→完成）', 'moonlight-shop'))),
                     array('label' => __('订单总数', 'moonlight-shop'),   'value' => number_format_i18n($stats['order_count']),    'sub' => sprintf(__('（含未付款/已取消）', 'moonlight-shop'))),
                     array('label' => __('已付款订单', 'moonlight-shop'), 'value' => number_format_i18n($stats['paid_count']),     'sub' => sprintf(__('客户数 %d', 'moonlight-shop'), $stats['user_count'])),
                     array('label' => __('客单价', 'moonlight-shop'),     'value' => mlshop_format_price($stats['aov']),           'sub' => sprintf(__('（AOV = 销售额 / 已付款订单）', 'moonlight-shop'))),
@@ -456,27 +460,31 @@ class MLSHOP_Statistics
 
     /**
      * 渲染柱状 SVG（订单状态分布）。
+     *
+     * 物流第二批：标签委托 MLSHOP_Order::get_status_label（单一来源），
+     * 并为 awaiting_shipment / shipped / delivered 补充配色。
      */
     private function render_svg_bar($statuses)
     {
-        $labels = array(
-            'pending'    => __('待付款', 'moonlight-shop'),
-            'paid'       => __('已付款', 'moonlight-shop'),
-            'processing' => __('处理中', 'moonlight-shop'),
-            'completed'  => __('已完成', 'moonlight-shop'),
-            'failed'     => __('失败', 'moonlight-shop'),
-            'refunded'   => __('已退款', 'moonlight-shop'),
-            'cancelled'  => __('已取消', 'moonlight-shop'),
-        );
+        $labels = array();
         $colors = array(
-            'pending'    => '#94a3b8',
-            'paid'       => '#10b981',
-            'processing' => '#0ea5e9',
-            'completed'  => '#4f46e5',
-            'failed'     => '#f97316',
-            'refunded'   => '#eab308',
-            'cancelled'  => '#ef4444',
+            'pending'           => '#94a3b8',
+            'paid'              => '#10b981',
+            'processing'        => '#0ea5e9',
+            'awaiting_shipment' => '#f59e0b',
+            'shipped'           => '#8b5cf6',
+            'delivered'         => '#14b8a6',
+            'completed'         => '#4f46e5',
+            'failed'            => '#f97316',
+            'refunded'          => '#eab308',
+            'cancelled'         => '#ef4444',
         );
+        foreach (array_keys((array) $statuses) as $k) {
+            $labels[$k] = MLSHOP_Order::get_status_label($k);
+            if (!isset($colors[$k])) {
+                $colors[$k] = '#94a3b8'; // 未知状态兜底灰
+            }
+        }
         $max = max(1, max($statuses));
         $w   = 460;
         $h   = 220;

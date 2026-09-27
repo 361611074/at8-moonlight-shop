@@ -137,6 +137,12 @@ class MLSHOP_Admin
             'shipping_flat_rate'      => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
             'shipping_carrier'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'pickup_enabled'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            // 物流第二批：Shipping Provider + 自动轨迹查询 + 签收自动完成
+            'shipping_provider'       => array('type' => 'string',  'sanitize' => 'sanitize_key'),
+            'shipping_kuaidi100_key'  => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'shipping_kuaidi100_customer' => array('type' => 'string', 'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'shipping_auto_sync'      => array('type' => 'integer', 'sanitize' => 'absint'),
+            'auto_complete_days'      => array('type' => 'integer', 'sanitize' => 'absint'),
             'slug_single'             => array('type' => 'string',  'sanitize' => 'sanitize_title'),
             'slug_archive'            => array('type' => 'string',  'sanitize' => 'sanitize_title'),
             'slug_category'           => array('type' => 'string',  'sanitize' => 'sanitize_title'),
@@ -776,6 +782,50 @@ class MLSHOP_Admin
                                 <?php esc_html_e('按商品計費的運費模板，每行一條：模板名|模式|首件|續件|免郵門檻。模式 fixed = 固定運費（小計未達門檻收「首件」列金額）；piece = 按件計費（首件 + (件數-1) × 續件）。門檻 > 0 且商品小計達標時該商品免運費。留空 = 未配置，全部商品走上方全局固定運費 + 滿額包郵。', 'moonlight-shop'); ?>
                                 <br><?php esc_html_e('示例：順豐標準|fixed|50|0|400 ／ 促銷品|piece|10|5|0。配置後在商品編輯頁「運費模板」下拉為每個實物商品選擇模板；未選擇的商品仍按全局規則計費。', 'moonlight-shop'); ?>
                             </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_shipping_provider"><?php esc_html_e('物流 Provider', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $cur_provider = (string) mlshop_get_option('shipping_provider', 'manual'); ?>
+                            <select id="mlshop_shipping_provider" name="mlshop_shipping_provider">
+                                <?php if (class_exists('MLSHOP_Shipping')) : ?>
+                                    <?php foreach (MLSHOP_Shipping::providers() as $p) :
+                                        if (!is_object($p) || !method_exists($p, 'get_code')) { continue; } ?>
+                                        <option value="<?php echo esc_attr($p->get_code()); ?>" <?php selected($cur_provider, $p->get_code()); ?>><?php echo esc_html($p->get_name()); ?></option>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </select>
+                            <p class="description"><?php esc_html_e('手工發貨 = 零依賴（默認，無軌跡查詢）；快遞100 = 聚合軌跡查詢（需配置下方 Key）。選中的 Provider 不可用時自動回退手工發貨。查詢失敗絕不影響訂單狀態。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('快递100 授权 Key', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="password" name="mlshop_shipping_kuaidi100_key" value="" class="regular-text" autocomplete="new-password">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('shipping_kuaidi100_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('快递100 Customer 编号', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="password" name="mlshop_shipping_kuaidi100_customer" value="" class="regular-text" autocomplete="new-password">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。官方接口参数结构变化时，可用过滤器 moonlight_shipping_express100_request 校正请求。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('shipping_kuaidi100_customer', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('自动轨迹查询', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_shipping_auto_sync" value="0">
+                            <label><input type="checkbox" name="mlshop_shipping_auto_sync" value="1" <?php checked((int) mlshop_get_option('shipping_auto_sync', 1), 1); ?>> <?php esc_html_e('每 15 分钟自动查询运输中发货单的物流轨迹（需服务器 WP-Cron；签收后订单自动转为「已签收」）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('同一发货单连续查询失败 3 次会自动暂停 24 小时，避免无效请求。手工发货 Provider 无轨迹能力，此开关仅对查询型 Provider 生效。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_auto_complete_days"><?php esc_html_e('签收后自动完成（天）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" min="0" step="1" id="mlshop_auto_complete_days" name="mlshop_auto_complete_days" value="<?php echo esc_attr(mlshop_get_option('auto_complete_days', 7)); ?>" class="small-text">
+                            <p class="description"><?php esc_html_e('订单「已签收」超过该天数且用户未确认收货时，自动转为「已完成」。0 = 不自动完成（仅用户手动确认）。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                 </table>
