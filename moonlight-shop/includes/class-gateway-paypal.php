@@ -123,11 +123,17 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
             );
         }
 
-        $return_url = add_query_arg(array(
+        $return_args = array(
             'mlshop_order' => $order_id,
             'gateway'      => 'paypal',
             'action'       => 'capture',
-        ), home_url('/'));
+        );
+        // 游客订单回跳携带访问令牌（回跳授权校验用）； PayPal 自身的单号仍用 token 参数名
+        $gt = (string) get_post_meta($order_id, '_mlshop_guest_token', true);
+        if ('' !== $gt) {
+            $return_args['mlshop_gt'] = $gt;
+        }
+        $return_url = add_query_arg($return_args, home_url('/'));
         $cancel_url = $this->order_url($order_id);
 
         // 金額拆分：商品小計 − 優惠 + 運費 = 訂單總額（與後台記錄一致）

@@ -322,10 +322,16 @@ class MLSHOP_Gateway_Alipay extends MLSHOP_Gateway
      */
     private static function return_url($order_id)
     {
-        return add_query_arg(array(
+        $args = array(
             'mlshop_order' => (int) $order_id,
             'gateway'      => 'alipay',
-        ), home_url('/'));
+        );
+        // 游客订单回跳携带访问令牌（回跳授权校验用；验签前会被 mlshop 前缀剔除，不影响签名）
+        $gt = (string) get_post_meta($order_id, '_mlshop_guest_token', true);
+        if ('' !== $gt) {
+            $args['mlshop_gt'] = $gt;
+        }
+        return add_query_arg($args, home_url('/'));
     }
 
     /* ---------------- 服务端查询 ---------------- */

@@ -96,6 +96,7 @@ class MLSHOP_Assets
             'select_recharge_pkg' => __('请选择充值套餐', 'moonlight-shop'),
             'address_required'     => __('请填写收件人、聯絡電話、省市與收件地址', 'moonlight-shop'),
             'pickup_required'      => __('请填写提货人姓名与手机号', 'moonlight-shop'),
+            'guest_email_required' => __('请填写有效的电子邮箱，订单确认与虚拟商品将发送到该邮箱。', 'moonlight-shop'),
             'pickup_free'          => __('到店自提（免運費）', 'moonlight-shop'),
             'pickup_note'          => __('到店自提免運費，請憑提貨人手機號到店領取。', 'moonlight-shop'),
             'addr_update'          => __('更新地址', 'moonlight-shop'),

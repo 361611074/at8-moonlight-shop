@@ -666,3 +666,76 @@ function mlshop_render_region_selects($name_prefix, $sel_province = '', $sel_cit
     </select>
     <?php
 }
+
+/**
+ * 游客购买是否开启（设置 → 基本設定「允許未註冊訪客購買」，默认开启）。
+ *
+ * @return bool
+ */
+function mlshop_guest_checkout_enabled()
+{
+    return (bool) mlshop_get_option('guest_checkout_enabled', 1);
+}
+
+/**
+ * 判断订单是否为游客订单（未注册用户下单，user_id = 0 且带访客令牌）。
+ *
+ * @param int $order_id
+ * @return bool
+ */
+function mlshop_is_guest_order($order_id)
+{
+    return 0 === (int) get_post_meta($order_id, '_mlshop_user_id', true)
+        && (string) get_post_meta($order_id, '_mlshop_guest_token', true) !== '';
+}
+
+/**
+ * 游客订单访问令牌校验（hash_equals 防时序攻击）。
+ *
+ * @param int    $order_id
+ * @param string $token
+ * @return bool
+ */
+function mlshop_verify_guest_token($order_id, $token)
+{
+    $stored = (string) get_post_meta($order_id, '_mlshop_guest_token', true);
+    return '' !== $stored && '' !== (string) $token && hash_equals($stored, (string) $token);
+}
+
+/**
+ * 构建订单查看 URL：游客订单自动附带访问令牌，
+ * 登录用户订单返回普通 URL（归属由登录态校验）。
+ *
+ * @param int $order_id
+ * @return string
+ */
+function mlshop_order_view_url($order_id)
+{
+    $url = mlshop_get_page_url('checkout') . '?order=' . (int) $order_id;
+    if (mlshop_is_guest_order($order_id)) {
+        $token = (string) get_post_meta($order_id, '_mlshop_guest_token', true);
+        if ('' !== $token) {
+            $url .= '&token=' . rawurlencode($token);
+        }
+    }
+    return $url;
+}
+
+/**
+ * 注册推荐链接（付款完成后向游客推荐注册成为网站用户）。
+ *
+ * 优先使用会员中心注册页；未启用会员中心时回退 WordPress 原生注册页。
+ * 附带 email 预填参数（注册表单如支持则自动回填，不支持则忽略）。
+ *
+ * @param string $email 游客下单邮箱（可选）
+ * @return string
+ */
+function mlshop_guest_register_url($email = '')
+{
+    $url = function_exists('mluc_get_register_url') ? mluc_get_register_url() : wp_registration_url();
+    $email = is_email($email);
+    if ($email) {
+        $url = add_query_arg(array('mlshop_email' => rawurlencode($email)), $url);
+    }
+    return $url;
+}

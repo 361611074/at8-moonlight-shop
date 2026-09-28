@@ -299,6 +299,19 @@
                 payload.coupon_code = code;
             }
 
+            // 游客购买：带上联系邮箱（服务端强制校验）
+            var $guestEmail = $('.mlshop-guest-email');
+            if ($guestEmail.length) {
+                var guestEmail = $.trim($guestEmail.val());
+                if (!guestEmail || guestEmail.indexOf('@') < 1) {
+                    $btn.prop('disabled', false);
+                    $msg.removeClass('mlshop-ok mlshop-error').addClass('mlshop-error')
+                        .text(mlshop_i18n.guest_email_required || '请填写有效的电子邮箱。').show();
+                    return;
+                }
+                payload.guest_email = guestEmail;
+            }
+
             // 實物訂單：收集並校驗收件資料（服務端仍會完整強制校驗）
             var $mode = $('input[name="mlshop_shipping_mode"]:checked');
             if ($('.mlshop-shipping-box').length) {
@@ -342,6 +355,9 @@
                 $msg.removeClass('mlshop-ok mlshop-error').addClass(res.success ? 'mlshop-ok' : 'mlshop-error').text(res.message).show();
                 if (res.success && res.data && res.data.redirect) {
                     setTimeout(function () { window.location.href = res.data.redirect; }, 800);
+                } else if (res.success && res.data && res.data.order_url) {
+                    // 无跳转网关（COD / 线下）：引导到订单页查看状态与交付内容（游客订单带访问令牌）
+                    setTimeout(function () { window.location.href = res.data.order_url; }, 800);
                 }
             });
         });

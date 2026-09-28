@@ -4,7 +4,7 @@ Contributors: 漫步白月光
 Tags: shop, ecommerce, cart, checkout, digital, download, cardkey, elementor, astra
 Requires at least: 5.8
 Tested up to: 6.6
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -53,6 +53,12 @@ Author URI: https://www.at8.fun/
 官网：https://www.at8.fun/
 
 == Changelog ==
+
+= 2.1.0 =
+* 新增游客购买：未注册访客填写邮箱即可下单，订单确认与虚拟商品发送到该邮箱
+* 游客订单安全：48 位访问令牌（hash_equals 时序安全），订单页/下载/网关回跳均凭令牌放行；余额支付与优惠码对游客禁用；IP 限流防灌单
+* 付款完成后推荐注册：订单页与订单邮件内嵌注册引导（邮箱预填、会员中心注册页优先）
+* 新增 Phase 12 性能审计（docs/PERFORMANCE_AUDIT.md，附可复现基准脚本）与 Phase 13 兼容性报告（docs/COMPATIBILITY.md，PHP 8.1–8.4 全量语法验证）
 
 = 2.0.0 =
 * 全面安全审计修复：支付密钥脱敏保存、地址簿服务端校验、支付回跳归属与 token 防伪校验、优惠券名额防泄漏（原子预留/释放）等

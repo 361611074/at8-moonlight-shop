@@ -64,6 +64,17 @@ $wpdb->query(
 // 3) 审计日志 option（含解密查看记录，一并清除）。
 delete_option('_mlshop_card_audit');
 
+// 3.5) 游客购买：游客令牌 / 联系邮箱 / 限流计数 transient（成对删除）。
+$wpdb->query(
+    "DELETE FROM {$wpdb->postmeta}
+     WHERE meta_key IN ('_mlshop_guest_email', '_mlshop_guest_token', '_mlshop_guest_created')"
+);
+$wpdb->query(
+    "DELETE FROM {$wpdb->options}
+     WHERE option_name LIKE '\_transient\_mlshop\_guest\_ord\_%'
+        OR option_name LIKE '\_transient\_timeout\_mlshop\_guest\_ord\_%'"
+);
+
 // 5) 物流第一批：运费模板 option + 到店自提开关 + 用户地址簿 usermeta。
 delete_option('moonlight_shipping_templates');
 delete_option('mlshop_pickup_enabled');

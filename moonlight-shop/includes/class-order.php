@@ -200,6 +200,13 @@ class MLSHOP_Order
                             <?php echo esc_html($user->display_name); ?>
                         </a>
                         <span style="color:#6b7280;">（<?php echo esc_html($user->user_email); ?> / #<?php echo (int) $user->ID; ?>）</span>
+                    <?php elseif (mlshop_is_guest_order($post->ID)) : ?>
+                        <span class="mlshop-pill mlshop-pill-pending"><?php esc_html_e('访客订单', 'moonlight-shop'); ?></span>
+                        <?php $g_email = (string) get_post_meta($post->ID, '_mlshop_guest_email', true); ?>
+                        <?php if ($g_email) : ?>
+                            <span style="margin-left:6px;"><?php echo esc_html($g_email); ?></span>
+                        <?php endif; ?>
+                        <span style="color:#6b7280;">（<?php esc_html_e('未注册用户下单，确认邮件已发往上述邮箱', 'moonlight-shop'); ?>）</span>
                     <?php else : ?>
                         <span style="color:#9ca3af;"><?php esc_html_e('（未关联用户，可能为访客下单或用户已删除）', 'moonlight-shop'); ?></span>
                     <?php endif; ?>

@@ -74,10 +74,11 @@ function wp_json_encode($data, $flags = 0) { return json_encode($data, $flags); 
 function wp_salt($scheme = 'auth') { return 'mlshop-test-salt-fixed-string'; }
 function current_user_can($cap, ...$args) { return !empty($GLOBALS['__test_user_can']); }
 function wp_cache_delete(...$args) { return true; }
-function get_userdata($user_id) { return null; } // 售后邮件「用户行」测试环境无用户表，回退 #id
+function get_userdata($user_id) { return $GLOBALS['__test_users'][(int) $user_id] ?? null; } // 售后邮件「用户行」测试环境无用户表，回退 #id（游客购买用例可注入 __test_users）
 function get_bloginfo($show = '') { return 'Test Blog'; }
 function wp_mail($to, $subject, $body, $headers = array(), $attachments = array()) {
     $GLOBALS['__test_mails'][] = array('to' => $to, 'subject' => $subject, 'body' => $body);
+    $GLOBALS['__test_wp_mail'][] = array('to' => $to, 'subject' => $subject, 'body' => $body);
     return true;
 }
 function set_transient($key, $value, $ttl = 0) { $GLOBALS['__test_transients'][$key] = array($value, $ttl); return true; }
@@ -459,6 +460,10 @@ class MLUC_Membership
     {
         return self::$levels[(int) $user_id] ?? 'free';
     }
+    public static function get_levels()
+    {
+        return array('gold' => array('label' => 'Gold'), 'diamond' => array('label' => 'Diamond'));
+    }
     public static function user_can_access($required, $user_id) { return true; }
     public static function get_level_label($level) { return $level; }
 }
@@ -527,4 +532,60 @@ class MLSHOP_Coupon
     }
     public static function reserve($cid) { return self::$coupons[$cid]['reservable'] ?? true; }
     public static function release($code) { return true; }
+}
+
+/* ---------- 游客购买（guest checkout）测试补充 ---------- */
+if (!function_exists('is_email')) {
+function is_email($email) { return (bool) preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', (string) $email) ? $email : false; }
+}
+if (!function_exists('sanitize_email')) {
+function sanitize_email($email) { $e = trim((string) $email); return preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $e) ? $e : ''; }
+}
+if (!function_exists('wp_unslash')) {
+function wp_unslash($v) { return is_array($v) ? array_map('wp_unslash', $v) : stripslashes((string) $v); }
+}
+if (!function_exists('home_url')) {
+function home_url($path = '') { return 'http://example.test' . $path; }
+}
+if (!function_exists('wp_registration_url')) {
+function wp_registration_url() { return 'http://example.test/wp-login.php?action=register'; }
+}
+if (!function_exists('wp_login_url')) {
+function wp_login_url($redirect = '') { return 'http://example.test/wp-login.php'; }
+}
+if (!function_exists('is_user_logged_in')) {
+function is_user_logged_in() { return 0 !== get_current_user_id(); }
+}
+if (!function_exists('wp_specialchars_decode')) {
+function wp_specialchars_decode($s, $q = ENT_QUOTES) { return htmlspecialchars_decode((string) $s, $q); }
+}
+if (!function_exists('mysql2date')) {
+function mysql2date($format, $mysql) { return $mysql; }
+}
+if (!function_exists('esc_url')) {
+function esc_url($url) { return (string) $url; }
+}
+if (!function_exists('add_query_arg')) {
+function add_query_arg($args, $url = '') {
+    if (is_string($args)) { return $url; }
+    $parts = array();
+    foreach ($args as $k => $v) {
+        $parts[] = rawurlencode((string) $k) . '=' . (string) $v; // 值不二次编码（WP 语义）
+    }
+    $sep = (false === strpos($url, '?')) ? '?' : '&';
+    return $url . $sep . implode('&', $parts);
+}
+}
+if (!function_exists('wp_safe_redirect')) {
+function wp_safe_redirect($url) { $GLOBALS['__test_redirects'][] = $url; return true; }
+}
+if (!function_exists('date_i18n')) {
+function date_i18n($format, $ts = null) { return date($format, $ts ?: time()); }
+}
+
+if (!function_exists('remove_filter')) {
+function remove_filter($tag, $cb, $pri = 10) { return true; }
+}
+if (!function_exists('wp_html_split')) {
+function wp_html_split($s) { return array((string) $s); }
 }

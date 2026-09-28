@@ -17,9 +17,24 @@ if (!defined('ABSPATH')) {
 $default_gateway = mlshop_get_option('default_gateway', 'cod');
 $pickup_enabled  = !empty($pickup_enabled);
 $addresses       = isset($addresses) && is_array($addresses) ? $addresses : array();
+$is_guest        = !empty($is_guest);
 ?>
 <div class="mlshop-checkout">
     <h2 class="mlshop-title"><?php esc_html_e('订单确认', 'moonlight-shop'); ?></h2>
+
+    <?php if ($is_guest) : ?>
+        <div class="mlshop-guest-box">
+            <p class="mlshop-guest-hint">
+                <?php esc_html_e('您正在以访客身份购买，无需注册。请填写电子邮箱：订单确认、虚拟商品下载链接与卡密将发送到该邮箱。', 'moonlight-shop'); ?>
+            </p>
+            <div class="mlshop-field">
+                <label for="mlshop_guest_email"><?php esc_html_e('电子邮箱', 'moonlight-shop'); ?> <span class="required">*</span></label>
+                <input type="email" id="mlshop_guest_email" name="guest_email" class="mlshop-guest-email" autocomplete="email" required>
+            </div>
+            <p class="description"><?php esc_html_e('付款完成后，我们会在此页面推荐您注册成为网站用户，以便保存订单与再次下载。', 'moonlight-shop'); ?></p>
+        </div>
+    <?php endif; ?>
+
     <table class="mlshop-checkout-items">
         <tbody>
             <?php foreach ($items as $item) : ?>
@@ -133,6 +148,7 @@ $addresses       = isset($addresses) && is_array($addresses) ? $addresses : arra
         </div>
     <?php endif; ?>
 
+    <?php if (!$is_guest) : ?>
     <div class="mlshop-coupon-box">
         <label for="mlshop-coupon-input"><?php esc_html_e('优惠码', 'moonlight-shop'); ?></label>
         <div class="mlshop-coupon-row">
@@ -141,6 +157,7 @@ $addresses       = isset($addresses) && is_array($addresses) ? $addresses : arra
         </div>
         <p class="mlshop-coupon-msg" role="alert"></p>
     </div>
+    <?php endif; ?>
 
     <h3><?php esc_html_e('选择支付方式', 'moonlight-shop'); ?></h3>
     <form class="mlshop-checkout-form" data-action="place_order">

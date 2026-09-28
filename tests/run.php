@@ -33,6 +33,15 @@ require __DIR__ . '/../moonlight-shop-pro/includes/class-license-client.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-webhooks.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-order-export.php';
 
+/**
+ * 邮件发送测试封装：强制重发并捕获 wp_mail 结果（游客购买用例使用）。
+ */
+function mlshop_email_test_send($order_id)
+{
+    delete_post_meta($order_id, '_mlshop_email_sent');
+    MLSHOP_Email::get_instance()->send_order_paid_email($order_id, '', true);
+}
+
 $pass = 0;
 $fail = 0;
 function check($name, $cond)
@@ -1103,6 +1112,60 @@ check('日期合法（格式 + 回读一致）', MLPRO_Order_Export::parse_date(
 check('日期非法格式回退默认', MLPRO_Order_Export::parse_date('09/27/2026', '2026-01-01') === '2026-01-01');
 check('不存在日期（2月30日）回退默认', MLPRO_Order_Export::parse_date('2026-02-30', '2026-01-01') === '2026-01-01');
 check('日期为空回退默认', MLPRO_Order_Export::parse_date('', '2026-01-01') === '2026-01-01');
+
+
+echo "== Guest checkout 游客购买（邮箱下单 / 访问令牌 / 注册推荐） ==\n";
+require __DIR__ . '/../moonlight-shop/includes/class-email.php';
+
+// 基础订单：登录用户订单（有 user_id，无游客令牌）
+$u_order = wp_insert_post(array('post_title' => 'MLS-T-G0', 'post_type' => 'mlshop_order', 'post_status' => 'publish'));
+update_post_meta($u_order, '_mlshop_user_id', 7);
+check('登录用户订单不判为游客订单', !mlshop_is_guest_order($u_order));
+
+// 游客订单：user_id=0 + 访客令牌 + 联系邮箱
+$g_token = wp_generate_password(48, false, false);
+$g_order = wp_insert_post(array('post_title' => 'MLS-T-G1', 'post_type' => 'mlshop_order', 'post_status' => 'publish'));
+update_post_meta($g_order, '_mlshop_user_id', 0);
+update_post_meta($g_order, '_mlshop_guest_token', $g_token);
+update_post_meta($g_order, '_mlshop_guest_email', 'guest@example.com');
+update_post_meta($g_order, '_mlshop_status', 'paid');
+update_post_meta($g_order, '_mlshop_total', 100);
+update_post_meta($g_order, '_mlshop_items', array(array('title' => 'T', 'qty' => 1, 'subtotal' => 100)));
+check('游客订单判定（user_id=0 且带令牌）', mlshop_is_guest_order($g_order));
+check('有效访客令牌通过（hash_equals）', mlshop_verify_guest_token($g_order, $g_token));
+check('错误访客令牌拒绝', !mlshop_verify_guest_token($g_order, 'wrong-token'));
+check('空访客令牌拒绝', !mlshop_verify_guest_token($g_order, ''));
+check('登录用户订单拒绝任意令牌', !mlshop_verify_guest_token($u_order, $g_token));
+
+// 订单查看 URL：游客订单自动附带令牌，登录用户订单不带
+$g_url = mlshop_order_view_url($g_order);
+check('游客订单 URL 含访问令牌', false !== strpos($g_url, rawurlencode($g_token)));
+check('登录用户订单 URL 不含令牌参数', false === strpos(mlshop_order_view_url($u_order), 'token='));
+
+// 注册推荐链接：会员中心缺失时回退 WordPress 原生注册页，且可预填邮箱
+$reg = mlshop_guest_register_url('guest@example.com');
+check('注册链接默认回退 wp_registration_url', false !== strpos($reg, 'action=register'));
+check('注册链接预填下单邮箱', false !== strpos($reg, 'guest%40example.com') || false !== strpos($reg, 'guest@example.com'));
+check('无效邮箱不附加预填参数', false === strpos(mlshop_guest_register_url('not-an-email'), 'mlshop_email'));
+
+// 订单邮件：游客订单发往下单邮箱，并内嵌注册推荐
+$GLOBALS['__test_wp_mail'] = array();
+$GLOBALS['__test_set_user'] = 0; // get_current_user_id 由桩控制
+mlshop_email_test_send($g_order);
+$sent = $GLOBALS['__test_wp_mail'];
+check('游客订单邮件发往下单邮箱', !empty($sent) && 'guest@example.com' === $sent[0]['to']);
+check('游客订单邮件内嵌注册推荐', !empty($sent) && false !== strpos($sent[0]['body'], 'action=register'));
+check('游客订单邮件含订单查看链接', !empty($sent) && false !== strpos($sent[0]['body'], rawurlencode($g_token)));
+
+// 登录用户订单：不附带注册推荐（注入测试用户供邮件取件）
+$GLOBALS['__test_wp_mail'] = array();
+$GLOBALS['__test_users'][7] = (object) array('ID' => 7, 'user_email' => 'user7@example.com', 'display_name' => 'User7');
+update_post_meta($u_order, '_mlshop_status', 'paid');
+update_post_meta($u_order, '_mlshop_total', 50);
+update_post_meta($u_order, '_mlshop_items', array(array('title' => 'T', 'qty' => 1, 'subtotal' => 50)));
+mlshop_email_test_send($u_order);
+$sent2 = $GLOBALS['__test_wp_mail'];
+check('登录用户订单邮件不含注册推荐', !empty($sent2) && false === strpos($sent2[0]['body'], 'action=register'));
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

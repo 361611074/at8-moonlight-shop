@@ -50,10 +50,22 @@ class MLSHOP_Email
         }
         $user_id = (int) get_post_meta($order_id, '_mlshop_user_id', true);
         $user    = get_userdata($user_id);
-        if (!$user || empty($user->user_email)) {
+        // 游客订单：发往下单时填写的联系邮箱
+        $guest_email = '';
+        if (!$user && mlshop_is_guest_order($order_id)) {
+            $guest_email = (string) get_post_meta($order_id, '_mlshop_guest_email', true);
+        }
+        if ((!$user || empty($user->user_email)) && !($guest_email && is_email($guest_email))) {
             return;
         }
-        $to = ($override_email && is_email($override_email)) ? $override_email : $user->user_email;
+        if ($override_email && is_email($override_email)) {
+            $to = $override_email;
+        } elseif ($user && !empty($user->user_email)) {
+            $to = $user->user_email;
+        } else {
+            $to = $guest_email;
+        }
+        $display_name = ($user && !empty($user->display_name)) ? $user->display_name : $guest_email;
 
         // 后台「订单/下载确认邮件」总开关（默认开启）
         if (!mlshop_get_option('order_email_enabled', 1)) {
@@ -231,9 +243,9 @@ class MLSHOP_Email
         $body = $this->wrap_html(
             $site_name,
             sprintf(
-                /* translators: %s: 用户名 */
+                /* translators: %s: 用户名或游客邮箱 */
                 esc_html__('%s 您好，感謝您的訂購！', 'moonlight-shop'),
-                esc_html($user->display_name)
+                esc_html($display_name)
             ) . '<p style="color:#6b7280;font-size:14px;margin:0 0 14px;">' . ($is_paid
                 ? esc_html__('您的訂單已付款完成，相關教材下載連結如下。請妥善保存。', 'moonlight-shop')
                 : esc_html__('您的訂單已提交，我們將盡快為您處理；貨到付款訂單將於驗貨後安排寄送。', 'moonlight-shop')) . '</p>'
@@ -252,6 +264,7 @@ class MLSHOP_Email
             . $delivery_html
             . $physical_html
             . $mb_html
+            . $this->guest_register_html($order_id)
             . '<p style="color:#6b7280;font-size:12px;margin-top:24px;">' . esc_html__('本郵件由系統自動發送，請勿直接回覆。', 'moonlight-shop') . '</p>'
         );
 
@@ -267,6 +280,34 @@ class MLSHOP_Email
         if ($sent_ok) {
             update_post_meta($order_id, '_mlshop_email_sent', current_time('mysql'));
         }
+    }
+
+    /**
+     * 游客订单：付款完成后在邮件中推荐注册成为网站用户。
+     *
+     * @param int $order_id
+     * @return string HTML（非游客订单返回空串）
+     */
+    private function guest_register_html($order_id)
+    {
+        if (!mlshop_is_guest_order($order_id)) {
+            return '';
+        }
+        $guest_email = (string) get_post_meta($order_id, '_mlshop_guest_email', true);
+        if (!is_email($guest_email)) {
+            return '';
+        }
+        $register_url = mlshop_guest_register_url($guest_email);
+        $order_url    = mlshop_order_view_url($order_id);
+        return '<div style="border:1px solid #e4e9f0;border-radius:8px;padding:16px 18px;margin:18px 0 4px;background:#f9fafb;">'
+            . '<h3 style="font-size:15px;margin:0 0 8px;">' . esc_html__('推荐您注册成为网站用户', 'moonlight-shop') . '</h3>'
+            . '<p style="margin:6px 0;color:#4b5563;font-size:14px;">' . esc_html__('注册后可长期保存订单、随时重新下载虚拟商品、使用优惠码与积分，并享受更快的售后处理。', 'moonlight-shop') . '</p>'
+            . '<p style="margin:10px 0 0;">'
+            . '<a href="' . esc_url($register_url) . '" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 22px;border-radius:6px;font-size:14px;">' . esc_html__('立即注册', 'moonlight-shop') . '</a>'
+            . '&nbsp;&nbsp;<a href="' . esc_url($order_url) . '" style="color:#2563eb;text-decoration:underline;font-size:14px;">' . esc_html__('查看本次订单', 'moonlight-shop') . '</a>'
+            . '</p>'
+            . '<p style="margin:10px 0 0;color:#6b7280;font-size:12px;">' . esc_html(sprintf(__('注册时填写下单邮箱 %s，方便站长为您关联本次订单。', 'moonlight-shop'), $guest_email)) . '</p>'
+            . '</div>';
     }
 
     private function type_label($type)

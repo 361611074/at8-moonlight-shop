@@ -27,6 +27,12 @@ $shipping     = (float) get_post_meta($order_id, '_mlshop_shipping', true);
 $has_physical = (bool) get_post_meta($order_id, '_mlshop_has_physical', true);
 $shipping_address = (array) get_post_meta($order_id, '_mlshop_shipping_address', true);
 
+// 游客订单：下单邮箱 + 付款后推荐注册
+$is_guest_order = mlshop_is_guest_order($order_id);
+$guest_email    = $is_guest_order ? (string) get_post_meta($order_id, '_mlshop_guest_email', true) : '';
+$paid_statuses  = MLSHOP_Order::get_revenue_statuses();
+$show_register_cta = $is_guest_order && $guest_email && in_array($status, $paid_statuses, true);
+
 $back_url = isset($back_url) ? $back_url : mlshop_get_orders_url();
 $created_display = $created ? mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $created) : '';
 
@@ -41,7 +47,9 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
 }
 ?>
 <div class="mlshop-order">
-    <a class="mlshop-btn mlshop-order-back" href="<?php echo esc_url($back_url); ?>"><?php esc_html_e('返回订单列表', 'moonlight-shop'); ?></a>
+    <?php if (!$is_guest_order) : ?>
+        <a class="mlshop-btn mlshop-order-back" href="<?php echo esc_url($back_url); ?>"><?php esc_html_e('返回订单列表', 'moonlight-shop'); ?></a>
+    <?php endif; ?>
 
     <h2 class="mlshop-title">
         <?php echo esc_html(get_the_title($order_id)); ?>
@@ -51,6 +59,9 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
     <ul class="mlshop-order-meta">
         <li><span><?php esc_html_e('下单时间', 'moonlight-shop'); ?></span><?php echo esc_html($created_display); ?></li>
         <li><span><?php esc_html_e('支付方式', 'moonlight-shop'); ?></span><?php echo esc_html(mlshop_get_gateway_title($gateway_id)); ?></li>
+        <?php if ($guest_email) : ?>
+            <li><span><?php esc_html_e('联系邮箱', 'moonlight-shop'); ?></span><?php echo esc_html($guest_email); ?></li>
+        <?php endif; ?>
         <?php if ($txn_id) : ?>
             <li><span><?php esc_html_e('交易号', 'moonlight-shop'); ?></span><code><?php echo esc_html($txn_id); ?></code></li>
         <?php endif; ?>
@@ -247,6 +258,26 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
                     </p>
                 <?php endif; ?>
             <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if ($show_register_cta) : ?>
+        <div class="mlshop-register-cta">
+            <h3><?php esc_html_e('付款成功！推荐您注册成为网站用户', 'moonlight-shop'); ?></h3>
+            <p><?php esc_html_e('注册后可长期保存订单、随时重新下载虚拟商品、使用优惠码与积分，并享受更快的售后处理。', 'moonlight-shop'); ?></p>
+            <p>
+                <a class="mlshop-btn" href="<?php echo esc_url(mlshop_guest_register_url($guest_email)); ?>"><?php esc_html_e('立即注册', 'moonlight-shop'); ?></a>
+                <?php
+                $login_url = function_exists('mluc_get_account_url') ? mluc_get_account_url() : wp_login_url(mlshop_get_page_url('checkout'));
+                ?>
+                <a class="mlshop-btn mlshop-btn-ghost" href="<?php echo esc_url($login_url); ?>"><?php esc_html_e('已有账号？登录', 'moonlight-shop'); ?></a>
+            </p>
+            <p class="description">
+                <?php
+                /* translators: %s = 游客下单邮箱 */
+                printf(esc_html__('注册时填写下单邮箱 %s，方便站长为您关联本次订单。', 'moonlight-shop'), '<strong>' . esc_html($guest_email) . '</strong>');
+                ?>
+            </p>
         </div>
     <?php endif; ?>
 </div>

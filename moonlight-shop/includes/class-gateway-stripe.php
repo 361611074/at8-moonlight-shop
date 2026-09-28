@@ -131,11 +131,17 @@ class MLSHOP_Gateway_Stripe extends MLSHOP_Gateway
             );
         }
 
-        $return_url = add_query_arg(array(
+        $return_args = array(
             'mlshop_order' => $order_id,
             'gateway'      => 'stripe',
             'session_id'   => '{CHECKOUT_SESSION_ID}',
-        ), home_url('/'));
+        );
+        // 游客订单回跳携带访问令牌（回跳授权校验用）
+        $gt = (string) get_post_meta($order_id, '_mlshop_guest_token', true);
+        if ('' !== $gt) {
+            $return_args['mlshop_gt'] = $gt;
+        }
+        $return_url = add_query_arg($return_args, home_url('/'));
 
         $params = array(
             'mode'                => 'payment',

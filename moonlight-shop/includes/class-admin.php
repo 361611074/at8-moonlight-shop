@@ -111,6 +111,8 @@ class MLSHOP_Admin
         $keys = array(
             'currency'                => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'currency_symbol'         => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'guest_checkout_enabled'  => array('type' => 'integer', 'sanitize' => 'absint'),
+            'guest_order_rate_limit'  => array('type' => 'integer', 'sanitize' => 'absint'),
             'store_email'             => array('type' => 'string',  'sanitize' => 'sanitize_email'),
             'stripe_test_mode'        => array('type' => 'integer', 'sanitize' => 'absint'),
             'stripe_test_publishable' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
@@ -411,6 +413,21 @@ class MLSHOP_Admin
                         <th><label for="mlshop_store_email"><?php esc_html_e('商店聯絡電郵', 'moonlight-shop'); ?></label></th>
                         <td>
                             <input type="email" id="mlshop_store_email" name="mlshop_store_email" value="<?php echo esc_attr(mlshop_get_option('store_email', get_option('admin_email'))); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_guest_checkout_enabled"><?php esc_html_e('允許訪客購買', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="hidden" name="mlshop_guest_checkout_enabled" value="0">
+                            <label><input type="checkbox" id="mlshop_guest_checkout_enabled" name="mlshop_guest_checkout_enabled" value="1" <?php checked((int) mlshop_get_option('guest_checkout_enabled', 1), 1); ?>> <?php esc_html_e('未註冊訪客填寫電子郵箱即可下單', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('訪客需填寫有效郵箱接收訂單確認與虛擬商品；付款完成後將在訂單頁與郵件中推薦其註冊成為網站用戶。關閉後結算頁僅對已登錄用戶開放。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_guest_order_rate_limit"><?php esc_html_e('訪客下單限流', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="number" id="mlshop_guest_order_rate_limit" name="mlshop_guest_order_rate_limit" min="0" max="999" class="small-text" value="<?php echo esc_attr((string) (int) mlshop_get_option('guest_order_rate_limit', 10)); ?>">
+                            <p class="description"><?php esc_html_e('同一 IP 每小時最多下單次數，0 表示不限流（防灌單濫用）。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                 </table>

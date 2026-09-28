@@ -24,6 +24,7 @@ abstract class MLSHOP_Gateway
 
     protected function order_url($order_id)
     {
-        return mlshop_get_page_url('checkout') . '?order=' . $order_id;
+        // 游客订单自动附带访问令牌（mlshop_order_view_url），登录用户订单不带令牌
+        return mlshop_order_view_url($order_id);
     }
 }

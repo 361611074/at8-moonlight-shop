@@ -109,7 +109,9 @@ class MLSHOP_Payment
     {
         // 缓存兼容：结算 / 订单详情为用户态内容，禁止页面缓存（计划书第五十九节）
         mlshop_no_cache();
-        if (!is_user_logged_in()) {
+
+        $guest_allowed = !is_user_logged_in() && mlshop_guest_checkout_enabled();
+        if (!is_user_logged_in() && !$guest_allowed) {
             $login = function_exists('mluc_get_account_url') ? mluc_get_account_url() : wp_login_url(mlshop_get_page_url('checkout'));
             return '<p class="mlshop-message">' .
                 sprintf(esc_html__('请先 %s 后再结算。', 'moonlight-shop'), '<a href="' . esc_url($login) . '">' . esc_html__('登录', 'moonlight-shop') . '</a>') .
@@ -118,10 +120,9 @@ class MLSHOP_Payment
 
         $order_id = isset($_GET['order']) ? (int) $_GET['order'] : 0;
         if ($order_id && get_post_type($order_id) === 'mlshop_order') {
-            // 归属校验：仅订单所有者（或管理员）可查看订单详情，
-            // 防止登录用户枚举 order ID 泄露他人卡密 / 下载链接 / 收货地址。
-            if (!current_user_can('manage_options')
-                && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            // 归属校验：订单所有者 / 管理员 / 游客订单令牌持有者可查看，
+            // 防止枚举 order ID 泄露他人卡密 / 下载链接 / 收货地址。
+            if (!$this->can_view_order($order_id)) {
                 return '<p class="mlshop-message">' . esc_html__('无权查看该订单。', 'moonlight-shop') . '</p>';
             }
             MLSHOP_Order::maybe_expire($order_id);
@@ -156,6 +157,7 @@ class MLSHOP_Payment
                 ? Moonlight_Address_Book::get_list(get_current_user_id())
                 : array(),
             'pickup_enabled' => MLSHOP_Shipping::pickup_enabled(),
+            'is_guest'    => !is_user_logged_in(),
         ));
         return ob_get_clean();
     }
@@ -163,10 +165,25 @@ class MLSHOP_Payment
     public function ajax_place_order()
     {
         check_ajax_referer('mlshop_nonce', 'nonce');
-        if (!is_user_logged_in()) {
+
+        // 游客购买：未注册用户凭邮箱即可下单（可在设置中关闭）。
+        $is_guest = !is_user_logged_in();
+        if ($is_guest && !mlshop_guest_checkout_enabled()) {
             mlshop_send_json(false, __('请先登录。', 'moonlight-shop'));
         }
         $uid = get_current_user_id();
+
+        $guest_email = '';
+        if ($is_guest) {
+            // 防滥用：按 IP 限流（默认每小时 10 单，可过滤覆盖）
+            if (!$this->guest_rate_limit_ok()) {
+                mlshop_send_json(false, __('操作过于频繁，请稍后再试。', 'moonlight-shop'));
+            }
+            $guest_email = isset($_POST['guest_email']) ? sanitize_email(wp_unslash($_POST['guest_email'])) : '';
+            if (!$guest_email || !is_email($guest_email)) {
+                mlshop_send_json(false, __('请填写有效的电子邮箱，订单确认与虚拟商品将发送到该邮箱。', 'moonlight-shop'));
+            }
+        }
 
         $gateway_id = isset($_POST['gateway']) ? sanitize_key($_POST['gateway']) : '';
         $gateway = $this->get_gateway($gateway_id);
@@ -177,8 +194,16 @@ class MLSHOP_Payment
         if (!in_array($gateway_id, $enabled_ids, true)) {
             mlshop_send_json(false, __('该支付方式暂未开放。', 'moonlight-shop'));
         }
+        // 余额支付依赖用户钱包，游客不可用
+        if ($is_guest && 'balance' === $gateway_id) {
+            mlshop_send_json(false, __('余额支付需登录后使用。', 'moonlight-shop'));
+        }
 
         $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';
+        // 优惠码按用户口径核销与限用，游客下单暂不支持
+        if ($is_guest && '' !== $coupon_code) {
+            mlshop_send_json(false, __('优惠码需登录后使用。', 'moonlight-shop'));
+        }
 
         // 配送方式：快递配送 / 到店自提（自提开关未开启时忽略客户端值）。
         // 是否含实物以服务端购物车条目判定，绝不信任前端。
@@ -216,9 +241,10 @@ class MLSHOP_Payment
                 $province = isset($_POST['shipping_province']) ? sanitize_text_field($_POST['shipping_province']) : '';
                 $city     = isset($_POST['shipping_city']) ? sanitize_text_field($_POST['shipping_city']) : '';
 
-                // 地址簿覆盖：选了地址簿 id 时，同名表单字段一律以地址簿数据为准（防篡改）
+                // 地址簿覆盖：选了地址簿 id 时，同名表单字段一律以地址簿数据为准（防篡改）。
+                // 游客无地址簿，忽略该字段。
                 $address_id = isset($_POST['address_id']) ? sanitize_text_field($_POST['address_id']) : '';
-                if ('' !== $address_id && class_exists('Moonlight_Address_Book')) {
+                if ('' !== $address_id && $uid > 0 && class_exists('Moonlight_Address_Book')) {
                     $saved = Moonlight_Address_Book::get($uid, $address_id);
                     if (!$saved) {
                         mlshop_send_json(false, __('所选地址不存在，请重新选择。', 'moonlight-shop'));
@@ -281,12 +307,78 @@ class MLSHOP_Payment
             mlshop_send_json(false, is_wp_error($order_id) ? $order_id->get_error_message() : __('下单失败。', 'moonlight-shop'));
         }
 
+        // 游客订单：写入联系邮箱 + 访问令牌（订单页 / 下载 / 邮件链接均凭令牌），并计入限流
+        if ($is_guest) {
+            $token = wp_generate_password(48, false, false);
+            update_post_meta($order_id, '_mlshop_guest_email', $guest_email);
+            update_post_meta($order_id, '_mlshop_guest_token', $token);
+            update_post_meta($order_id, '_mlshop_guest_created', current_time('mysql'));
+            $this->guest_rate_limit_count();
+        }
+
         $result = $gateway->process_payment($order_id);
 
         if (!empty($result['redirect'])) {
             $result['data'] = array('redirect' => $result['redirect']);
+        } else {
+            // 无跳转网关（COD / 线下等）：游客直接引导到带令牌的订单页查看结果与交付内容
+            $result['data'] = array('order_url' => mlshop_order_view_url($order_id));
         }
         mlshop_send_json($result['success'], $result['message'], isset($result['data']) ? $result['data'] : array());
+    }
+
+    /**
+     * 游客下单 IP 限流检查（滑动窗口：默认每小时 10 单）。
+     *
+     * @return bool
+     */
+    private function guest_rate_limit_ok()
+    {
+        $max = (int) apply_filters('mlshop_guest_order_rate_limit', (int) mlshop_get_option('guest_order_rate_limit', 10));
+        if ($max <= 0) {
+            return true; // 0 = 不限流
+        }
+        $count = (int) get_transient($this->guest_rate_limit_key());
+        return $count < $max;
+    }
+
+    /**
+     * 游客下单成功后累加限流计数（窗口 1 小时）。
+     */
+    private function guest_rate_limit_count()
+    {
+        $key = $this->guest_rate_limit_key();
+        $count = (int) get_transient($key);
+        set_transient($key, $count + 1, HOUR_IN_SECONDS);
+    }
+
+    private function guest_rate_limit_key()
+    {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? (string) $_SERVER['REMOTE_ADDR'] : '';
+        return 'mlshop_guest_ord_' . md5($ip);
+    }
+
+    /**
+     * 订单详情查看授权：管理员 / 订单所有者 / 游客订单令牌持有者。
+     *
+     * 游客订单（user_id = 0）不依赖登录态，凭 URL 中的访问令牌（时序安全比较）放行；
+     * 登录用户订单维持「所有者或管理员」口径。
+     *
+     * @param int $order_id
+     * @return bool
+     */
+    private function can_view_order($order_id)
+    {
+        if (current_user_can('manage_options')) {
+            return true;
+        }
+        $owner = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        if ($owner > 0) {
+            return $owner === get_current_user_id();
+        }
+        // 游客订单：必须携带有效令牌（无令牌一律拒绝，含登录用户）
+        $token = isset($_GET['token']) ? wp_unslash($_GET['token']) : '';
+        return mlshop_verify_guest_token($order_id, $token);
     }
 
     /**
@@ -316,9 +408,8 @@ class MLSHOP_Payment
             if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
                 return;
             }
-            // 归属校验：仅订单所有者（或管理员）可触发 capture 回跳
-            if (!current_user_can('manage_options')
-                && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            // 归属校验：订单所有者 / 管理员 / 游客订单（凭访问令牌）可触发 capture 回跳
+            if (!$this->can_confirm_return($order_id)) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
             }
@@ -353,9 +444,8 @@ class MLSHOP_Payment
             if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
                 return;
             }
-            // 归属校验：仅订单所有者（或管理员）可触发回跳确认
-            if (!current_user_can('manage_options')
-                && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            // 归属校验：订单所有者 / 管理员 / 游客订单（凭访问令牌）可触发回跳确认
+            if (!$this->can_confirm_return($order_id)) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
             }
@@ -376,9 +466,8 @@ class MLSHOP_Payment
             if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
                 return;
             }
-            // 归属校验：仅订单所有者（或管理员）可触发回跳确认（对齐 PayPal / Stripe 分支）
-            if (!current_user_can('manage_options')
-                && (int) get_post_meta($order_id, '_mlshop_user_id', true) !== get_current_user_id()) {
+            // 归属校验：订单所有者 / 管理员 / 游客订单（凭访问令牌）可触发回跳确认（对齐 PayPal / Stripe 分支）
+            if (!$this->can_confirm_return($order_id)) {
                 wp_safe_redirect($this->order_url($order_id));
                 exit;
             }
@@ -389,6 +478,25 @@ class MLSHOP_Payment
             wp_safe_redirect($this->order_url($order_id));
             exit;
         }
+    }
+
+    /**
+     * 支付回跳授权：管理员 / 订单所有者 / 游客订单（URL 需带有效访问令牌）。
+     *
+     * @param int $order_id
+     * @return bool
+     */
+    private function can_confirm_return($order_id)
+    {
+        if (current_user_can('manage_options')) {
+            return true;
+        }
+        $owner = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        if ($owner > 0) {
+            return $owner === get_current_user_id();
+        }
+        $token = isset($_GET['mlshop_gt']) ? wp_unslash($_GET['mlshop_gt']) : '';
+        return mlshop_verify_guest_token($order_id, $token);
     }
 
     /**
@@ -455,6 +563,6 @@ class MLSHOP_Payment
 
     private function order_url($order_id)
     {
-        return mlshop_get_page_url('checkout') . '?order=' . $order_id;
+        return mlshop_order_view_url($order_id);
     }
 }
