@@ -23,6 +23,24 @@ define('MLSHOP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLSHOP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLSHOP_PLUGIN_FILE', __FILE__);
 
+/**
+ * 会员中心并入（Phase A）：旧「漫步白月光用户中心」插件激活时由其文件头定义
+ * MLUC_LEGACY_ACTIVE，并入模块整体让位；未激活时由商城侧补齐 MLUC_* 兼容常量，
+ * 使并入的 MLUC_ 类（includes/user/）在仅装商城时同样可用。
+ */
+if (!defined('MLUC_VERSION')) {
+    define('MLUC_VERSION', MLSHOP_VERSION);
+}
+if (!defined('MLUC_PLUGIN_DIR')) {
+    define('MLUC_PLUGIN_DIR', MLSHOP_PLUGIN_DIR);
+}
+if (!defined('MLUC_PLUGIN_URL')) {
+    define('MLUC_PLUGIN_URL', MLSHOP_PLUGIN_URL);
+}
+if (!defined('MLUC_PLUGIN_FILE')) {
+    define('MLUC_PLUGIN_FILE', MLSHOP_PLUGIN_FILE);
+}
+
 spl_autoload_register(function ($class) {
     $prefix = 'MLSHOP_';
     if (strpos($class, $prefix) !== 0) {
@@ -49,6 +67,20 @@ spl_autoload_register(function ($class) {
     }
 });
 
+// 会员中心并入模块（Phase A）：MLUC_ 前缀 → includes/user/class-*.php。
+// 旧插件激活时其自带自动加载器与本映射指向等价实现（先注册者先命中，单实例加载，无冲突）。
+spl_autoload_register(function ($class) {
+    $prefix = 'MLUC_';
+    if (strpos($class, $prefix) !== 0) {
+        return;
+    }
+    $relative = substr($class, strlen($prefix));
+    $file     = MLSHOP_PLUGIN_DIR . 'includes/user/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
+
 require_once MLSHOP_PLUGIN_DIR . 'includes/functions.php';
 
 // 加载翻译：跟随 WordPress 系统语言设定（get_locale），不写死语言。
@@ -59,12 +91,73 @@ add_action('init', function () {
         return;
     }
     load_plugin_textdomain('moonlight-shop', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    // 并入的用户模块沿用原 text domain（moonlight-user-center），复用随包分发的 .po/.mo；
+    // 旧插件激活时由旧插件自行注册，不重复加载。
+    if (!defined('MLUC_LEGACY_ACTIVE')) {
+        load_plugin_textdomain('moonlight-user-center', false, dirname(plugin_basename(__FILE__)) . '/languages');
+    }
 });
 
 register_activation_hook(__FILE__, array('MLSHOP_Activator', 'activate'));
 register_deactivation_hook(__FILE__, array('MLSHOP_Activator', 'deactivate'));
 
+/**
+ * 并入的用户模块是否应当由商城侧启动。
+ *
+ * 旧「漫步白月光用户中心」插件激活时（其文件头定义 MLUC_LEGACY_ACTIVE）
+ * 或 MLUC_Auth 已被旧插件加载时，商城侧全部让位，两插件共存行为与现状一致。
+ *
+ * @return bool
+ */
+function mlshop_user_modules_should_boot()
+{
+    if (defined('MLUC_LEGACY_ACTIVE')) {
+        return false;
+    }
+    if (class_exists('MLUC_Auth', false)) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * 启动并入的用户模块单例（Phase A，无行为变更并入）。
+ *
+ * 说明：
+ * - MLUC_Payments / MLUC_Purchases / MLUC_Paywall / MLUC_Account_Orders / PayPal·Stripe·Alipay
+ *   网关类不随 Phase A 并入（Phase C/D 处理），此处不实例化；
+ * - MLUC_Payment_Manager 保留（注册表无内置网关可注册，过滤器仍对第三方开放）；
+ * - 页面创建（原 MLUC_Activator）Phase B 再并入。
+ */
+function mlshop_boot_user_modules()
+{
+    if (!mlshop_user_modules_should_boot()) {
+        return;
+    }
+    MLUC_Auth::get_instance();
+    MLUC_Account::get_instance();
+    MLUC_Avatar::get_instance();
+    MLUC_Assets::get_instance();
+    MLUC_Membership::get_instance();
+    MLUC_Video::get_instance();
+    MLUC_Material::get_instance();
+    MLUC_Settings::get_instance();
+    MLUC_OAuth::get_instance();
+    MLUC_Hidecontent::get_instance();
+    MLUC_Editor_Button::get_instance();
+    MLUC_Menu::get_instance();
+    MLUC_License_Manager::get_instance();
+    MLUC_License_Admin::get_instance();
+    MLUC_Email_Notifications::get_instance();
+    MLUC_System_Status::get_instance();
+    MLUC_Payment_Manager::get_instance();
+    do_action('mluc_loaded');
+}
+
 add_action('plugins_loaded', function () {
+    // 会员中心并入模块（Phase A）：旧插件激活时整体让位（见 mlshop_boot_user_modules）
+    mlshop_boot_user_modules();
+
     // 新架构核心层（DB_VERSION 升级机制等）
     Moonlight_DB_Migrator::init();
 

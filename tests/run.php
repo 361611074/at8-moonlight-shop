@@ -2071,6 +2071,80 @@ check('account 返回会员/积分/订单计数/地址数', 200 === $res_acc->ge
 ));
 check('积分余额与订单计数正确', abs($__acc['credit_balance'] - 88.5) < 0.001 && $__acc['order_total'] >= 1);
 
+/* ==========================================================================
+ * Phase A：会员中心并入（moonlight-shop/includes/user，MERGE-USER-CENTER.md）
+ *
+ * - 清单断言在本进程直接执行；
+ * - 真实 MLUC 类用例在子进程 tests/run-user.php 中运行：wp-stubs.php 的测试版
+ *   MLUC_Membership 桩（paywall_price 用例依赖）与真实类同名，不能同进程共存；
+ *   子进程末行 "N passed, M failed" 回填本套件计数。
+ * ========================================================================== */
+
+echo "\n== Phase A：并入文件清单 ==\n";
+foreach (array(
+    'class-auth.php', 'class-account.php', 'class-membership.php', 'class-avatar.php',
+    'class-assets.php', 'class-oauth.php', 'class-email-notifications.php', 'class-system-status.php',
+    'class-hidecontent.php', 'class-editor-button.php', 'class-material.php', 'class-video.php',
+    'class-license-manager.php', 'class-license-admin.php', 'class-payment-log.php',
+    'class-payment-gateway-interface.php', 'class-payment-manager.php', 'class-settings.php', 'class-menu.php',
+) as $__f) {
+    check("并入类 {$__f} 存在", file_exists(__DIR__ . '/../moonlight-shop/includes/user/' . $__f));
+}
+foreach (array(
+    'account-licenses.php', 'account-membership.php', 'account-orders.php', 'account-overview.php',
+    'account-profile.php', 'login.php', 'lost-password.php', 'membership-purchase.php',
+    'paywall-meta.php', 'register.php',
+) as $__f) {
+    check("并入模板 {$__f} 存在", file_exists(__DIR__ . '/../moonlight-shop/templates/user/' . $__f));
+}
+check('并入前端样式 mluc.css 存在', file_exists(__DIR__ . '/../moonlight-shop/assets/css/mluc.css'));
+foreach (array('mluc.js', 'mluc-admin.js', 'mluc-pw-admin.js', 'mluc-tinymce.js') as $__f) {
+    check("并入脚本 {$__f} 存在", file_exists(__DIR__ . '/../moonlight-shop/assets/js/' . $__f));
+}
+foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
+    check("并入语言包 moonlight-user-center-{$__loc}.po/.mo 存在",
+        file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.po")
+        && file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.mo"));
+}
+check('旧插件文件头定义 MLUC_LEGACY_ACTIVE',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/moonlight-user-center.php'), "define('MLUC_LEGACY_ACTIVE', true)"));
+check('商城主文件注册 MLUC_ → includes/user/ 自动加载',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "includes/user/class-"));
+check('商城主文件含启动守卫 mlshop_user_modules_should_boot',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'function mlshop_user_modules_should_boot'));
+check('不并入类未混入（payments/paywall/purchases/paypal/stripe/gateway/activator/account-orders）',
+    !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-payments.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-paywall.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-purchases.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-paypal.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-stripe.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-gateway-manual.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-activator.php')
+    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-account-orders.php'));
+
+echo "== Phase A：并入模块用例（子进程 run-user.php） ==\n";
+// Windows 中文用户目录下，绝对路径经 cmd 代码页转码会乱码（Could not open input file）；
+// 优先转为相对当前工作目录的 ASCII 相对路径传给子进程。
+$__user_script = __DIR__ . '/run-user.php';
+$__cwd_norm    = rtrim(str_replace('\\', '/', (string) getcwd()), '/') . '/';
+$__user_norm   = str_replace('\\', '/', $__user_script);
+if (strpos($__user_norm, $__cwd_norm) === 0) {
+    $__user_arg = substr($__user_norm, strlen($__cwd_norm));
+} else {
+    $__user_arg = $__user_script;
+}
+$__user_out = array();
+$__user_exit = 1;
+exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($__user_arg) . ' 2>&1', $__user_out, $__user_exit);
+echo implode("\n", $__user_out), "\n";
+if (preg_match('/(\d+) passed, (\d+) failed/', (string) end($__user_out), $__m)) {
+    $pass += (int) $__m[1];
+    $fail += (int) $__m[2];
+}
+if (0 !== $__user_exit) {
+    check('Phase A 子进程（run-user.php）退出码为 0', false);
+}
+
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);
 

@@ -1,0 +1,1048 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: 1.0\n"
+"Language: zh_TW\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "+ 添加等级"
+msgstr "+ 添加等級"
+
+msgid "Apple"
+msgstr "Apple"
+
+msgid "Apple 令牌受众不符。"
+msgstr "Apple 令牌受眾不符。"
+
+msgid "Apple 令牌已过期。"
+msgstr "Apple 令牌已過期。"
+
+msgid "Apple 令牌格式错误。"
+msgstr "Apple 令牌格式錯誤。"
+
+msgid "Apple 令牌签发方不符。"
+msgstr "Apple 令牌簽發方不符。"
+
+msgid "Apple 令牌签名校验失败。"
+msgstr "Apple 令牌簽名校驗失敗。"
+
+msgid "Apple 令牌算法不支持。"
+msgstr "Apple 令牌算法不支持。"
+
+msgid "Apple 令牌解析失败。"
+msgstr "Apple 令牌解析失敗。"
+
+msgid "Apple 公钥不匹配。"
+msgstr "Apple 公鑰不匹配。"
+
+msgid "Apple 用户"
+msgstr "Apple 用戶"
+
+msgid "Client ID / App ID"
+msgstr "Client ID / App ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "Dashicons 类"
+msgstr "Dashicons 類"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "Google"
+msgstr "Google"
+
+msgid "OAuth 应用凭据"
+msgstr "OAuth 應用憑據"
+
+msgid "OAuth 模块未加载。"
+msgstr "OAuth 模塊未加載。"
+
+msgid "QQ"
+msgstr "QQ"
+
+msgid "cta"
+msgstr "cta"
+
+msgid "label"
+msgstr "label"
+
+msgid "— 选择页面 —"
+msgstr "— 選擇頁面 —"
+
+msgid "…等共 %d 位用户。"
+msgstr "…等共 %d 位用戶。"
+
+msgid "【重置密码】"
+msgstr "【重置密碼】"
+
+msgid "上传/选择图片"
+msgstr "上傳/選擇圖片"
+
+msgid "上传中…"
+msgstr "上傳中…"
+
+msgid "上传到此头像"
+msgstr "上傳到此頭像"
+
+msgid "上传失败"
+msgstr "上傳失敗"
+
+msgid "下午好"
+msgstr "下午好"
+
+msgid "下載"
+msgstr "下載"
+
+msgid "下載 PDF / 工作紙"
+msgstr "下載 PDF / 工作紙"
+
+msgid "不可删除"
+msgstr "不可刪除"
+
+msgid "不支持的登录方式。"
+msgstr "不支持的登錄方式。"
+
+msgid "不限次"
+msgstr "不限次"
+
+msgid "个人资料"
+msgstr "個人資料"
+
+msgid "中午好"
+msgstr "中午好"
+
+msgid "为每个菜单项选择内置 Dashicons 类，或上传自定义 PNG / SVG / JPG 图片。留空时使用插件内置默认图标。"
+msgstr "為每個菜單項選擇內置 Dashicons 類，或上傳自定義 PNG / SVG / JPG 圖片。留空時使用插件內置默認圖標。"
+
+msgid "亲爱的 %s："
+msgstr "親愛的 %s："
+
+msgid "付款說明"
+msgstr "付款說明"
+
+msgid "付款说明"
+msgstr "付款說明"
+
+msgid "付款说明（展示给用户）"
+msgstr "付款說明（展示給用戶）"
+
+msgid "付费后可查看"
+msgstr "付費後可查看"
+
+msgid "价格"
+msgstr "價格"
+
+msgid "会员可查看"
+msgstr "會員可查看"
+
+msgid "会员头像"
+msgstr "會員頭像"
+
+msgid "会员头像库"
+msgstr "會員頭像庫"
+
+msgid "会员模块未加载。"
+msgstr "會員模塊未加載。"
+
+msgid "会员等级"
+msgstr "會員等級"
+
+msgid "会员等级定义"
+msgstr "會員等級定義"
+
+msgid "会员订单"
+msgstr "會員訂單"
+
+msgid "使用 %s 登录"
+msgstr "使用 %s 登錄"
+
+msgid "使用情况"
+msgstr "使用情況"
+
+msgid "例如：9123 4567"
+msgstr "例如：9123 4567"
+
+msgid "侧栏菜单图标"
+msgstr "側欄菜單圖標"
+
+msgid "保存資料"
+msgstr "保存資料"
+
+msgid "修改密码"
+msgstr "修改密碼"
+
+msgid "修改密碼"
+msgstr "修改密碼"
+
+msgid "修改密碼 / 登入"
+msgstr "修改密碼 / 登入"
+
+msgid "個人簡介"
+msgstr "個人簡介"
+
+msgid "個人網站"
+msgstr "個人網站"
+
+msgid "公開（免費）"
+msgstr "公開（免費）"
+
+msgid "关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。"
+msgstr "關閉後站點僅保留付費等級：未購買會員的用戶不再顯示「普通會員」身份；標記為 free 的公開內容仍對所有人可見。"
+
+msgid "内容"
+msgstr "內容"
+
+msgid "凌晨好"
+msgstr "凌晨好"
+
+msgid "切換中…"
+msgstr "切換中…"
+
+msgid "删除"
+msgstr "刪除"
+
+msgid "到期 %s"
+msgstr "到期 %s"
+
+msgid "到期日"
+msgstr "到期日"
+
+msgid "到期日：%s"
+msgstr "到期日：%s"
+
+msgid "前往头像库管理 →"
+msgstr "前往頭像庫管理 →"
+
+msgid "剩餘 %1$s / %2$s 次"
+msgstr "剩餘 %1$s / %2$s 次"
+
+msgid "加载 Apple 公钥失败。"
+msgstr "加載 Apple 公鑰失敗。"
+
+msgid "升級會員"
+msgstr "升級會員"
+
+msgid "升级会员"
+msgstr "升級會員"
+
+msgid "卡密"
+msgstr "卡密"
+
+msgid "原密码不正确。"
+msgstr "原密碼不正確。"
+
+msgid "原密碼"
+msgstr "原密碼"
+
+msgid ""
+"双插件同装时购买走商城支付流程，此说明不展示。仅装用户中心时，用户在账户中心「会员等级」选择等级购买，再按此说明完成转账；管理员在「会员订单」确认收款后等级自动开通。"
+msgstr ""
+"雙插件同裝時購買走商城支付流程，此說明不展示。僅裝用戶中心時，用戶在賬戶中心「會員等級」選擇等級購買，再按此說明完成轉賬；管理員在「會員訂單」確認收款後等級自動開通。"
+
+msgid "发表评论"
+msgstr "發表評論"
+
+msgid "发送重置链接"
+msgstr "發送重置鏈接"
+
+msgid "取消訂單"
+msgstr "取消訂單"
+
+msgid "可瀏覽基礎內容，購買付費教材。"
+msgstr "可瀏覽基礎內容，購買付費教材。"
+
+msgid "可选等级由后台「会员等级定义」配置。"
+msgstr "可選等級由後臺「會員等級定義」配置。"
+
+msgid "启用会员头像库：管理员在「会员头像库」上传头像，用户在前端账户中心选择"
+msgstr "啟用會員頭像庫：管理員在「會員頭像庫」上傳頭像，用戶在前端賬戶中心選擇"
+
+msgid "启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。"
+msgstr "啟用後：後臺「用戶中心 → 會員頭像庫」可上傳多張頭像；用戶在前端賬戶中心從列表中選擇一個作為自己的頭像（無需自行上傳）。"
+
+msgid "启用普通会员（免费基座等级）"
+msgstr "啟用普通會員（免費基座等級）"
+
+msgid "回收站中暂无头像"
+msgstr "回收站中暫無頭像"
+
+msgid "图标"
+msgstr "圖標"
+
+msgid "在对应开放平台填写回调地址（示例）：%s。仅填写了 Client ID 与 Secret 的提供商才会出现在前端登录按钮。"
+msgstr "在對應開放平臺填寫回調地址（示例）：%s。僅填寫了 Client ID 與 Secret 的提供商才會出現在前端登錄按鈕。"
+
+msgid "在此新增、编辑或删除会员等级。删除某等级后，原拥有该等级的用户会自动降级为「普通」。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。"
+msgstr ""
+"在此新增、編輯或刪除會員等級。刪除某等級後，原擁有該等級的用戶會自動降級為「普通」。價格與有效期將用於「升級會員」購買流程（後續階段接入）。"
+
+msgid "基础资料"
+msgstr "基礎資料"
+
+msgid "基礎資料"
+msgstr "基礎資料"
+
+msgid "头像上传"
+msgstr "頭像上傳"
+
+msgid "头像功能未启用。"
+msgstr "頭像功能未啟用。"
+
+msgid "头像图片加载失败。"
+msgstr "頭像圖片加載失敗。"
+
+msgid "头像属性"
+msgstr "頭像屬性"
+
+msgid "头像已更新。"
+msgstr "頭像已更新。"
+
+msgid "头像已添加。"
+msgstr "頭像已添加。"
+
+msgid "头像已移至回收站。"
+msgstr "頭像已移至回收站。"
+
+msgid "头像库"
+msgstr "頭像庫"
+
+msgid "头像库为空。点击下方按钮上传头像。"
+msgstr "頭像庫為空。點擊下方按鈕上傳頭像。"
+
+msgid "头像库模块未加载。"
+msgstr "頭像庫模塊未加載。"
+
+msgid "头像选择"
+msgstr "頭像選擇"
+
+msgid "如果该账户存在，重置链接已发送至邮箱。"
+msgstr "如果該賬戶存在，重置鏈接已發送至郵箱。"
+
+msgid "如需修改電郵，請聯絡管理員。"
+msgstr "如需修改電郵，請聯絡管理員。"
+
+msgid "安全校驗失敗。"
+msgstr "安全校驗失敗。"
+
+msgid "安全校验失败。"
+msgstr "安全校驗失敗。"
+
+msgid "安全校验失败（state 无效），请重试。"
+msgstr "安全校驗失敗（state 無效），請重試。"
+
+msgid "密码"
+msgstr "密碼"
+
+msgid "密码已修改，请重新登录。"
+msgstr "密碼已修改，請重新登錄。"
+
+msgid "密码至少 6 位。"
+msgstr "密碼至少 6 位。"
+
+msgid "密码错误。"
+msgstr "密碼錯誤。"
+
+msgid "嵌入 URL（YouTube / Vimeo / 直接 mp4）"
+msgstr "嵌入 URL（YouTube / Vimeo / 直接 mp4）"
+
+msgid "工作紙 / 教材"
+msgstr "工作紙 / 教材"
+
+msgid "已包含"
+msgstr "已包含"
+
+msgid "已取消"
+msgstr "已取消"
+
+msgid "已取消授权，请重试或使用其他方式登录。"
+msgstr "已取消授權，請重試或使用其他方式登錄。"
+
+msgid "已收款"
+msgstr "已收款"
+
+msgid "已有账户？去登录"
+msgstr "已有賬戶？去登錄"
+
+msgid "已確認收款，會員等級開通成功。"
+msgstr "已確認收款，會員等級開通成功。"
+
+msgid "已購教材"
+msgstr "已購教材"
+
+msgid "已退出登录。"
+msgstr "已退出登錄。"
+
+msgid "已過期"
+msgstr "已過期"
+
+msgid "已達下載次數上限。"
+msgstr "已達下載次數上限。"
+
+msgid "已開通於"
+msgstr "已開通於"
+
+msgid "常规设置"
+msgstr "常規設置"
+
+msgid "当前 %d 位用户在用此头像。"
+msgstr "當前 %d 位用戶在用此頭像。"
+
+msgid "当前头像库共 %d 张可选头像；用户在账户中心「个人资料」页从这些头像中选择一个作为自己的头像。"
+msgstr "當前頭像庫共 %d 張可選頭像；用戶在賬戶中心「個人資料」頁從這些頭像中選擇一個作為自己的頭像。"
+
+msgid "当前站点已关闭注册。"
+msgstr "當前站點已關閉註冊。"
+
+msgid "当前等级"
+msgstr "當前等級"
+
+msgid "影片設定"
+msgstr "影片設定"
+
+msgid "待確認"
+msgstr "待確認"
+
+msgid "從下方頭像庫中選擇一個作為你的頭像；頭像由管理員統一維護。"
+msgstr "從下方頭像庫中選擇一個作為你的頭像；頭像由管理員統一維護。"
+
+msgid "微信"
+msgstr "微信"
+
+msgid "忘记密码？"
+msgstr "忘記密碼？"
+
+msgid "快捷操作"
+msgstr "快捷操作"
+
+msgid "您尚未開通會員，升級即可解鎖更多教材與示範影片。"
+msgstr "您尚未開通會員，升級即可解鎖更多教材與示範影片。"
+
+msgid "您已登录，前往 %s 或 %s。"
+msgstr "您已登錄，前往 %s 或 %s。"
+
+msgid "您暫無已購教材。"
+msgstr "您暫無已購教材。"
+
+msgid "您的會員資格已過期，請續期以繼續使用。"
+msgstr "您的會員資格已過期，請續期以繼續使用。"
+
+msgid "您目前為 Free 會員，升級至月費或高級可解鎖更多教材與示範影片。"
+msgstr "您目前為 Free 會員，升級至月費或高級可解鎖更多教材與示範影片。"
+
+msgid "我们收到您的找回密码请求，请点击以下链接重置密码："
+msgstr "我們收到您的找回密碼請求，請點擊以下鏈接重置密碼："
+
+msgid "我的購買記錄"
+msgstr "我的購買記錄"
+
+msgid "或使用第三方账号登录"
+msgstr "或使用第三方賬號登錄"
+
+msgid "所有头像"
+msgstr "所有頭像"
+
+msgid "所选头像无效。"
+msgstr "所選頭像無效。"
+
+msgid "找回密码"
+msgstr "找回密碼"
+
+msgid "找回密码页面"
+msgstr "找回密碼頁面"
+
+msgid "换取令牌失败。"
+msgstr "換取令牌失敗。"
+
+msgid "授权交换失败，请稍后重试。"
+msgstr "授權交換失敗，請稍後重試。"
+
+msgid "排序"
+msgstr "排序"
+
+msgid "描述"
+msgstr "描述"
+
+msgid "提供商"
+msgstr "提供商"
+
+msgid "插入到头像"
+msgstr "插入到頭像"
+
+msgid "搜索头像"
+msgstr "搜索頭像"
+
+msgid "操作"
+msgstr "操作"
+
+msgid "操作失败"
+msgstr "操作失敗"
+
+msgid "操作过于频繁，请 10 分钟后再试。"
+msgstr "操作過於頻繁，請 10 分鐘後再試。"
+
+msgid "支付方式"
+msgstr "支付方式"
+
+msgid "支付方式無效。"
+msgstr "支付方式無效。"
+
+msgid "支持 PNG / SVG / JPG。建议 24×24 或 32×32 的方形图标。"
+msgstr "支持 PNG / SVG / JPG。建議 24×24 或 32×32 的方形圖標。"
+
+msgid "收款資訊"
+msgstr "收款資訊"
+
+msgid "教材"
+msgstr "教材"
+
+msgid "教材不存在。"
+msgstr "教材不存在。"
+
+msgid "教材設定"
+msgstr "教材設定"
+
+msgid "文件未配置。"
+msgstr "文件未配置。"
+
+msgid "文件網址（PDF / ZIP）"
+msgstr "文件網址（PDF / ZIP）"
+
+msgid "新增教材"
+msgstr "新增教材"
+
+msgid "新增示範影片"
+msgstr "新增示範影片"
+
+msgid "新头像"
+msgstr "新頭像"
+
+msgid "新密码至少 6 位。"
+msgstr "新密碼至少 6 位。"
+
+msgid "新密碼"
+msgstr "新密碼"
+
+msgid "无法获取 Apple 公钥。"
+msgstr "無法獲取 Apple 公鑰。"
+
+msgid "日期"
+msgstr "日期"
+
+msgid "早上好"
+msgstr "早上好"
+
+msgid "昵称不能为空。"
+msgstr "暱稱不能為空。"
+
+msgid "昵稱"
+msgstr "暱稱"
+
+msgid "昵稱 / 電話 / 簡介"
+msgstr "暱稱 / 電話 / 簡介"
+
+msgid "显示名称"
+msgstr "顯示名稱"
+
+msgid "晚上好"
+msgstr "晚上好"
+
+msgid "暂不支持该登录方式。"
+msgstr "暫不支持該登錄方式。"
+
+msgid "暂无头像"
+msgstr "暫無頭像"
+
+msgid "暫無可下載的教材。"
+msgstr "暫無可下載的教材。"
+
+msgid "暫無可觀看的示範影片。"
+msgstr "暫無可觀看的示範影片。"
+
+msgid "暫無教材可下載。"
+msgstr "暫無教材可下載。"
+
+msgid "更新密碼"
+msgstr "更新密碼"
+
+msgid "最低訪問等級"
+msgstr "最低訪問等級"
+
+msgid "會員模組未載入。"
+msgstr "會員模組未載入。"
+
+msgid "會員等級"
+msgstr "會員等級"
+
+msgid "會員等級對照"
+msgstr "會員等級對照"
+
+msgid "有效期 %d 天"
+msgstr "有效期 %d 天"
+
+msgid "有效期（天）"
+msgstr "有效期（天）"
+
+msgid "未能获取第三方用户标识。"
+msgstr "未能獲取第三方用戶標識。"
+
+msgid "未解鎖"
+msgstr "未解鎖"
+
+msgid "未開通會員"
+msgstr "未開通會員"
+
+msgid "构建 Apple 公钥失败。"
+msgstr "構建 Apple 公鑰失敗。"
+
+msgid "查看头像"
+msgstr "查看頭像"
+
+msgid "查看權益 / 升級"
+msgstr "查看權益 / 升級"
+
+msgid "查看每個等級的權益說明與當前狀態。"
+msgstr "查看每個等級的權益說明與當前狀態。"
+
+msgid "查看訂單"
+msgstr "查看訂單"
+
+msgid "标识"
+msgstr "標識"
+
+msgid "标识颜色"
+msgstr "標識顏色"
+
+msgid "概览"
+msgstr "概覽"
+
+msgid "權限不足或校驗失敗。"
+msgstr "權限不足或校驗失敗。"
+
+msgid "權限不足，無法下載。"
+msgstr "權限不足，無法下載。"
+
+msgid "此内容仅限月费会员以上查看。"
+msgstr "此內容僅限月費會員以上查看。"
+
+msgid "此影片需要 %s 會員等級，請升級以觀看。"
+msgstr "此影片需要 %s 會員等級，請升級以觀看。"
+
+msgid "每用戶下載次數上限（0 = 不限）"
+msgstr "每用戶下載次數上限（0 = 不限）"
+
+msgid "永不过期"
+msgstr "永不過期"
+
+msgid "永久"
+msgstr "永久"
+
+msgid "永久會員"
+msgstr "永久會員"
+
+msgid "永久有效"
+msgstr "永久有效"
+
+msgid "注册"
+msgstr "註冊"
+
+msgid "注册成功，正在跳转…"
+msgstr "註冊成功，正在跳轉…"
+
+msgid "注册账户"
+msgstr "註冊賬戶"
+
+msgid "注册页面"
+msgstr "註冊頁面"
+
+msgid "添加头像"
+msgstr "添加頭像"
+
+msgid "漫步白月光"
+msgstr "漫步白月光"
+
+msgid "漫步白月光 · 注册表单"
+msgstr "漫步白月光 · 註冊表單"
+
+msgid "漫步白月光 · 用户资料卡"
+msgstr "漫步白月光 · 用戶資料卡"
+
+msgid "漫步白月光 · 登录表单"
+msgstr "漫步白月光 · 登錄表單"
+
+msgid "為了帳戶安全，建議定期更換密碼。修改成功後需重新登入。"
+msgstr "為了帳戶安全，建議定期更換密碼。修改成功後需重新登入。"
+
+msgid "無效的會員等級。"
+msgstr "無效的會員等級。"
+
+msgid "狀態"
+msgstr "狀態"
+
+msgid "独立收款（未启用商城时生效）"
+msgstr "獨立收款（未啟用商城時生效）"
+
+msgid "生成重置密钥失败，请稍后再试。"
+msgstr "生成重置密鑰失敗，請稍後再試。"
+
+msgid "用戶"
+msgstr "用戶"
+
+msgid "用户中心"
+msgstr "用戶中心"
+
+msgid "用户中心设置"
+msgstr "用戶中心設置"
+
+msgid "用户名"
+msgstr "用戶名"
+
+msgid "用户名不存在。"
+msgstr "用戶名不存在。"
+
+msgid "用户名或邮箱"
+msgstr "用戶名或郵箱"
+
+msgid "留空则登录后跳转到账户中心页面。"
+msgstr "留空則登錄後跳轉到賬戶中心頁面。"
+
+msgid "當前"
+msgstr "當前"
+
+msgid "當前會員等級"
+msgstr "當前會員等級"
+
+msgid "當前頭像"
+msgstr "當前頭像"
+
+msgid "登入後下載"
+msgstr "登入後下載"
+
+msgid "登录"
+msgstr "登錄"
+
+msgid "登录后即可查看下方内容。"
+msgstr "登錄後即可查看下方內容。"
+
+msgid "登录后可查看"
+msgstr "登錄後可查看"
+
+msgid "登录后查看"
+msgstr "登錄後查看"
+
+msgid "登录后重定向"
+msgstr "登錄後重定向"
+
+msgid "登录尝试过于频繁，请 10 分钟后再试。"
+msgstr "登錄嘗試過於頻繁，請 10 分鐘後再試。"
+
+msgid "登录成功，正在跳转…"
+msgstr "登錄成功，正在跳轉…"
+
+msgid "登录页面"
+msgstr "登錄頁面"
+
+msgid "發布文章"
+msgstr "發布文章"
+
+msgid "確認收款並開通會員"
+msgstr "確認收款並開通會員"
+
+msgid "示範影片"
+msgstr "示範影片"
+
+msgid "移除"
+msgstr "移除"
+
+msgid "立即注册"
+msgstr "立即註冊"
+
+msgid "立即购买"
+msgstr "立即購買"
+
+msgid "站点已关闭注册，且未找到匹配的账号。"
+msgstr "站點已關閉註冊，且未找到匹配的賬號。"
+
+msgid "第三方登录"
+msgstr "第三方登錄"
+
+msgid "第三方登录失败，请重试。"
+msgstr "第三方登錄失敗，請重試。"
+
+msgid "第三方返回数据解析失败。"
+msgstr "第三方返回數據解析失敗。"
+
+msgid "等級"
+msgstr "等級"
+
+msgid "等级"
+msgstr "等級"
+
+msgid "等级对照"
+msgstr "等級對照"
+
+msgid "等级标识"
+msgstr "等級標識"
+
+msgid "等级配置"
+msgstr "等級配置"
+
+msgid "管理員尚未上傳任何頭像，請聯絡管理員補充後再選擇。"
+msgstr "管理員尚未上傳任何頭像，請聯絡管理員補充後再選擇。"
+
+msgid "網絡異常，請稍後重試。"
+msgstr "網絡異常，請稍後重試。"
+
+msgid "線下轉帳（管理員確認收款）"
+msgstr "線下轉帳（管理員確認收款）"
+
+msgid "編輯教材"
+msgstr "編輯教材"
+
+msgid "編輯示範影片"
+msgstr "編輯示範影片"
+
+msgid "編輯資料"
+msgstr "編輯資料"
+
+msgid "编辑头像"
+msgstr "編輯頭像"
+
+msgid "网络错误"
+msgstr "網絡錯誤"
+
+msgid "网络错误，请重试"
+msgstr "網絡錯誤，請重試"
+
+msgid "自动注册失败，请稍后重试或联系管理员。"
+msgstr "自動註冊失敗，請稍後重試或聯繫管理員。"
+
+msgid "自定义图片"
+msgstr "自定義圖片"
+
+msgid "自訂縮圖網址（選填）"
+msgstr "自訂縮圖網址（選填）"
+
+msgid "至少 6 位字符。"
+msgstr "至少 6 位字符。"
+
+msgid "若非本人操作，请忽略本邮件。"
+msgstr "若非本人操作，請忽略本郵件。"
+
+msgid "获取 Apple 用户信息失败。"
+msgstr "獲取 Apple 用戶信息失敗。"
+
+msgid "获取 QQ openid 失败。"
+msgstr "獲取 QQ openid 失敗。"
+
+msgid "获取微信 openid 失败。"
+msgstr "獲取微信 openid 失敗。"
+
+msgid "获取第三方账号信息失败，请重试。"
+msgstr "獲取第三方賬號信息失敗，請重試。"
+
+msgid "菜单图标"
+msgstr "菜單圖標"
+
+msgid "菜单项"
+msgstr "菜單項"
+
+msgid "虛擬下載"
+msgstr "虛擬下載"
+
+msgid "解析 Apple 身份失败。"
+msgstr "解析 Apple 身份失敗。"
+
+msgid "訂單"
+msgstr "訂單"
+
+msgid "訂單已建立，請按付款說明完成轉帳，管理員確認收款後自動開通。"
+msgstr "訂單已建立，請按付款說明完成轉帳，管理員確認收款後自動開通。"
+
+msgid "訂單建立失敗，請稍後重試。"
+msgstr "訂單建立失敗，請稍後重試。"
+
+msgid "註冊時間"
+msgstr "註冊時間"
+
+msgid "評論"
+msgstr "評論"
+
+msgid "該等級未設定價格，暫不可購買。"
+msgstr "該等級未設定價格，暫不可購買。"
+
+msgid "請使用商城升級流程購買會員。"
+msgstr "請使用商城升級流程購買會員。"
+
+msgid "請先登入。"
+msgstr "請先登入。"
+
+msgid "請先登入查看已購教材。"
+msgstr "請先登入查看已購教材。"
+
+msgid "請按後台設定的付款說明完成轉帳，管理員確認收款後會員等級自動開通。"
+msgstr "請按後臺設定的付款說明完成轉帳，管理員確認收款後會員等級自動開通。"
+
+msgid "记住我"
+msgstr "記住我"
+
+msgid "设置"
+msgstr "設置"
+
+msgid "评论后可查看"
+msgstr "評論後可查看"
+
+msgid "评论后查看"
+msgstr "評論後查看"
+
+msgid "评论审核通过后即可查看下方内容。"
+msgstr "評論審核通過後即可查看下方內容。"
+
+msgid "该头像尚未设置图片。"
+msgstr "該頭像尚未設置圖片。"
+
+msgid "该用户名已被使用。"
+msgstr "該用戶名已被使用。"
+
+msgid "该组件直接渲染对应前端表单，样式由主题配合。"
+msgstr "該組件直接渲染對應前端表單，樣式由主題配合。"
+
+msgid "该邮箱已被注册。"
+msgstr "該郵箱已被註冊。"
+
+msgid "该页面需包含短代码 %s。"
+msgstr "該頁面需包含短代碼 %s。"
+
+msgid "请为头像设置「特色图片」（≥256×256 的 PNG/JPG/WebP），未设置时不会出现在用户的选择列表中。"
+msgstr "請為頭像設置「特色圖片」（≥256×256 的 PNG/JPG/WebP），未設置時不會出現在用戶的選擇列表中。"
+
+msgid "请先 %s 后查看账户中心。"
+msgstr "請先 %s 後查看賬戶中心。"
+
+msgid "请先登录。"
+msgstr "請先登錄。"
+
+msgid "请先设置「特色图片」再发布。"
+msgstr "請先設置「特色圖片」再發布。"
+
+msgid "请填写原密码和新密码。"
+msgstr "請填寫原密碼和新密碼。"
+
+msgid "请填写用户名、邮箱和密码。"
+msgstr "請填寫用戶名、郵箱和密碼。"
+
+msgid "请输入密码。"
+msgstr "請輸入密碼。"
+
+msgid "请输入用户名。"
+msgstr "請輸入用戶名。"
+
+msgid "请输入用户名或邮箱。"
+msgstr "請輸入用戶名或郵箱。"
+
+msgid "请输入账号和密码。"
+msgstr "請輸入賬號和密碼。"
+
+msgid "请选择一种隐藏类型…"
+msgstr "請選擇一種隱藏類型…"
+
+msgid "賬戶安全"
+msgstr "賬戶安全"
+
+msgid "賬戶統計"
+msgstr "賬戶統計"
+
+msgid "購買"
+msgstr "購買"
+
+msgid "購買日期"
+msgstr "購買日期"
+
+msgid "账户中心"
+msgstr "賬戶中心"
+
+msgid "账户中心模块未加载。"
+msgstr "賬戶中心模塊未加載。"
+
+msgid "账户中心页面"
+msgstr "賬戶中心頁面"
+
+msgid "账户概览"
+msgstr "賬戶概覽"
+
+msgid "账户统计"
+msgstr "賬戶統計"
+
+msgid "货币符号"
+msgstr "貨幣符號"
+
+msgid "购买后即可查看下方内容。"
+msgstr "購買後即可查看下方內容。"
+
+msgid "资料已更新。"
+msgstr "資料已更新。"
+
+msgid "返回登录"
+msgstr "返回登錄"
+
+msgid "退出登录"
+msgstr "退出登錄"
+
+msgid "选择头像"
+msgstr "選擇頭像"
+
+msgid "這些資料會顯示在你的個人主頁與文章署名中。"
+msgstr "這些資料會顯示在你的個人主頁與文章署名中。"
+
+msgid "邮箱"
+msgstr "郵箱"
+
+msgid "邮箱格式不正确。"
+msgstr "郵箱格式不正確。"
+
+msgid "金額"
+msgstr "金額"
+
+msgid "開通 / 升級會員"
+msgstr "開通 / 升級會員"
+
+msgid "開通失敗：會員等級不存在或用戶等級不低於目標等級。"
+msgstr "開通失敗：會員等級不存在或用戶等級不低於目標等級。"
+
+msgid "隐藏内容"
+msgstr "隱藏內容"
+
+msgid "電話"
+msgstr "電話"
+
+msgid "電話："
+msgstr "電話："
+
+msgid "電郵"
+msgstr "電郵"
+
+msgid "頭像"
+msgstr "頭像"
+
+msgid "頭像已更新"
+msgstr "頭像已更新"
+
+msgid "類型"
+msgstr "類型"
+
+msgid "顯示名稱"
+msgstr "顯示名稱"
+
+msgid "预览"
+msgstr "預覽"
+
+msgid "默认"
+msgstr "默認"
+
+msgid "點擊下方任意頭像即可即時切換，無需保存。"
+msgstr "點擊下方任意頭像即可即時切換，無需保存。"
+
+msgid "（無會員等級）"
+msgstr "（無會員等級）"

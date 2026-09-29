@@ -739,3 +739,212 @@ function mlshop_guest_register_url($email = '')
     }
     return $url;
 }
+
+/* ==========================================================================
+ * BEGIN MLUC merged helpers —— 自 moonlight-user-center v2.0.0 并入（Phase A）
+ *
+ * 仅当旧「漫步白月光用户中心」插件未激活时由商城侧提供：
+ * 旧插件的 includes/functions.php 原样定义这批 mluc_* 函数（未加守卫，保持不动），
+ * 两侧同启时本区块必须完全让位，避免函数重复声明致命。
+ * 每个函数同时带 function_exists 守卫双保险。
+ * ========================================================================== */
+
+if (!function_exists('mlshop_mluc_legacy_active')) {
+    /**
+     * 旧「用户中心」插件是否激活（激活时并入模块整体让位）。
+     */
+    function mlshop_mluc_legacy_active()
+    {
+        if (defined('MLUC_LEGACY_ACTIVE')) {
+            return true;
+        }
+        $legacy = 'moonlight-user-center/moonlight-user-center.php';
+        if (function_exists('get_option') && in_array($legacy, (array) get_option('active_plugins', array()), true)) {
+            return true;
+        }
+        if (function_exists('is_multisite') && is_multisite() && function_exists('get_site_option')) {
+            $sitewide = (array) get_site_option('active_sitewide_plugins', array());
+            if (isset($sitewide[$legacy])) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+if (!mlshop_mluc_legacy_active()) {
+
+    if (!function_exists('mluc_get_option')) {
+        /**
+         * 读取用户中心插件选项。
+         */
+        function mluc_get_option($key, $default = '')
+        {
+            $options = get_option('mluc_options', array());
+            return isset($options[$key]) ? $options[$key] : $default;
+        }
+    }
+
+    if (!function_exists('mluc_ui_label')) {
+        /**
+         * 获取账户中心界面文案：后台可自定义，未填写或留空时回退到内置默认。
+         */
+        function mluc_ui_label($key, $default = '')
+        {
+            $labels = mluc_get_option('ui_labels', array());
+            if (is_array($labels) && isset($labels[$key]) && '' !== trim((string) $labels[$key])) {
+                return (string) $labels[$key];
+            }
+            return $default;
+        }
+    }
+
+    if (!function_exists('mluc_get_account_url')) {
+        /**
+         * 获取账户中心页面 URL。
+         */
+        function mluc_get_account_url()
+        {
+            $page_id = (int) mluc_get_option('account_page_id', 0);
+            if ($page_id) {
+                return get_permalink($page_id);
+            }
+            return home_url('/account/');
+        }
+    }
+
+    if (!function_exists('mluc_get_login_url')) {
+        /**
+         * 获取登录页 URL（无专用页面时回退到 WP 登录页并带回跳）。
+         *
+         * @param string $redirect 登录后回跳地址（同站 URL）。留空则回跳账户中心。
+         */
+        function mluc_get_login_url($redirect = '')
+        {
+            $page_id = (int) mluc_get_option('login_page_id', 0);
+            if ($page_id && get_post($page_id)) {
+                $url = get_permalink($page_id);
+                if ($redirect) {
+                    $url = add_query_arg('redirect_to', $redirect, $url);
+                }
+                return $url;
+            }
+            return wp_login_url($redirect ? $redirect : mluc_get_account_url());
+        }
+    }
+
+    if (!function_exists('mluc_get_register_url')) {
+        /**
+         * 获取注册页 URL（无专用页面时回退到 WP 注册页）。
+         */
+        function mluc_get_register_url()
+        {
+            $page_id = (int) mluc_get_option('register_page_id', 0);
+            if ($page_id && get_post($page_id)) {
+                return get_permalink($page_id);
+            }
+            return wp_registration_url();
+        }
+    }
+
+    if (!function_exists('mluc_get_lostpassword_url')) {
+        /**
+         * 获取找回密码页 URL（无专用页面时回退到登录页内的找回密码视图）。
+         */
+        function mluc_get_lostpassword_url()
+        {
+            $page_id = (int) mluc_get_option('lostpassword_page_id', 0);
+            if ($page_id && get_post($page_id)) {
+                return get_permalink($page_id);
+            }
+            return add_query_arg('mluc_view', 'lostpassword', mluc_get_login_url());
+        }
+    }
+
+    if (!function_exists('mluc_get_template')) {
+        /**
+         * 加载模板文件，主题可通过同名（mluc/ 目录）覆盖。
+         *
+         * 并入版模板位于 moonlight-shop/templates/user/（查找优先）；
+         * 旧插件激活时本函数不会定义，由旧插件版本接管（指向旧插件 templates/）。
+         *
+         * @param string $slug 模板标识（不含 .php）
+         * @param array  $args 传给模板的变量
+         */
+        function mluc_get_template($slug, $args = array())
+        {
+            if (is_array($args)) {
+                extract($args);
+            }
+
+            $theme_file = get_stylesheet_directory() . '/mluc/' . $slug . '.php';
+
+            $candidates = array();
+            if (defined('MLSHOP_PLUGIN_DIR')) {
+                $candidates[] = MLSHOP_PLUGIN_DIR . 'templates/user/' . $slug . '.php';
+            }
+            // MLUC_PLUGIN_DIR 与商城同目录时（商城侧回退常量）不再重复入列，
+            // 防止查到商城根 templates/ 下同名的 mlshop 模板。
+            if (defined('MLUC_PLUGIN_DIR') && (!defined('MLSHOP_PLUGIN_DIR') || MLUC_PLUGIN_DIR !== MLSHOP_PLUGIN_DIR)) {
+                $candidates[] = MLUC_PLUGIN_DIR . 'templates/' . $slug . '.php';
+            }
+
+            $file = file_exists($theme_file) ? $theme_file : '';
+            if ('' === $file) {
+                foreach ($candidates as $candidate) {
+                    if (file_exists($candidate)) {
+                        $file = $candidate;
+                        break;
+                    }
+                }
+            }
+            if ('' !== $file) {
+                include $file;
+            }
+        }
+    }
+
+    if (!function_exists('mluc_ajax_data')) {
+        /**
+         * 生成前端 AJAX 用的 nonce 与 action。
+         */
+        function mluc_ajax_data()
+        {
+            return array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonce'    => wp_create_nonce('mluc_nonce'),
+            );
+        }
+    }
+
+    if (!function_exists('mluc_count_user_comments')) {
+        /**
+         * 统计用户已通过审核的评论数。
+         */
+        function mluc_count_user_comments($user_id)
+        {
+            $count = get_comments(array(
+                'user_id' => $user_id,
+                'status'  => 'approve',
+                'count'   => true,
+            ));
+            return $count ? (int) $count : 0;
+        }
+    }
+
+    if (!function_exists('mluc_send_json')) {
+        /**
+         * 判断请求是否来自 AJAX 并返回 JSON 错误。
+         */
+        function mluc_send_json($success, $message, $data = array())
+        {
+            wp_send_json(array(
+                'success' => (bool) $success,
+                'message' => $message,
+                'data'    => $data,
+            ));
+        }
+    }
+}
+
+/* END MLUC merged helpers */

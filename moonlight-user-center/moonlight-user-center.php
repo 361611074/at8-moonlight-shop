@@ -19,6 +19,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// 并入兼容标记（v3.0 Phase A）：本插件激活时置位，moonlight-shop 中的并入模块
+// （includes/user/ 的 MLUC_ 单例）据此整体让位，两插件共存时行为与现状完全一致。
+define('MLUC_LEGACY_ACTIVE', true);
+
 define('MLUC_VERSION', '2.0.0');
 define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));

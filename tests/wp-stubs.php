@@ -24,6 +24,9 @@ error_reporting(E_ALL & ~E_DEPRECATED);
 if (!defined('HOUR_IN_SECONDS')) {
     define('HOUR_IN_SECONDS', 3600);
 }
+if (!defined('MINUTE_IN_SECONDS')) {
+    define('MINUTE_IN_SECONDS', 60);
+}
 if (!defined('DAY_IN_SECONDS')) {
     define('DAY_IN_SECONDS', 86400);
 }
@@ -67,12 +70,22 @@ function get_current_user_id() { return $GLOBALS['__test_user_id'] ?? 0; }
 function current_time($type) {
     return 'timestamp' === $type ? strtotime('2026-09-27 12:00:00') : '2026-09-27 12:00:00';
 }
+// get_option 守卫化：tests/run-user.php（Phase A 子进程）在加载 moonlight-shop.php
+// （其 functions.php 的 mluc_* 合并区块探测 active_plugins）之前需先定义本函数。
+if (!function_exists('get_option')) {
 function get_option($key, $default = false) { return $GLOBALS['__test_options'][$key] ?? $default; }
+}
 function update_option($key, $value) { $GLOBALS['__test_options'][$key] = $value; return true; }
 function delete_option($key) { unset($GLOBALS['__test_options'][$key]); return true; }
 function wp_generate_password($len, $special = true, $extra = true) { return substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789ABCDEFGHJKMNPQRSTUVWXYZ'), 0, $len); }
+// add_action / add_filter 守卫化：run-user.php 需在加载 moonlight-shop.php（先于本文件）
+// 前预定义同签名空桩，避免重复声明致命。
+if (!function_exists('add_action')) {
 function add_action(...$args) {}
+}
+if (!function_exists('add_filter')) {
 function add_filter(...$args) {}
+}
 function wp_count_posts($cpt = null) { $o = new stdClass(); return $o; }
 function post_type_exists($t) { return false; }
 function register_post_type($t, $args = array()) { $GLOBALS['__test_post_types'][$t] = $args; return null; }
@@ -236,7 +249,22 @@ class __Test_wpdb
         return false;
     }
 
-    public function get_var($sql = null) { return null; }
+    public function get_var($sql = null)
+    {
+        $sql = (string) $sql;
+        // License get_by_key：SELECT ID FROM posts WHERE post_type = x AND post_title = y AND post_status = 'publish'
+        if (preg_match("/SELECT ID FROM `?\w*posts`?\s+WHERE post_type = '((?:[^']|\\')*)'\s+AND post_title = '((?:[^']|\\')*)'\s+AND post_status = 'publish'\s+LIMIT 1/i", $sql, $m)) {
+            $type = stripslashes($m[1]);
+            $title = stripslashes($m[2]);
+            foreach ($GLOBALS['__test_posts'] as $p) {
+                if ($p['post_type'] === $type && $p['post_title'] === $title && 'publish' === $p['post_status']) {
+                    return (string) $p['ID'];
+                }
+            }
+            return null;
+        }
+        return null;
+    }
     public function get_results($sql = null, $mode = null) { return array(); }
     public function get_row($sql = null, $mode = null) { return null; }
     public function get_col($sql = null) { return array(); }
@@ -471,6 +499,9 @@ function wp_remote_retrieve_body($response)
 }
 
 // ---- Test-scoped plugin stubs (behavior mirrors production semantics) ----
+// MLUC_Membership 桩守卫化：run-user.php（Phase A 子进程）经商城自动加载器加载
+// 真实 includes/user/class-membership.php 后，此桩自动让位，不再重复声明。
+if (!class_exists('MLUC_Membership')) {
 
 class MLUC_Membership
 {
@@ -486,6 +517,8 @@ class MLUC_Membership
     public static function user_can_access($required, $user_id) { return true; }
     public static function get_level_label($level) { return $level; }
 }
+
+} // end MLUC_Membership stub guard
 
 class MLSHOP_Product_Pay_Meta
 {
@@ -706,7 +739,164 @@ if (!function_exists('wp_is_mobile')) {
 function wp_is_mobile() { return !empty($GLOBALS['__test_is_mobile']); }
 }
 if (!function_exists('add_shortcode')) {
-function add_shortcode($tag, $cb) { return true; }
+function add_shortcode($tag, $cb) { $GLOBALS['__test_shortcodes'][(string) $tag] = $cb; return true; }
+}
+if (!function_exists('shortcode_exists')) {
+function shortcode_exists($tag) { return isset($GLOBALS['__test_shortcodes'][(string) $tag]); }
+}
+
+/* ---------------- Phase A（会员中心并入）测试补充 ----------------
+ * 供 tests/run-user.php 使用；全部 function_exists / class_exists 守卫，
+ * 对 run.php 既有 507 项用例零影响。 */
+
+if (!isset($GLOBALS['__test_shortcodes'])) {
+    $GLOBALS['__test_shortcodes'] = array();
+}
+
+if (!class_exists('WP_Send_Json_Exception')) {
+    /** wp_send_json 桩载体：AJAX 响应在测试中表现为异常抛出。 */
+    class WP_Send_Json_Exception extends Exception
+    {
+        public $payload;
+        public $status_code;
+        public function __construct($payload, $status_code = 200)
+        {
+            parent::__construct('wp_send_json');
+            $this->payload = $payload;
+            $this->status_code = (int) $status_code;
+        }
+    }
+}
+
+if (!function_exists('wp_send_json')) {
+    function wp_send_json($response, $status_code = 200)
+    {
+        throw new WP_Send_Json_Exception($response, $status_code);
+    }
+}
+
+if (!function_exists('check_ajax_referer')) {
+    function check_ajax_referer($action = -1, $query_arg = false, $die = true) { return true; }
+}
+
+if (!function_exists('sanitize_user')) {
+    function sanitize_user($username, $strict = false) { return trim(strip_tags((string) $username)); }
+}
+
+if (!function_exists('mb_strlen')) {
+    function mb_strlen($s, $encoding = null) { return strlen((string) $s); }
+}
+
+if (!function_exists('wp_parse_args')) {
+    function wp_parse_args($args, $defaults = array())
+    {
+        if (is_object($args)) {
+            $args = get_object_vars($args);
+        } elseif (!is_array($args)) {
+            $args = array();
+        }
+        return array_merge($defaults, $args);
+    }
+}
+
+if (!function_exists('wp_parse_url')) {
+    function wp_parse_url($url, $component = -1) { return parse_url((string) $url, $component); }
+}
+
+if (!function_exists('untrailingslashit')) {
+    function untrailingslashit($value) { return rtrim((string) $value, '/'); }
+}
+
+if (!function_exists('plugin_basename')) {
+    function plugin_basename($file) { return basename(dirname((string) $file)) . '/' . basename((string) $file); }
+}
+
+if (!function_exists('network_site_url')) {
+    function network_site_url($path = '', $scheme = null) { return 'http://example.test/' . ltrim((string) $path, '/'); }
+}
+
+if (!function_exists('wp_http_validate_url')) {
+    function wp_http_validate_url($url) { return is_string($url) && preg_match('#^https?://#', (string) $url) ? $url : false; }
+}
+
+if (!function_exists('wp_validate_redirect')) {
+    function wp_validate_redirect($location, $default = '')
+    {
+        $location = trim((string) $location);
+        return '' === $location ? $default : $location;
+    }
+}
+
+if (!function_exists('get_password_reset_key')) {
+    function get_password_reset_key($user) { return 'test-reset-key-1234'; }
+}
+
+if (!function_exists('wp_logout')) {
+    function wp_logout() { $GLOBALS['__test_logouts'][] = get_current_user_id(); }
+}
+
+if (!function_exists('wp_set_current_user')) {
+    function wp_set_current_user($user_id) { $GLOBALS['__test_user_id'] = (int) $user_id; return $user_id; }
+}
+
+if (!function_exists('wp_set_auth_cookie')) {
+    function wp_set_auth_cookie($user_id, $remember = false) { $GLOBALS['__test_auth_cookies'][] = array((int) $user_id, (bool) $remember); }
+}
+
+if (!function_exists('get_user_by')) {
+    function get_user_by($field, $value)
+    {
+        foreach ((array) ($GLOBALS['__test_users'] ?? array()) as $u) {
+            $arr = is_object($u) ? (array) $u : (array) $u;
+            if ('id' === (string) $field && (int) ($arr['ID'] ?? 0) === (int) $value) {
+                return (object) $arr;
+            }
+            if ('login' === (string) $field && isset($arr['user_login']) && 0 === strcasecmp((string) $arr['user_login'], (string) $value)) {
+                return (object) $arr;
+            }
+            if ('email' === (string) $field && isset($arr['user_email']) && 0 === strcasecmp((string) $arr['user_email'], (string) $value)) {
+                return (object) $arr;
+            }
+        }
+        return false;
+    }
+}
+
+if (!function_exists('username_exists')) {
+    function username_exists($username)
+    {
+        $u = get_user_by('login', $username);
+        return $u ? (int) $u->ID : null;
+    }
+}
+
+if (!function_exists('email_exists')) {
+    function email_exists($email)
+    {
+        $u = get_user_by('email', $email);
+        return $u ? (int) $u->ID : null;
+    }
+}
+
+if (!function_exists('wp_create_user')) {
+    function wp_create_user($username, $password, $email = '')
+    {
+        if (!isset($GLOBALS['__test_users'])) {
+            $GLOBALS['__test_users'] = array();
+        }
+        if (!isset($GLOBALS['__test_users_next_id'])) {
+            $GLOBALS['__test_users_next_id'] = 100;
+        }
+        $id = $GLOBALS['__test_users_next_id']++;
+        $GLOBALS['__test_users'][(int) $id] = (object) array(
+            'ID'           => (int) $id,
+            'user_login'   => (string) $username,
+            'user_pass'    => (string) $password,
+            'user_email'   => (string) $email,
+            'display_name' => (string) $username,
+        );
+        return (int) $id;
+    }
 }
 
 // 测试环境 PHP CLI 可能未启用 mbstring（生产网关代码使用 mb_substr 截断）：
