@@ -33,6 +33,16 @@ require __DIR__ . '/../moonlight-shop/includes/class-gateway-wechat.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-license-client.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-webhooks.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-order-export.php';
+// moonlight/v1 REST API（Phase 1：公开 + 登录路由）+ 其依赖的服务层
+require __DIR__ . '/../moonlight-shop/includes/class-cart.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-rest-helpers.php';
+require __DIR__ . '/../moonlight-shop/includes/core/class-rest.php';
+// REST checkout 依赖支付管理器 + 全部内建网关（get_gateways 逐个实例化）
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-cod.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-balance.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-manual.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-alipay.php';
+require __DIR__ . '/../moonlight-shop/includes/class-payment.php';
 
 /**
  * 邮件发送测试封装：强制重发并捕获 wp_mail 结果（游客购买用例使用）。
@@ -1284,7 +1294,10 @@ $wiv = random_bytes(12);
 $wtag = '';
 $wct = openssl_encrypt($wplain, 'aes-256-gcm', '0123456789abcdef0123456789abcdef', OPENSSL_RAW_DATA, $wiv, $wtag, 'transaction');
 check('GCM 加密 → 解密回环（tag 末 16 字节拼接）', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === $wplain);
-check('GCM 篡改密文解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode(substr($wct, 0, 5) . 'X' . substr($wct, 6) . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === '');
+// 篡改必须保证字节真的变化：XOR 0x01（否则 1/256 概率随机密文该字节恰为 'X'，篡改落空导致测试偶发失败）
+$wct_tampered = $wct;
+$wct_tampered[5] = chr(ord($wct[5]) ^ 0x01);
+check('GCM 篡改密文解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct_tampered . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === '');
 check('GCM 篡改 nonce 解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', str_repeat('z', 12), 'transaction') === '');
 check('GCM 篡改 AAD 解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'other') === '');
 check('GCM 非 32 位密钥拒绝', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), 'short-key', $wiv, 'transaction') === '');
@@ -1586,6 +1599,477 @@ MLSHOP_Gateway_WeChat::register_notify();
 check('注册 mlshop/v1/wechat/notify（POST，permission 恒真）', isset($GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify'])
     && 'POST' === $GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify']['methods']
     && '__return_true' === $GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify']['permission_callback']);
+
+/* ==========================================================================
+ * moonlight/v1 REST API（Phase 1：公开路由 + 登录路由，docs/API.md 第二、三节）
+ * handler 直调（WP_REST_Request 桩传参）；数据访问原语经 Moonlight_REST_Test
+ * 子类接到行模型（与 Card_Stock / Refund_Service 测试同一「子类接桩」模式）。
+ * ========================================================================== */
+
+/** 测试用 REST：行模型接桩（find_card_row / find_sold_rows_for_user）+ 可直接实例化。 */
+class Moonlight_REST_Test extends Moonlight_REST
+{
+    public function __construct()
+    {
+        // 不调用 parent::__construct()（私有单例构造），测试直调 handler
+    }
+
+    protected static function find_card_row($meta_id)
+    {
+        foreach (find_meta_rows() as $row) {
+            if ((int) $row['meta_id'] === (int) $meta_id) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    protected static function find_sold_rows_for_user($uid)
+    {
+        $out = array();
+        foreach (find_meta_rows(null, Moonlight_Card_Stock::ST_SOLD) as $row) {
+            $rec = json_decode((string) $row['meta_value'], true);
+            if (is_array($rec) && isset($rec['u']) && (int) $rec['u'] === (int) $uid) {
+                $out[] = $row;
+            }
+        }
+        return $out;
+    }
+}
+
+/** 便捷构造：带参数的 REST 请求桩。 */
+function __test_rest_request($params = array())
+{
+    $req = new WP_REST_Request();
+    foreach ($params as $k => $v) {
+        $req->set_param($k, $v);
+    }
+    return $req;
+}
+
+echo "== REST：统一响应格式 helper（ok/err） ==\n";
+$r_ok = Moonlight_Rest_Helpers::ok(array('a' => 1), array('total' => 2));
+check('ok 结构 {code,data,meta} 且 HTTP 200', $r_ok instanceof WP_REST_Response && 200 === $r_ok->get_status()
+    && 'moonlight_ok' === $r_ok->get_data()['code'] && 1 === $r_ok->get_data()['data']['a'] && 2 === $r_ok->get_data()['meta']['total']);
+$r_ok2 = Moonlight_Rest_Helpers::ok(array('b' => 2));
+check('ok 无 meta 时省略 meta 键', !isset($r_ok2->get_data()['meta']));
+$r_err = Moonlight_Rest_Helpers::err('moonlight_forbidden_order_owner', '无权访问该订单。', 403);
+check('err 结构 {code,message,data.status} 且状态码语义化', 403 === $r_err->get_status()
+    && 'moonlight_forbidden_order_owner' === $r_err->get_data()['code']
+    && '无权访问该订单。' === $r_err->get_data()['message']
+    && 403 === $r_err->get_data()['data']['status']);
+check('err 默认 400', 400 === Moonlight_Rest_Helpers::err('x', 'y')->get_status());
+$GLOBALS['__test_user_id'] = 0;
+check('require_login 游客 → WP_Error(401)', is_wp_error(Moonlight_Rest_Helpers::require_login())
+    && 401 === Moonlight_Rest_Helpers::require_login()->error_data['moonlight_not_logged_in']['status']);
+$GLOBALS['__test_user_id'] = 1;
+check('require_login 登录 → true', true === Moonlight_Rest_Helpers::require_login());
+$GLOBALS['__test_user_id'] = 1;
+$req_pg = __test_rest_request(array('page' => 0, 'per_page' => 500));
+$pg = Moonlight_Rest_Helpers::pagination_params($req_pg);
+check('分页参数夹紧（page>=1，per_page<=100）', 1 === $pg['page'] && 100 === $pg['per_page'] && 0 === $pg['offset']);
+$req_pg2 = __test_rest_request(array('page' => 3, 'per_page' => 10));
+$pg2 = Moonlight_Rest_Helpers::pagination_params($req_pg2);
+check('分页参数透传 + offset 计算', 3 === $pg2['page'] && 10 === $pg2['per_page'] && 20 === $pg2['offset']);
+
+echo "== REST：属主校验 current_order_owner ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_can'] = false;
+$o_mine = __test_make_order('pending'); // __test_make_order 默认 _mlshop_user_id = 1
+$GLOBALS['__test_user_id'] = 1;
+check('本人订单通过', true === Moonlight_Rest_Helpers::current_order_owner($o_mine));
+$GLOBALS['__test_user_id'] = 2;
+$e_owner = Moonlight_Rest_Helpers::current_order_owner($o_mine);
+check('他人订单 403（moonlight_forbidden_order_owner）', is_wp_error($e_owner)
+    && 'moonlight_forbidden_order_owner' === $e_owner->get_error_code()
+    && 403 === $e_owner->error_data['moonlight_forbidden_order_owner']['status']);
+$GLOBALS['__test_user_can'] = true;
+check('管理员放行', true === Moonlight_Rest_Helpers::current_order_owner($o_mine));
+$GLOBALS['__test_user_can'] = false;
+$g_token = 'gt-token-xyz';
+$g_order = wp_insert_post(array('post_type' => 'mlshop_order', 'post_title' => 'MLS-G-REST', 'post_status' => 'mlshop_pending'));
+update_post_meta($g_order, '_mlshop_user_id', 0);
+update_post_meta($g_order, '_mlshop_guest_token', $g_token);
+check('游客订单凭正确令牌通过', true === Moonlight_Rest_Helpers::current_order_owner($g_order, $g_token));
+check('游客订单错误令牌 403', is_wp_error(Moonlight_Rest_Helpers::current_order_owner($g_order, 'bad-token')));
+check('登录订单不接受游客令牌口径', is_wp_error(Moonlight_Rest_Helpers::current_order_owner($o_mine, $g_token)));
+$e_404 = Moonlight_Rest_Helpers::current_order_owner(424242);
+check('订单不存在 404', is_wp_error($e_404) && 404 === $e_404->error_data['moonlight_order_not_found']['status']);
+
+echo "== REST：路由注册（显式 permission_callback） ==\n";
+$GLOBALS['__test_rest_routes'] = array();
+$rest = new Moonlight_REST_Test();
+$rest->register_routes();
+$__routes = $GLOBALS['__test_rest_routes'];
+$__missing_perm = 0;
+foreach ($__routes as $__r) {
+    if (empty($__r['permission_callback'])) {
+        $__missing_perm++;
+    }
+}
+check('全部路由显式 permission_callback（注册 ' . count($__routes) . ' 条，缺失 0）', count($__routes) > 0 && 0 === $__missing_perm);
+check('公开路由注册（products/详情/price/cart/quote/regions）', isset(
+    $__routes['moonlight/v1/products'],
+    $__routes['moonlight/v1/products/(?P<id>\\d+)'],
+    $__routes['moonlight/v1/products/(?P<id>\\d+)/price'],
+    $__routes['moonlight/v1/cart'],
+    $__routes['moonlight/v1/shipping/quote'],
+    $__routes['moonlight/v1/regions']
+));
+check('登录路由注册（checkout/orders/refund/downloads/license-keys/addresses/account）', isset(
+    $__routes['moonlight/v1/cart/items'],
+    $__routes['moonlight/v1/cart/coupon'],
+    $__routes['moonlight/v1/checkout'],
+    $__routes['moonlight/v1/orders'],
+    $__routes['moonlight/v1/orders/(?P<id>\\d+)'],
+    $__routes['moonlight/v1/orders/(?P<id>\\d+)/cancel'],
+    $__routes['moonlight/v1/orders/(?P<id>\\d+)/confirm'],
+    $__routes['moonlight/v1/orders/(?P<id>\\d+)/refund'],
+    $__routes['moonlight/v1/downloads'],
+    $__routes['moonlight/v1/license-keys'],
+    $__routes['moonlight/v1/license-keys/(?P<meta_id>\\d+)/reveal'],
+    $__routes['moonlight/v1/account']
+));
+check('登录路由 permission 为实例方法回调（非恒真）', is_array($__routes['moonlight/v1/checkout']['permission_callback'])
+    && '__return_true' !== $__routes['moonlight/v1/checkout']['permission_callback']);
+check('checkout args schema 声明 gateway required（无任何金额字段）', isset($__routes['moonlight/v1/checkout']['args']['gateway']['required'])
+    && !isset($__routes['moonlight/v1/checkout']['args']['price'])
+    && !isset($__routes['moonlight/v1/checkout']['args']['total']));
+
+echo "== REST：公开路由 /products（公开字段 + 无敏感泄漏） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 0; // 游客视角
+$p1 = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'Alpha Product'));
+update_post_meta($p1, '_mlshop_price', 30.0);
+update_post_meta($p1, '_mlshop_type', 'virtual');
+update_post_meta($p1, '_mlshop_sku', 'SKU-A');
+update_post_meta($p1, '_mlshop_cardkeys', "SUPER-SECRET-POOL-KEY\nANOTHER-SECRET");
+$p2 = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'Beta Product'));
+update_post_meta($p2, '_mlshop_price', 20.0);
+update_post_meta($p2, '_mlshop_type', 'physical');
+$p_draft = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'draft', 'post_title' => 'Secret Draft'));
+update_post_meta($p_draft, '_mlshop_price', 1.0);
+
+$res_pl = $rest->rest_products(__test_rest_request(array('per_page' => 10)));
+$__pl = $res_pl->get_data();
+check('列表只含 publish 商品（草稿排除）', 200 === $res_pl->get_status() && 2 === count($__pl['data']) && 2 === $__pl['meta']['total']);
+$__first = $__pl['data'][0];
+check('公开字段齐全（id/title/price/price_html/type/sku/stock_status/categories/images/permalink）', isset(
+    $__first['id'], $__first['title'], $__first['price'], $__first['price_html'], $__first['type'],
+    $__first['sku'], $__first['stock_status'], $__first['categories'], $__first['images'], $__first['permalink']
+));
+check('绝不输出卡密 / 文件 / 付费内容配置（JSON 不含明文池）', false === strpos(json_encode($__pl, JSON_UNESCAPED_UNICODE), 'SUPER-SECRET'));
+$__ids = array();
+foreach ($__pl['data'] as $__it) { $__ids[] = $__it['id']; }
+check('price 按游客视角取原价', in_array($p1, $__ids, true) && 30.0 === $__pl['data'][array_search($p1, $__ids, true)]['price']);
+
+$res_search = $rest->rest_products(__test_rest_request(array('search' => 'alpha')));
+check('search 按标题过滤（大小写不敏感）', 1 === count($res_search->get_data()['data']) && $p1 === (int) $res_search->get_data()['data'][0]['id']);
+$res_type = $rest->rest_products(__test_rest_request(array('type' => 'physical')));
+check('type 过滤只回实物', 1 === count($res_type->get_data()['data']) && $p2 === (int) $res_type->get_data()['data'][0]['id']);
+$res_sort = $rest->rest_products(__test_rest_request(array('orderby' => 'price')));
+check('orderby=price 白名单生效（升序）', 20.0 === $res_sort->get_data()['data'][0]['price'] && 30.0 === $res_sort->get_data()['data'][1]['price']);
+$res_pg = $rest->rest_products(__test_rest_request(array('per_page' => 1, 'page' => 2)));
+check('分页 meta（total/pages/page/per_page）', 2 === $res_pg->get_data()['meta']['total']
+    && 2 === $res_pg->get_data()['meta']['pages'] && 2 === $res_pg->get_data()['meta']['page']
+    && 1 === count($res_pg->get_data()['data']));
+
+$res_det = $rest->rest_product(__test_rest_request(array('id' => $p1)));
+check('商品详情 200', 200 === $res_det->get_status() && $p1 === (int) $res_det->get_data()['data']['id']);
+check('未发布商品详情 404', 404 === $rest->rest_product(__test_rest_request(array('id' => $p_draft)))->get_status());
+check('不存在商品 404', 404 === $rest->rest_product(__test_rest_request(array('id' => 987654)))->get_status());
+$res_price = $rest->rest_product_price(__test_rest_request(array('id' => $p1)));
+check('price 路由返回当前用户视角价（游客=原价）', 200 === $res_price->get_status() && 30.0 === $res_price->get_data()['data']['price']);
+
+echo "== REST：/regions /shipping/quote ==\n";
+$res_region = $rest->rest_regions(__test_rest_request());
+check('regions 返回 34 省级行政区', 200 === $res_region->get_status() && 34 === count($res_region->get_data()['data']['provinces']));
+$res_region_gd = $rest->rest_regions(__test_rest_request(array('province' => 'CN-GD')));
+check('regions?province 返回该省城市', isset($res_region_gd->get_data()['data']['cities']['CN-GD-GZ']));
+
+$res_quote = $rest->rest_shipping_quote(__test_rest_request(array(
+    'items' => array(array('product_id' => $p1, 'qty' => 2, 'price' => 0.01)),
+)));
+$__q = $res_quote->get_data()['data'];
+check('quote 服务端取价（前端 price:0.01 被忽略 → 小计 60）', 200 === $res_quote->get_status() && abs($__q['subtotal'] - 60.0) < 0.001 && abs($__q['total'] - 60.0) < 0.001);
+check('quote 纯虚拟单无运费', $__q['shipping'] === 0.0 && $__q['has_physical'] === false);
+$res_quote_phy = $rest->rest_shipping_quote(__test_rest_request(array(
+    'items' => array(array('product_id' => $p2, 'qty' => 1)),
+)));
+check('quote 实物单 has_physical=true', $res_quote_phy->get_data()['data']['has_physical'] === true);
+MLSHOP_Coupon::$coupons[1] = array('code' => 'REST10', 'percent' => 10);
+$res_quote_c = $rest->rest_shipping_quote(__test_rest_request(array(
+    'items' => array(array('product_id' => $p1, 'qty' => 2)),
+    'coupon_code' => 'REST10',
+)));
+check('quote 优惠券可选参与试算（10% → 折 6）', abs($res_quote_phy->get_data()['data']['subtotal'] - 20.0) < 0.001
+    && abs($res_quote_c->get_data()['data']['discount'] - 6.0) < 0.001);
+
+echo "== REST：/cart 加购改量删除（夹紧 + 发布校验） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$pc = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST 虚拟商品'));
+update_post_meta($pc, '_mlshop_price', 10.0);
+update_post_meta($pc, '_mlshop_type', 'virtual');
+$ps = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST 限量商品'));
+update_post_meta($ps, '_mlshop_price', 5.0);
+update_post_meta($ps, '_mlshop_type', 'virtual');
+update_post_meta($ps, '_mlshop_stock', 3);
+$pd = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'draft', 'post_title' => 'REST 草稿商品'));
+update_post_meta($pd, '_mlshop_price', 1.0);
+MLSHOP_Cart::get_instance()->clear();
+
+check('加购不存在的商品 404', 404 === $rest->rest_cart_add(__test_rest_request(array('product_id' => 987654, 'qty' => 1)))->get_status());
+check('加购未发布商品拒绝（400）', 400 === $rest->rest_cart_add(__test_rest_request(array('product_id' => $pd, 'qty' => 1)))->get_status());
+check('加购 qty=0 拒绝（400）', 400 === $rest->rest_cart_add(__test_rest_request(array('product_id' => $pc, 'qty' => 0)))->get_status());
+check('加购 qty=-5 拒绝（400）', 400 === $rest->rest_cart_add(__test_rest_request(array('product_id' => $pc, 'qty' => -5)))->get_status());
+$res_add = $rest->rest_cart_add(__test_rest_request(array('product_id' => $pc, 'qty' => 5000)));
+check('加购 qty=5000 服务端夹紧到 999', 200 === $res_add->get_status() && 999 === $res_add->get_data()['data']['qty'] && 999 === $res_add->get_data()['data']['count']);
+MLSHOP_Cart::get_instance()->clear();
+
+$res_add2 = $rest->rest_cart_add(__test_rest_request(array('product_id' => $ps, 'qty' => 2)));
+check('限量商品正常加购 2 件', 200 === $res_add2->get_status() && 2 === $res_add2->get_data()['data']['count']);
+$res_add3 = $rest->rest_cart_add(__test_rest_request(array('product_id' => $ps, 'qty' => 5)));
+check('库存预检夹紧到剩余可购（3-2=1）', 200 === $res_add3->get_status() && 1 === $res_add3->get_data()['data']['qty']);
+check('库存购满后再加购 409', 409 === $rest->rest_cart_add(__test_rest_request(array('product_id' => $ps, 'qty' => 1)))->get_status());
+
+$res_upd = $rest->rest_cart_update(__test_rest_request(array('product_id' => $ps, 'qty' => 2)));
+check('PATCH 改量生效', 200 === $res_upd->get_status() && 2 === $res_upd->get_data()['data']['count']);
+check('PATCH 超库存夹紧到 3', 3 === $rest->rest_cart_update(__test_rest_request(array('product_id' => $ps, 'qty' => 10)))->get_data()['data']['qty']);
+check('PATCH 负数拒绝（400）', 400 === $rest->rest_cart_update(__test_rest_request(array('product_id' => $ps, 'qty' => -1)))->get_status());
+$res_del = $rest->rest_cart_update(__test_rest_request(array('product_id' => $ps, 'qty' => 0)));
+check('PATCH qty=0 删除条目', 200 === $res_del->get_status() && 0 === $res_del->get_data()['data']['count']);
+MLSHOP_Cart::get_instance()->clear();
+
+MLSHOP_Cart::get_instance()->add_item($pc, 2);
+$res_rm = $rest->rest_cart_remove(__test_rest_request(array('product_id' => $pc)));
+check('DELETE 单条移除', 200 === $res_rm->get_status() && 0 === $res_rm->get_data()['data']['count']);
+MLSHOP_Cart::get_instance()->add_item($pc, 1);
+MLSHOP_Cart::get_instance()->add_item($ps, 1);
+$res_clr = $rest->rest_cart_clear(new WP_REST_Request());
+check('DELETE /cart 清空', 200 === $res_clr->get_status() && array() === MLSHOP_Cart::get_instance()->get_items());
+
+$res_cart = $rest->rest_cart(new WP_REST_Request());
+check('GET /cart 返回 items + total（游客同样可用）', 200 === $res_cart->get_status() && isset($res_cart->get_data()['data']['items'], $res_cart->get_data()['data']['total']));
+
+echo "== REST：/cart/coupon 预览（validate + compute_discount，不 reserve） ==\n";
+MLSHOP_Cart::get_instance()->clear();
+MLSHOP_Cart::get_instance()->add_item($pc, 1); // 小计 10
+check('空优惠码 400', 400 === $rest->rest_cart_coupon(__test_rest_request(array('code' => '')))->get_status());
+check('无效优惠码 400', 400 === $rest->rest_cart_coupon(__test_rest_request(array('code' => 'NOPE')))->get_status());
+$res_cp = $rest->rest_cart_coupon(__test_rest_request(array('code' => 'REST10')));
+check('有效优惠码返回折扣预览（10% → 折 1，合计 9）', 200 === $res_cp->get_status()
+    && abs($res_cp->get_data()['data']['discount'] - 1.0) < 0.001
+    && abs($res_cp->get_data()['data']['total'] - 9.0) < 0.001
+    && 'REST10' === $res_cp->get_data()['data']['code']);
+MLSHOP_Coupon::$coupons = array();
+
+echo "== REST：/checkout 服务端全取价 + gateway 白名单 ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$pc = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST checkout 虚拟商品'));
+update_post_meta($pc, '_mlshop_price', 10.0);
+update_post_meta($pc, '_mlshop_type', 'virtual');
+MLSHOP_Cart::get_instance()->clear();
+MLSHOP_Cart::get_instance()->add_item($pc, 1);
+__test_set_option('enabled_gateways', array('cod')); // 白名单只开 COD
+
+$req_co = __test_rest_request(array('gateway' => 'bogus', 'price' => 0.01));
+check('gateway 白名单外 403', 403 === $rest->rest_checkout($req_co)->get_status()
+    && 'moonlight_gateway_forbidden' === $rest->rest_checkout($req_co)->get_data()['code']);
+$req_co2 = __test_rest_request(array('gateway' => 'cod', 'price' => 0.01, 'total' => 0.02));
+$res_co = $rest->rest_checkout($req_co2);
+check('checkout 成功（order_id/order_no/payment）', 200 === $res_co->get_status()
+    && $res_co->get_data()['data']['order_id'] > 0
+    && '' !== $res_co->get_data()['data']['order_no']
+    && !empty($res_co->get_data()['data']['payment']['success']));
+$__co_oid = (int) $res_co->get_data()['data']['order_id'];
+check('服务端取价：请求携带 price:0.01 不影响订单金额（=10）', abs((float) get_post_meta($__co_oid, '_mlshop_total', true) - 10.0) < 0.001);
+check('COD 下单 → processing（网关状态机）', 'processing' === MLSHOP_Order::get_status($__co_oid));
+check('下单成功后购物车清空', array() === MLSHOP_Cart::get_instance()->get_items());
+check('空购物车 checkout 400', 400 === $rest->rest_checkout(__test_rest_request(array('gateway' => 'cod')))->get_status());
+
+// 实物订单：REST 必须选地址簿（不接受裸地址字段）
+MLSHOP_Cart::get_instance()->clear();
+$p_phy = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST 实物商品'));
+update_post_meta($p_phy, '_mlshop_price', 20.0);
+update_post_meta($p_phy, '_mlshop_type', 'physical');
+MLSHOP_Cart::get_instance()->add_item($p_phy, 1);
+check('实物订单缺 address_id 400', 400 === $rest->rest_checkout(__test_rest_request(array('gateway' => 'cod')))->get_status());
+check('实物订单不存在的地址 404', 404 === $rest->rest_checkout(__test_rest_request(array('gateway' => 'cod', 'address_id' => 'nope')))->get_status());
+$res_addr = $rest->rest_address_save(__test_rest_request(array(
+    'name' => '李四', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '天河路 100 号',
+)));
+$__aid = $res_addr->get_data()['data']['address']['id'];
+$res_co3 = $rest->rest_checkout(__test_rest_request(array('gateway' => 'cod', 'address_id' => $__aid, 'customer_note' => '放前台')));
+$__co3_oid = (int) $res_co3->get_data()['data']['order_id'];
+$__co3_addr = get_post_meta($__co3_oid, '_mlshop_shipping_address', true);
+check('实物订单地址取自地址簿（服务端为准）', 200 === $res_co3->get_status()
+    && '李四' === $__co3_addr['name'] && 'CN-GD' === $__co3_addr['province'] && 'CN-GD-GZ' === $__co3_addr['city']);
+check('customer_note 写入收货地址快照', '放前台' === $__co3_addr['note']);
+
+echo "== REST：/orders 列表 + /orders/{id} 详情（delivery 掩码） ==\n";
+$GLOBALS['__test_user_id'] = 1;
+$res_orders = $rest->rest_orders(__test_rest_request());
+$__orders = $res_orders->get_data()['data'];
+check('本人订单列表含刚下的订单（字段齐全）', $__orders !== array()
+    && isset($__orders[0]['id'], $__orders[0]['order_no'], $__orders[0]['status'], $__orders[0]['status_label'],
+        $__orders[0]['total'], $__orders[0]['currency'], $__orders[0]['gateway'], $__orders[0]['created'], $__orders[0]['items']));
+check('列表条目 items 摘要只含 id/title/qty/subtotal', isset($__orders[0]['items'][0]['title']) && !isset($__orders[0]['items'][0]['key']));
+$GLOBALS['__test_user_id'] = 2;
+check('他人调用 /orders 为空（服务端强制 user）', array() === $rest->rest_orders(new WP_REST_Request())->get_data()['data']);
+
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$pc = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST 交付商品'));
+update_post_meta($pc, '_mlshop_price', 10.0);
+$o_dl = __test_make_order('paid');
+update_post_meta($o_dl, '_mlshop_delivery', array(
+    array('product_id' => $pc, 'type' => 'cardkey', 'key' => 'PLAINTEXT-KEY-4321'),
+    array('product_id' => $pc, 'type' => 'download', 'token' => 'dltoken123'),
+));
+$res_od = $rest->rest_order(__test_rest_request(array('id' => $o_dl)));
+$__od = $res_od->get_data()['data'];
+check('订单详情 200 + delivery 摘要', 200 === $res_od->get_status() && 2 === count($__od['delivery']));
+check('卡密交付只给掩码（明文永不输出）', 'cardkey' === $__od['delivery'][0]['type']
+    && Moonlight_Card_Stock::mask_key('PLAINTEXT-KEY-4321') === $__od['delivery'][0]['masked']
+    && false === strpos(json_encode($res_od->get_data(), JSON_UNESCAPED_UNICODE), 'PLAINTEXT-KEY-4321'));
+check('下载交付给出下载 URL（含 token）', 'download' === $__od['delivery'][1]['type']
+    && false !== strpos($__od['delivery'][1]['url'], 'dltoken123'));
+
+echo "== REST：/orders/{id}/cancel|confirm|refund（状态机 + 属主已在 permission 层） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$o_cancel = __test_make_order('pending');
+$res_cancel = $rest->rest_order_cancel(__test_rest_request(array('id' => $o_cancel)));
+check('pending → cancelled 成功', 200 === $res_cancel->get_status() && 'cancelled' === MLSHOP_Order::get_status($o_cancel));
+$o_no_cancel = __test_make_order('delivered');
+check('delivered 取消 409（状态冲突）', 409 === $rest->rest_order_cancel(__test_rest_request(array('id' => $o_no_cancel)))->get_status());
+
+$o_confirm = __test_make_order('delivered');
+$res_confirm = $rest->rest_order_confirm(__test_rest_request(array('id' => $o_confirm)));
+check('delivered → completed 确认收货成功', 200 === $res_confirm->get_status() && 'completed' === MLSHOP_Order::get_status($o_confirm));
+check('重复确认收货 409', 409 === $rest->rest_order_confirm(__test_rest_request(array('id' => $o_confirm)))->get_status());
+$o_no_confirm = __test_make_order('paid');
+check('paid 确认收货 409', 409 === $rest->rest_order_confirm(__test_rest_request(array('id' => $o_no_confirm)))->get_status());
+
+$o_refund = __test_make_order('paid');
+check('空 reason 申请售后 400', 400 === $rest->rest_order_refund(__test_rest_request(array('id' => $o_refund, 'reason' => '   ')))->get_status());
+$res_refund = $rest->rest_order_refund(__test_rest_request(array('id' => $o_refund, 'reason' => '质量问题')));
+check('售后申请成功（Refund_Service::apply）', 200 === $res_refund->get_status()
+    && 'pending' === Moonlight_Refund_Service::requests($o_refund)[0]['status']);
+check('重复申请（已有 pending）400', 400 === $rest->rest_order_refund(__test_rest_request(array('id' => $o_refund, 'reason' => '再来')))->get_status());
+
+echo "== REST：/downloads（token / 产品 / 剩余次数） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$pc = wp_insert_post(array('post_type' => 'mlshop_product', 'post_status' => 'publish', 'post_title' => 'REST 下载商品'));
+$o_dl2 = __test_make_order('paid');
+set_transient('mlshop_dl_dltoken456', array(
+    'order_id' => $o_dl2, 'product_id' => $pc, 'user_id' => 1, 'file_id' => 5,
+    'max' => 7, 'used' => 2, 'expires' => time() + 100,
+), 100);
+update_post_meta($o_dl2, '_mlshop_delivery', array(array('product_id' => $pc, 'type' => 'download', 'token' => 'dltoken456')));
+$res_dls = $rest->rest_downloads(new WP_REST_Request());
+$__dls = $res_dls->get_data()['data'];
+check('下载列表返回 token / 产品 / 剩余次数', 1 === count($__dls)
+    && 'dltoken456' === $__dls[0]['token'] && 5 === $__dls[0]['left'] && $o_dl2 === $__dls[0]['order_id']);
+check('下载 URL 指向一次性下载端点', false !== strpos($__dls[0]['url'], 'mlshop_download=dltoken456'));
+$GLOBALS['__test_user_id'] = 2;
+check('他人下载列表为空', array() === $rest->rest_downloads(new WP_REST_Request())->get_data()['data']);
+
+echo "== REST：/license-keys 列表掩码 + reveal（属主 / confirm / 限流） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_can'] = false;
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$rv = Moonlight_Card_Stock_Test::import(220, array('REST-LICENSE-KEY-9911'));
+$rv_order = __test_make_order('paid'); // _mlshop_user_id = 1
+$rv_plain = Moonlight_Card_Stock_Test::pop(220, $rv_order, 1);
+$rv_rows = find_meta_rows($rv['batch_id'], Moonlight_Card_Stock::ST_SOLD);
+$rv_mid = (int) $rv_rows[0]['meta_id'];
+
+$res_keys = $rest->rest_license_keys(new WP_REST_Request());
+$__keys = $res_keys->get_data()['data'];
+check('本人已售卡密列表（掩码 + meta_id，永不输出明文）', 1 === count($__keys)
+    && $rv_mid === (int) $__keys[0]['meta_id']
+    && Moonlight_Card_Stock::mask_key($rv_plain) === $__keys[0]['masked']
+    && false === strpos(json_encode($res_keys->get_data(), JSON_UNESCAPED_UNICODE), $rv_plain));
+$GLOBALS['__test_user_id'] = 2;
+check('他人卡密列表为空', array() === $rest->rest_license_keys(new WP_REST_Request())->get_data()['data']);
+$GLOBALS['__test_user_id'] = 1;
+
+$req_rv = __test_rest_request(array('meta_id' => $rv_mid, 'confirm' => 1));
+$res_rv = $rest->rest_license_reveal($req_rv);
+check('reveal 属主 + confirm=1 → 返回明文', 200 === $res_rv->get_status() && $rv_plain === $res_rv->get_data()['data']['key']);
+$__audit = get_option(Moonlight_Card_Stock::AUDIT_OPTION);
+$__audit_last = end($__audit);
+check('reveal_front 审计（user/meta_id/order）', 'reveal_front' === $__audit_last['action']
+    && $rv_mid === (int) $__audit_last['meta_id'] && $rv_order === (int) $__audit_last['order'] && 1 === (int) $__audit_last['user']);
+
+check('confirm 缺失 400', 400 === $rest->rest_license_reveal(__test_rest_request(array('meta_id' => $rv_mid)))->get_status());
+check('confirm 非真值 400', 400 === $rest->rest_license_reveal(__test_rest_request(array('meta_id' => $rv_mid, 'confirm' => 'yes')))->get_status());
+$rv2 = Moonlight_Card_Stock_Test::import(221, array('UNSOLD-KEY-000001'));
+$rv2_rows = find_meta_rows($rv2['batch_id'], Moonlight_Card_Stock::ST_AVAILABLE);
+check('未售出卡密（o=0）reveal 403', 403 === $rest->rest_license_reveal(__test_rest_request(array(
+    'meta_id' => (int) $rv2_rows[0]['meta_id'], 'confirm' => 1,
+)))->get_status());
+$GLOBALS['__test_user_id'] = 2;
+$req_rv2 = __test_rest_request(array('meta_id' => $rv_mid, 'confirm' => 1));
+check('非属主 reveal 403', 403 === $rest->rest_license_reveal($req_rv2)->get_status());
+$__last_rv = null;
+for ($i = 0; $i < 10; $i++) {
+    $__last_rv = $rest->rest_license_reveal($req_rv2);
+}
+check('同 user 每分钟 ≤10 次 → 429', 429 === $__last_rv->get_status() && 'moonlight_rate_limited' === $__last_rv->get_data()['code']);
+
+echo "== REST：/addresses CRUD 属主隔离 ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_user_id'] = 1;
+$rest = new Moonlight_REST_Test();
+$res_a1 = $rest->rest_address_save(__test_rest_request(array(
+    'name' => '张三', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '天河路 100 号',
+)));
+check('POST /addresses 保存成功（默认地址置顶）', 200 === $res_a1->get_status()
+    && '' !== $res_a1->get_data()['data']['address']['id'] && 1 === count($res_a1->get_data()['data']['list']));
+$__aid2 = $res_a1->get_data()['data']['address']['id'];
+check('非法区码 400（Region Provider 校验）', 400 === $rest->rest_address_save(__test_rest_request(array(
+    'name' => '张三', 'phone' => '13800138000', 'province' => 'CN-XX', 'city' => 'CN-XX-NOPE', 'detail' => '地址',
+)))->get_status());
+
+$GLOBALS['__test_user_id'] = 2;
+check('B 用户地址列表为空（属主隔离）', array() === $rest->rest_addresses_list(new WP_REST_Request())->get_data()['data']['list']);
+check('B 用户删除 A 的地址 404', 404 === $rest->rest_address_delete(__test_rest_request(array('id' => $__aid2)))->get_status());
+$res_a2 = $rest->rest_address_save(__test_rest_request(array(
+    'name' => '王五', 'phone' => '0755-8888', 'province' => 'CN-BJ', 'city' => 'CN-BJ-BJ', 'detail' => '朝阳区 1 号',
+)));
+check('B 用户保存自己的地址成功', 200 === $res_a2->get_status() && 1 === count($res_a2->get_data()['data']['list']));
+
+$GLOBALS['__test_user_id'] = 1;
+$res_a3 = $rest->rest_address_update(__test_rest_request(array(
+    'id' => $__aid2, 'name' => '张三丰', 'phone' => '13800138000', 'province' => 'CN-GD', 'city' => 'CN-GD-GZ', 'detail' => '天河路 101 号',
+)));
+check('PATCH 编辑保留 id 且字段更新', 200 === $res_a3->get_status()
+    && $__aid2 === $res_a3->get_data()['data']['address']['id'] && '张三丰' === $res_a3->get_data()['data']['address']['name']);
+$res_a4 = $rest->rest_address_delete(__test_rest_request(array('id' => $__aid2)));
+check('DELETE 自己的地址成功且列表为空', 200 === $res_a4->get_status() && array() === $res_a4->get_data()['data']['list']);
+
+echo "== REST：/account 聚合 ==\n";
+$GLOBALS['__test_user_id'] = 1;
+$o_acc = __test_make_order('paid');
+update_user_meta(1, 'mlshop_credit_balance', 88.5);
+$res_acc = $rest->rest_account(new WP_REST_Request());
+$__acc = $res_acc->get_data()['data'];
+check('account 返回会员/积分/订单计数/地址数', 200 === $res_acc->get_status() && isset(
+    $__acc['member_level'], $__acc['member_expires'], $__acc['credit_balance'],
+    $__acc['order_total'], $__acc['order_active'], $__acc['address_count']
+));
+check('积分余额与订单计数正确', abs($__acc['credit_balance'] - 88.5) < 0.001 && $__acc['order_total'] >= 1);
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

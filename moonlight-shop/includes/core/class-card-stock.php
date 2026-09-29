@@ -401,6 +401,40 @@ class Moonlight_Card_Stock
         return substr($plain, 0, 4) . '****' . substr($plain, -4);
     }
 
+    /**
+     * 按 meta_value JSON 解密单条卡密明文（无权限校验）。
+     *
+     * 供 REST 前台掩码列表 / 属主 reveal 使用：权限（属主 / 能力）、审计与限流
+     * 全部由调用方负责，本方法只做「解密 + sha256 校验」纯动作，失败返回 false。
+     *
+     * @param string $json 行 meta_value（{"seq","h","e","iv","o","u","t","ex"}）
+     * @return string|false
+     */
+    public static function decrypt_record_json($json)
+    {
+        $record = json_decode((string) $json, true);
+        if (!is_array($record) || !isset($record['h'], $record['e'], $record['iv'])) {
+            return false;
+        }
+        $plain = self::decrypt_record($record);
+        if (false === $plain || !hash_equals((string) $record['h'], hash('sha256', $plain))) {
+            return false;
+        }
+        return $plain;
+    }
+
+    /**
+     * 按 meta_id 解密卡密明文（无权限校验；与 decrypt_record_json 同口径）。
+     *
+     * @param int $meta_id 卡密行 meta_id。
+     * @return string|false
+     */
+    public static function decrypt_by_meta_id($meta_id)
+    {
+        $row = static::get_meta_row((int) $meta_id);
+        return $row ? self::decrypt_record_json((string) $row['meta_value']) : false;
+    }
+
     /* ---------------- 审计日志 ---------------- */
 
     /**

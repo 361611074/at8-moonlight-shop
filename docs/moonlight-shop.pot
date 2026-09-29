@@ -1,33 +1,35 @@
+# Moonlight Shop 翻译模板（由 tools/i18n.php 自动提取）。
+# 新增源串 msgstr 留空即回退英文/中文源串。
 msgid ""
 msgstr ""
-"Project-Id-Version: 1.0\n"
-"Language: zh_CN\n"
+"Project-Id-Version: \n"
+"Language: \n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "%d 分钟前"
-msgstr "%d 分钟前"
+msgstr ""
 
 msgid "%d 天前"
-msgstr "%d 天前"
+msgstr ""
 
 msgid "%d 小时前"
-msgstr "%d 小时前"
+msgstr ""
 
 msgid "%s %s 充值"
-msgstr "%s %s 充值"
+msgstr ""
 
 msgid "%s 升级"
-msgstr "%s 升级"
+msgstr ""
 
 msgid "%s 您好，感謝您的訂購！"
-msgstr "%s 您好，感谢您的订购！"
+msgstr ""
 
 msgid "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
 msgstr ""
 
 msgid "0 表示不限次数。当前已用：%d"
-msgstr "0 表示不限次数。当前已用：%d"
+msgstr ""
 
 msgid "APIv3 密鑰（32 位）"
 msgstr ""
@@ -39,7 +41,7 @@ msgid "AppID（應用編號）"
 msgstr ""
 
 msgid "Client ID"
-msgstr "Client ID"
+msgstr ""
 
 msgid "EMS"
 msgstr ""
@@ -48,91 +50,91 @@ msgid "H5（手機瀏覽器跳轉）"
 msgstr ""
 
 msgid "ID"
-msgstr "ID"
+msgstr ""
 
 msgid "Live Publishable Key"
-msgstr "Live Publishable Key"
+msgstr ""
 
 msgid "Live Secret Key"
-msgstr "Live Secret Key"
+msgstr ""
 
 msgid "Native（PC 掃碼）"
 msgstr ""
 
 msgid "PayPal"
-msgstr "PayPal"
+msgstr ""
 
 msgid "PayPal 創建訂單失敗（HTTP %d）"
-msgstr "PayPal 创建订单失败（HTTP %d）"
+msgstr ""
 
 msgid "PayPal 回跳 URL（用於 return_url，可在 PayPal 應用設定中登記）："
-msgstr "PayPal 回跳 URL（用于 return_url，可在 PayPal 应用设定中登记）："
+msgstr ""
 
 msgid "PayPal 尚未配置。"
-msgstr "PayPal 尚未配置。"
+msgstr ""
 
 msgid "PayPal 支付"
-msgstr "PayPal 支付"
+msgstr ""
 
 msgid "PayPal 未返回支付連結，請稍後重試。"
-msgstr "PayPal 未返回支付连结，请稍后重试。"
+msgstr ""
 
 msgid "PayPal 確認收款失敗（HTTP %d）"
-msgstr "PayPal 确认收款失败（HTTP %d）"
+msgstr ""
 
 msgid "PayPal 認證失敗（HTTP %d）"
-msgstr "PayPal 认证失败（HTTP %d）"
+msgstr ""
 
 msgid "PayPal 退款失敗（HTTP %d）"
 msgstr ""
 
 msgid "SKU"
-msgstr "SKU"
+msgstr ""
 
 msgid "SKU / 货号"
-msgstr "SKU / 货号"
+msgstr ""
 
 msgid "Secret"
-msgstr "Secret"
+msgstr ""
 
 msgid "Stripe"
-msgstr "Stripe"
+msgstr ""
 
 msgid "Stripe 創建會話失敗，請稍後重試。"
-msgstr "Stripe 创建会话失败，请稍后重试。"
+msgstr ""
 
 msgid "Stripe 尚未配置，無法退款。"
 msgstr ""
 
 msgid "Stripe 尚未配置，請聯絡管理員。"
-msgstr "Stripe 尚未配置，请联络管理员。"
+msgstr ""
 
 msgid "Stripe 支付"
-msgstr "Stripe 支付"
+msgstr ""
 
 msgid "Stripe 退款失敗（未返回退款 ID）。"
 msgstr ""
 
 msgid "Stripe 錯誤（HTTP %d）"
-msgstr "Stripe 错误（HTTP %d）"
+msgstr ""
 
 msgid "Test Publishable Key"
-msgstr "Test Publishable Key"
+msgstr ""
 
 msgid "Test Secret Key"
-msgstr "Test Secret Key"
+msgstr ""
 
 msgid "Webhook ID"
-msgstr "Webhook ID"
+msgstr ""
 
 msgid "Webhook Signing Secret"
-msgstr "Webhook Signing Secret"
+msgstr ""
 
 msgid "Webhook 頭部不完整。"
-msgstr "Webhook 头部不完整。"
+msgstr ""
 
 msgid "WooCommerce 没有商品标签，无需同步。"
-msgstr "WooCommerce 没有商品标签，无需同步。"
+msgstr ""
 
 msgid "[%1$s] 新售后申请：订单 %2$s"
 msgstr ""
@@ -141,7 +143,7 @@ msgid "— 手動填寫 —"
 msgstr ""
 
 msgid "— 请选择 —"
-msgstr "— 请选择 —"
+msgstr ""
 
 msgid "— 选择商品 —"
 msgstr ""
@@ -150,67 +152,67 @@ msgid "— 选择物流公司 —"
 msgstr ""
 
 msgid "‹ 上一頁"
-msgstr "‹ 上一页"
+msgstr ""
 
 msgid "「%s」库存不足，仅剩 %d 件。"
-msgstr "「%s」库存不足，仅剩 %d 件。"
+msgstr ""
 
 msgid "【測試】訂單 / 下載確認郵件"
-msgstr "【测试】订单 / 下载确认邮件"
+msgstr ""
 
 msgid "【訂單確認】#%s 付款完成 — 實物商品寄送"
-msgstr "【订单确认】#%s 付款完成 — 实物商品寄送"
+msgstr ""
 
 msgid "【訂單確認】#%s 付款完成 — 教材下載連結"
-msgstr "【订单确认】#%s 付款完成 — 教材下载连结"
+msgstr ""
 
 msgid "【訂單確認】#%s 訂單已提交 — 實物商品待發貨"
-msgstr "【订单确认】#%s 订单已提交 — 实物商品待发货"
+msgstr ""
 
 msgid "【訂單確認】#%s 訂單已提交 — 待付款"
-msgstr "【订单确认】#%s 订单已提交 — 待付款"
+msgstr ""
 
 msgid "【訂單確認】#{order_number} 付款完成"
-msgstr "【订单确认】#{order_number} 付款完成"
+msgstr ""
 
 msgid "上一张"
-msgstr "上一张"
+msgstr ""
 
 msgid "上传到本订单"
-msgstr "上传到本订单"
+msgstr ""
 
 msgid "上传到此商品"
-msgstr "上传到此商品"
+msgstr ""
 
 msgid "上周"
-msgstr "上周"
+msgstr ""
 
 msgid "上月"
-msgstr "上月"
+msgstr ""
 
 msgid "下一张"
-msgstr "下一张"
+msgstr ""
 
 msgid "下一頁 ›"
-msgstr "下一页 ›"
+msgstr ""
 
 msgid "下单后由客服安排发货，验货付款。"
-msgstr "下单后由客服安排发货，验货付款。"
+msgstr ""
 
 msgid "下单失败。"
-msgstr "下单失败。"
+msgstr ""
 
 msgid "下单时间"
-msgstr "下单时间"
+msgstr ""
 
 msgid "下载"
-msgstr "下载"
+msgstr ""
 
 msgid "下载文件"
-msgstr "下载文件"
+msgstr ""
 
 msgid "下载有效期（天）"
-msgstr "下载有效期（天）"
+msgstr ""
 
 msgid "下载次数上限（0 = 不限）"
 msgstr ""
@@ -219,16 +221,16 @@ msgid "下载次数已达上限（%d 次）。如需重新获取请联系站长�
 msgstr ""
 
 msgid "下载链接无效或已过期。"
-msgstr "下载链接无效或已过期。"
+msgstr ""
 
 msgid "不授予"
-msgstr "不授予"
+msgstr ""
 
 msgid "不选择（默认）"
-msgstr "不选择（默认）"
+msgstr ""
 
 msgid "与下方间距"
-msgstr "与下方间距"
+msgstr ""
 
 msgid "中国邮政"
 msgstr ""
@@ -237,16 +239,16 @@ msgid "中通快递"
 msgstr ""
 
 msgid "买过指定商品的客户"
-msgstr "买过指定商品的客户"
+msgstr ""
 
 msgid "交付内容"
-msgstr "交付内容"
+msgstr ""
 
 msgid "交易号"
-msgstr "交易号"
+msgstr ""
 
 msgid "产品 Meta Box 未填写\"商品标题\"时的回退文案。"
-msgstr "产品 Meta Box 未填写\"商品标题\"时的回退文案。"
+msgstr ""
 
 msgid "京东物流"
 msgstr ""
@@ -254,35 +256,32 @@ msgstr ""
 msgid "亲爱的 {customer_name}：\n\n感谢您一直以来的支持！\n\n{site_name}"
 msgstr ""
 
-msgid "亲爱的 {customer_name}：\\\n\\\n感谢您一直以来的支持！\\\n\\\n{site_name}"
-msgstr "亲爱的 {customer_name}：\\\n\\\n感谢您一直以来的支持！\\\n\\\n{site_name}"
-
 msgid "仅百分比类型生效，0 表示不限。"
-msgstr "仅百分比类型生效，0 表示不限。"
+msgstr ""
 
 msgid "仅钻石会员可购买此内容，请先升级会员。"
-msgstr "仅钻石会员可购买此内容，请先升级会员。"
+msgstr ""
 
 msgid "今天"
-msgstr "今天"
+msgstr ""
 
 msgid "今日销售额"
 msgstr ""
 
 msgid "从"
-msgstr "从"
+msgstr ""
 
 msgid "从 WooCommerce 同步"
-msgstr "从 WooCommerce 同步"
+msgstr ""
 
 msgid "从常用商品分类中选择"
-msgstr "从常用商品分类中选择"
+msgstr ""
 
 msgid "从常用商品标签中选择"
-msgstr "从常用商品标签中选择"
+msgstr ""
 
 msgid "付款二维码占位"
-msgstr "付款二维码占位"
+msgstr ""
 
 msgid "付款完成后，我们会在此页面推荐您注册成为网站用户，以便保存订单与再次下载。"
 msgstr ""
@@ -291,88 +290,85 @@ msgid "付款成功！推荐您注册成为网站用户"
 msgstr ""
 
 msgid "付款时间"
-msgstr "付款时间"
+msgstr ""
 
 msgid "付款時間："
-msgstr "付款时间："
+msgstr ""
 
 msgid "付费/会员/积分"
-msgstr "付费/会员/积分"
+msgstr ""
 
 msgid "付费内容"
-msgstr "付费内容"
+msgstr ""
 
 msgid "付费后观看"
-msgstr "付费后观看"
+msgstr ""
 
 msgid "付费弹窗默认标题"
-msgstr "付费弹窗默认标题"
+msgstr ""
 
 msgid "件"
-msgstr "件"
+msgstr ""
 
 msgid "价格"
-msgstr "价格"
+msgstr ""
 
 msgid "价格从低到高"
-msgstr "价格从低到高"
+msgstr ""
 
 msgid "价格从高到低"
-msgstr "价格从高到低"
+msgstr ""
 
 msgid "价格升序"
-msgstr "价格升序"
+msgstr ""
 
 msgid "价格未设置。"
-msgstr "价格未设置。"
+msgstr ""
 
 msgid "价格筛选"
-msgstr "价格筛选"
+msgstr ""
 
 msgid "价格降序"
-msgstr "价格降序"
+msgstr ""
 
 msgid "优惠减免"
-msgstr "优惠减免"
+msgstr ""
 
 msgid "优惠券"
-msgstr "优惠券"
+msgstr ""
 
 msgid "优惠券规则"
-msgstr "优惠券规则"
+msgstr ""
 
 msgid "优惠数值"
-msgstr "优惠数值"
+msgstr ""
 
 msgid "优惠模块不可用。"
-msgstr "优惠模块不可用。"
-
-msgid "优惠活动"
-msgstr "优惠活动"
+msgstr ""
 
 msgid "优惠码"
-msgstr "优惠码"
+msgstr ""
 
 msgid "优惠码不存在。"
-msgstr "优惠码不存在。"
+msgstr ""
 
 msgid "优惠码已应用。"
-msgstr "优惠码已应用。"
+msgstr ""
 
 msgid "优惠码需登录后使用。"
 msgstr ""
 
 msgid "优惠类型"
-msgstr "优惠类型"
+msgstr ""
 
 msgid "会员/付费内容已授予超过退款时限"
 msgstr ""
 
 msgid "会员中心"
-msgstr "会员中心"
+msgstr ""
 
 msgid "会员升级"
-msgstr "会员升级"
+msgstr ""
 
 msgid "会员升级：%s"
 msgstr ""
@@ -381,46 +377,37 @@ msgid "会员数"
 msgstr ""
 
 msgid "会员模块未启用。"
-msgstr "会员模块未启用。"
+msgstr ""
 
 msgid "余额"
-msgstr "余额"
+msgstr ""
 
 msgid "余额不足，当前余额 %s。"
-msgstr "余额不足，当前余额 %s。"
+msgstr ""
 
 msgid "余额支付"
-msgstr "余额支付"
+msgstr ""
 
 msgid "余额支付需登录后使用。"
 msgstr ""
 
-msgid "佣金"
-msgstr "佣金"
-
-msgid "佣金明细"
-msgstr "佣金明细"
-
 msgid "使用 %s %s 解锁"
-msgstr "使用 %s %s 解锁"
+msgstr ""
 
 msgid "使用 PayPal 帳戶或信用卡完成付款。"
-msgstr "使用 PayPal 帐户或信用卡完成付款。"
+msgstr ""
 
 msgid "使用次数上限"
-msgstr "使用次数上限"
+msgstr ""
 
 msgid "使用账户余额支付（需站点开通余额功能）。"
-msgstr "使用账户余额支付（需站点开通余额功能）。"
+msgstr ""
 
 msgid "例：HKD / USD / CNY / EUR"
-msgstr "例：HKD / USD / CNY / EUR"
-
-msgid "保价"
-msgstr "保价"
+msgstr ""
 
 msgid "保存后作为优惠码，建议全大写、无空格。"
-msgstr "保存后作为优惠码，建议全大写、无空格。"
+msgstr ""
 
 msgid "保存后每行卡密加密为一个新批次入库；存量明文卡密池将在升级迁移中自动导入并清空。"
 msgstr ""
@@ -429,76 +416,76 @@ msgid "保存地址"
 msgstr ""
 
 msgid "信用卡 / Apple Pay / Google Pay（Stripe）"
-msgstr "信用卡 / Apple Pay / Google Pay（Stripe）"
+msgstr ""
 
 msgid "停用"
 msgstr ""
 
 msgid "側邊欄"
-msgstr "侧边栏"
+msgstr ""
 
 msgid "側邊欄位置"
-msgstr "侧边栏位置"
+msgstr ""
 
 msgid "側邊欄懸停"
-msgstr "侧边栏悬停"
+msgstr ""
 
 msgid "備註"
-msgstr "备注"
+msgstr ""
 
 msgid "備註（選填）"
-msgstr "备注（选填）"
+msgstr ""
 
 msgid "允許訪客購買"
 msgstr ""
 
 msgid "充值不可使用余额支付。"
-msgstr "充值不可使用余额支付。"
+msgstr ""
 
 msgid "充值到账（订单 #%s）"
-msgstr "充值到账（订单 #%s）"
+msgstr ""
 
 msgid "充值模块不可用。"
-msgstr "充值模块不可用。"
+msgstr ""
 
 msgid "充值积分"
-msgstr "充值积分"
+msgstr ""
 
 msgid "充值积分已消费，无法退款"
 msgstr ""
 
 msgid "充值金额无效。"
-msgstr "充值金额无效。"
+msgstr ""
 
 msgid "充值金额无效，请检查汇率设置。"
-msgstr "充值金额无效，请检查汇率设置。"
+msgstr ""
 
 msgid "充足"
-msgstr "充足"
+msgstr ""
 
 msgid "先发一封到您自己的后台邮箱预览效果。"
-msgstr "先发一封到您自己的后台邮箱预览效果。"
+msgstr ""
 
 msgid "免費"
-msgstr "免费"
+msgstr ""
 
 msgid "全部"
-msgstr "全部"
+msgstr ""
 
 msgid "全部商品"
-msgstr "全部商品"
+msgstr ""
 
 msgid "全部商品分类"
-msgstr "全部商品分类"
+msgstr ""
 
 msgid "全部商品标签"
-msgstr "全部商品标签"
+msgstr ""
 
 msgid "全部注册用户"
-msgstr "全部注册用户"
+msgstr ""
 
 msgid "全部订单"
-msgstr "全部订单"
+msgstr ""
 
 msgid "全额"
 msgstr ""
@@ -510,52 +497,46 @@ msgid "全额退款成功后订单转为「已退款」，自动回滚库存、�
 msgstr ""
 
 msgid "共 %d 件商品"
-msgstr "共 %d 件商品"
+msgstr ""
 
 msgid "关闭后只保留「商品描述 / 更多信息」两个标签。可在商城设置里关闭「商品评价」总开关后此项自动隐藏。"
-msgstr "关闭后只保留「商品描述 / 更多信息」两个标签。可在商城设置里关闭「商品评价」总开关后此项自动隐藏。"
+msgstr ""
 
 msgid "关闭后此区域内的列表卡片不显示「实物 / 虚拟 / 卡密」徽章；留「默认」则跟随后台「列表显示」设置。"
-msgstr "关闭后此区域内的列表卡片不显示「实物 / 虚拟 / 卡密」徽章；留「默认」则跟随后台「列表显示」设置。"
+msgstr ""
 
 msgid "关闭后此区域内的列表卡片不渲染标签云；留「默认」则跟随后台「列表显示」设置。"
-msgstr "关闭后此区域内的列表卡片不渲染标签云；留「默认」则跟随后台「列表显示」设置。"
+msgstr ""
 
 msgid "关闭后，产品的付费 Meta Box 不生效。"
-msgstr "关闭后，产品的付费 Meta Box 不生效。"
+msgstr ""
 
 msgid "其他商品"
 msgstr ""
 
 msgid "其它标识"
-msgstr "其它标识"
+msgstr ""
 
 msgid "内容"
-msgstr "内容"
+msgstr ""
 
 msgid "内容无效。"
-msgstr "内容无效。"
+msgstr ""
 
 msgid "减少数量"
-msgstr "减少数量"
+msgstr ""
 
 msgid "分类"
-msgstr "分类"
-
-msgid "分销佣金"
-msgstr "分销佣金"
-
-msgid "分销功能未开启。"
-msgstr "分销功能未开启。"
+msgstr ""
 
 msgid "列表"
-msgstr "列表"
+msgstr ""
 
 msgid "列表顯示"
-msgstr "列表显示"
+msgstr ""
 
 msgid "刚刚"
-msgstr "刚刚"
+msgstr ""
 
 msgid "创建发货单并标记已发货"
 msgstr ""
@@ -567,7 +548,7 @@ msgid "刪除"
 msgstr ""
 
 msgid "到"
-msgstr "到"
+msgstr ""
 
 msgid "到店自提"
 msgstr ""
@@ -582,10 +563,10 @@ msgid "到店自提（免運費）"
 msgstr ""
 
 msgid "前 %d 张免费，剩余 %d 张购买后查看。"
-msgstr "前 %d 张免费，剩余 %d 张购买后查看。"
+msgstr ""
 
 msgid "前台公開支付方式"
-msgstr "前台公开支付方式"
+msgstr ""
 
 msgid "前台展示名（可選）"
 msgstr ""
@@ -594,46 +575,40 @@ msgid "剩余 %d 次"
 msgstr ""
 
 msgid "加入购物车"
-msgstr "加入购物车"
-
-msgid "勾选后仅指定会员等级可用，不选则所有用户。"
-msgstr "勾选后仅指定会员等级可用，不选则所有用户。"
+msgstr ""
 
 msgid "勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP 跳轉型網關）請單獨告訴我對接。"
-msgstr "勾选需要在前台结算页公开的支付方式；未勾选的方式在前台「选择支付方式」列表中不会显示，且 AJAX 下单会被拒绝。如需新增支付方式（例如独立的 APP 跳转型网关）请单独告诉我对接。"
+msgstr ""
 
 msgid "包裹已交运（%1$s %2$s）"
 msgstr ""
 
-msgid "升級會員"
-msgstr "升级会员"
-
 msgid "升级"
-msgstr "升级"
+msgstr ""
 
 msgid "升级价格无效。"
-msgstr "升级价格无效。"
+msgstr ""
 
 msgid "升级模块不可用。"
-msgstr "升级模块不可用。"
+msgstr ""
 
 msgid "升级目标等级"
-msgstr "升级目标等级"
+msgstr ""
 
 msgid "单个商品"
-msgstr "单个商品"
+msgstr ""
 
 msgid "单个订单"
-msgstr "单个订单"
+msgstr ""
 
 msgid "单价"
-msgstr "单价"
+msgstr ""
 
 msgid "单次最多导入 %d 行（当前 %d 行），请分批导入。"
 msgstr ""
 
 msgid "卡密"
-msgstr "卡密"
+msgstr ""
 
 msgid "卡密不存在。"
 msgstr ""
@@ -648,7 +623,7 @@ msgid "卡密列表（掩码，前 100 条）"
 msgstr ""
 
 msgid "卡密商品"
-msgstr "卡密商品"
+msgstr ""
 
 msgid "卡密已交付"
 msgstr ""
@@ -668,9 +643,6 @@ msgstr ""
 msgid "卡密明文（已记录审计）："
 msgstr ""
 
-msgid "卡密池（每行一条，售出后自动扣减）"
-msgstr "卡密池（每行一条，售出后自动扣减）"
-
 msgid "卡密解密失败，请联系站长。"
 msgstr ""
 
@@ -681,31 +653,31 @@ msgid "卡密（每行一条）"
 msgstr ""
 
 msgid "卡密："
-msgstr "卡密："
+msgstr ""
 
 msgid "卡片标题"
-msgstr "卡片标题"
+msgstr ""
 
 msgid "原因"
 msgstr ""
 
 msgid "去充值"
-msgstr "去充值"
+msgstr ""
 
 msgid "去挑选商品"
-msgstr "去挑选商品"
+msgstr ""
 
 msgid "去结算"
-msgstr "去结算"
+msgstr ""
 
 msgid "参数无效。"
-msgstr "参数无效。"
+msgstr ""
 
 msgid "发件人名称"
-msgstr "发件人名称"
+msgstr ""
 
 msgid "发件人邮箱"
-msgstr "发件人邮箱"
+msgstr ""
 
 msgid "发货单"
 msgstr ""
@@ -720,37 +692,28 @@ msgid "发货备注"
 msgstr ""
 
 msgid "发货时间"
-msgstr "发货时间"
+msgstr ""
 
 msgid "发送"
-msgstr "发送"
+msgstr ""
 
 msgid "发送测试到管理员"
-msgstr "发送测试到管理员"
+msgstr ""
 
 msgid "变动"
-msgstr "变动"
+msgstr ""
 
 msgid "变更状态会触发对应副作用（发货/交付/退款回补/优惠券释放），并受状态流转规则约束。"
-msgstr "变更状态会触发对应副作用（发货/交付/退款回补/优惠券释放），并受状态流转规则约束。"
+msgstr ""
 
 msgid "变更订单状态"
-msgstr "变更订单状态"
+msgstr ""
 
 msgid "可售"
 msgstr ""
 
 msgid "可售卡密"
 msgstr ""
-
-msgid "可提现余额不足，最低提现 %s。"
-msgstr "可提现余额不足，最低提现 %s。"
-
-msgid "可提现余额满 %s 方可申请提现。"
-msgstr "可提现余额满 %s 方可申请提现。"
-
-msgid "可提现佣金"
-msgstr "可提现佣金"
 
 msgid "可退金额不足（累计退款已接近订单总额）。"
 msgstr ""
@@ -759,19 +722,19 @@ msgid "可选，写入轨迹首条"
 msgstr ""
 
 msgid "右"
-msgstr "右"
+msgstr ""
 
 msgid "右側（默认）"
-msgstr "右侧（默认）"
+msgstr ""
 
 msgid "合計（含運費）"
-msgstr "合计（含运费）"
+msgstr ""
 
 msgid "合计"
-msgstr "合计"
+msgstr ""
 
 msgid "合计："
-msgstr "合计："
+msgstr ""
 
 msgid "同一 IP 每小時最多下單次數，0 表示不限流（防灌單濫用）。"
 msgstr ""
@@ -780,28 +743,25 @@ msgid "同一发货单连续查询失败 3 次会自动暂停 24 小时，避免
 msgstr ""
 
 msgid "同步 WooCommerce 商品标签"
-msgstr "同步 WooCommerce 商品标签"
+msgstr ""
 
 msgid "同步完成：共导入 %1$d 个商品标签，为 %2$d 件月光商品标注标签。"
-msgstr "同步完成：共导入 %1$d 个商品标签，为 %2$d 件月光商品标注标签。"
+msgstr ""
 
 msgid "启用"
-msgstr "启用"
+msgstr ""
 
 msgid "启用中"
 msgstr ""
 
 msgid "启用产品付费阅读/下载/积分购买等功能"
-msgstr "启用产品付费阅读/下载/积分购买等功能"
+msgstr ""
 
 msgid "启用付费功能"
-msgstr "启用付费功能"
+msgstr ""
 
 msgid "启用此优惠券"
-msgstr "启用此优惠券"
-
-msgid "启用此活动"
-msgstr "启用此活动"
+msgstr ""
 
 msgid "响应解析失败"
 msgstr ""
@@ -809,14 +769,11 @@ msgstr ""
 msgid "售后与退款"
 msgstr ""
 
-msgid "售后服务"
-msgstr "售后服务"
-
 msgid "售后模块不可用。"
 msgstr ""
 
 msgid "售后申请"
-msgstr "售后申请"
+msgstr ""
 
 msgid "售后申请处理中，管理员会尽快与您联系。"
 msgstr ""
@@ -824,182 +781,176 @@ msgstr ""
 msgid "售后申请已提交，管理员会尽快处理。"
 msgstr ""
 
-msgid "售后申请提交失败。"
-msgstr "售后申请提交失败。"
-
-msgid "售后类型无效。"
-msgstr "售后类型无效。"
-
 msgid "商品"
-msgstr "商品"
+msgstr ""
 
 msgid "商品「%1$s」卡密库存不足，仅剩 %2$d 条，请及时补充（进入后台 → 商城 → 卡密库存 导入新批次）。"
 msgstr ""
 
 msgid "商品不存在。"
-msgstr "商品不存在。"
+msgstr ""
 
 msgid "商品主图"
-msgstr "商品主图"
+msgstr ""
 
 msgid "商品价格排版"
-msgstr "商品价格排版"
+msgstr ""
 
 msgid "商品信息"
-msgstr "商品信息"
+msgstr ""
 
 msgid "商品分类"
-msgstr "商品分类"
+msgstr ""
 
 msgid "商品分頁"
-msgstr "商品分页"
+msgstr ""
 
 msgid "商品分類前綴"
-msgstr "商品分类前缀"
+msgstr ""
 
 msgid "商品列表"
-msgstr "商品列表"
+msgstr ""
 
 msgid "商品列表导航"
-msgstr "商品列表导航"
+msgstr ""
 
 msgid "商品列表布局"
-msgstr "商品列表布局"
+msgstr ""
 
 msgid "商品列表頁前綴"
-msgstr "商品列表页前缀"
+msgstr ""
 
 msgid "商品列表页、分类页、搜索结果页每页显示的商品数量。"
-msgstr "商品列表页、分类页、搜索结果页每页显示的商品数量。"
+msgstr ""
 
 msgid "商品列表页与商品详情页右侧显示的小工具。"
-msgstr "商品列表页与商品详情页右侧显示的小工具。"
+msgstr ""
 
 msgid "商品單頁前綴"
-msgstr "商品单页前缀"
+msgstr ""
 
 msgid "商品小計達到此金額即免運費（例：400 表示滿 400 包郵）。"
-msgstr "商品小计达到此金额即免运费（例：400 表示满 400 包邮）。"
+msgstr ""
 
 msgid "商品小计"
-msgstr "商品小计"
+msgstr ""
 
 msgid "商品属性"
-msgstr "商品属性"
+msgstr ""
 
 msgid "商品已下架或未发布。"
 msgstr ""
 
 msgid "商品已删除。"
-msgstr "商品已删除。"
+msgstr ""
 
 msgid "商品已发布。"
-msgstr "商品已发布。"
+msgstr ""
 
 msgid "商品已恢复为草稿。"
-msgstr "商品已恢复为草稿。"
+msgstr ""
 
 msgid "商品已排入发布计划。"
-msgstr "商品已排入发布计划。"
+msgstr ""
 
 msgid "商品已更新。"
-msgstr "商品已更新。"
+msgstr ""
 
 msgid "商品已私密发布。"
-msgstr "商品已私密发布。"
+msgstr ""
 
 msgid "商品归档"
-msgstr "商品归档"
+msgstr ""
 
 msgid "商品描述"
-msgstr "商品描述"
+msgstr ""
 
 msgid "商品搜索"
-msgstr "商品搜索"
+msgstr ""
 
 msgid "商品搜索：%s"
-msgstr "商品搜索：%s"
+msgstr ""
 
 msgid "商品摘要 meta 區塊"
-msgstr "商品摘要 meta 区块"
+msgstr ""
 
 msgid "商品数"
 msgstr ""
 
 msgid "商品标签"
-msgstr "商品标签"
+msgstr ""
 
 msgid "商品标签云"
-msgstr "商品标签云"
+msgstr ""
 
 msgid "商品标签前缀"
-msgstr "商品标签前缀"
+msgstr ""
 
 msgid "商品标题排版"
-msgstr "商品标题排版"
+msgstr ""
 
 msgid "商品相册（可多选，第一张作主图）"
-msgstr "商品相册（可多选，第一张作主图）"
+msgstr ""
 
 msgid "商品类型"
-msgstr "商品类型"
+msgstr ""
 
 msgid "商品类型徽章（实物/虚拟/卡密）"
-msgstr "商品类型徽章（实物/虚拟/卡密）"
+msgstr ""
 
 msgid "商品订单"
-msgstr "商品订单"
+msgstr ""
 
 msgid "商品设置"
-msgstr "商品设置"
+msgstr ""
 
 msgid "商品评价"
-msgstr "商品评价"
+msgstr ""
 
 msgid "商品連結"
-msgstr "商品连结"
+msgstr ""
 
 msgid "商品链接"
-msgstr "商品链接"
+msgstr ""
 
 msgid "商品间距（像素）"
-msgstr "商品间距（像素）"
+msgstr ""
 
 msgid "商城"
-msgstr "商城"
+msgstr ""
 
 msgid "商城·加入购物车"
-msgstr "商城·加入购物车"
+msgstr ""
 
 msgid "商城·商品分类"
-msgstr "商城·商品分类"
+msgstr ""
 
 msgid "商城·商品单页"
-msgstr "商城·商品单页"
+msgstr ""
 
 msgid "商城·商品搜索"
-msgstr "商城·商品搜索"
+msgstr ""
 
 msgid "商城·商品网格"
-msgstr "商城·商品网格"
+msgstr ""
 
 msgid "商城·我的收藏"
-msgstr "商城·我的收藏"
+msgstr ""
 
 msgid "商城·购物车"
-msgstr "商城·购物车"
+msgstr ""
 
 msgid "商城仪表盘"
 msgstr ""
 
 msgid "商城侧栏"
-msgstr "商城侧栏"
+msgstr ""
 
 msgid "商城設定"
-msgstr "商城设定"
+msgstr ""
 
 msgid "商店聯絡電郵"
-msgstr "商店联络电邮"
+msgstr ""
 
 msgid "商戶 API 證書序列號（商戶平台 → API 安全）"
 msgstr ""
@@ -1014,7 +965,7 @@ msgid "商戶證書序列號"
 msgstr ""
 
 msgid "啟用實物商品運費"
-msgstr "启用实物商品运费"
+msgstr ""
 
 msgid "啟用微信支付"
 msgstr ""
@@ -1026,70 +977,70 @@ msgid "啟用（AppID、應用私鑰、支付寶公鑰齊全後前台可用）"
 msgstr ""
 
 msgid "啟用（使用 Sandbox 環境）"
-msgstr "启用（使用 Sandbox 环境）"
+msgstr ""
 
 msgid "啟用（使用 Test Key，不會真實扣款）"
-msgstr "启用（使用 Test Key，不会真实扣款）"
+msgstr ""
 
 msgid "啟用（商戶號、AppID、證書序列號、私鑰、APIv3 密鑰齊全後前台可用）"
 msgstr ""
 
 msgid "單頁顯示"
-msgstr "单页显示"
+msgstr ""
 
 msgid "回收站中暂无商品"
-msgstr "回收站中暂无商品"
+msgstr ""
 
 msgid "回收站中暂无订单。"
-msgstr "回收站中暂无订单。"
+msgstr ""
 
 msgid "固定 %s"
 msgstr ""
 
 msgid "固定運費"
-msgstr "固定运费"
+msgstr ""
 
 msgid "固定金额减免"
-msgstr "固定金额减免"
+msgstr ""
 
 msgid "圆通速递"
 msgstr ""
 
 msgid "在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID："
-msgstr "在 PayPal Developer → Webhooks 新增端点，并填写该端点的 Webhook ID："
+msgstr ""
 
 msgid "在 Stripe Dashboard → Developers → Webhooks 新增端點："
-msgstr "在 Stripe Dashboard → Developers → Webhooks 新增端点："
+msgstr ""
 
 msgid "在「商城設定 → 運費設定 → 運費模板」配置；留空按默認全局運費計算。"
 msgstr ""
 
 msgid "在商品列表卡片上顯示「实物 / 虚拟 / 卡密」類型徽章"
-msgstr "在商品列表卡片上显示「实物 / 虚拟 / 卡密」类型徽章"
+msgstr ""
 
 msgid "在商品列表卡片上顯示商品標籤（小藥丸樣式）"
-msgstr "在商品列表卡片上显示商品标签（小药丸样式）"
+msgstr ""
 
 msgid "在商品单页底部「评价」标签页启用 WordPress 評論區"
-msgstr "在商品单页底部「评价」标签页启用 WordPress 评论区"
+msgstr ""
 
 msgid "在商品單頁頂部顯示「首頁 › 商城 › 分類 › 商品」面包屑"
-msgstr "在商品单页顶部显示「首页 › 商城 › 分类 › 商品」面包屑"
+msgstr ""
 
 msgid "在媒体库上传文件后填入其 ID。"
-msgstr "在媒体库上传文件后填入其 ID。"
+msgstr ""
 
 msgid "在媒体库框中选多张；留空则仅用特色图片。点击缩略图可移除。"
-msgstr "在媒体库框中选多张；留空则仅用特色图片。点击缩略图可移除。"
+msgstr ""
 
 msgid "在摘要下方顯示「貨號 / 分類 / 庫存」三行"
-msgstr "在摘要下方显示「货号 / 分类 / 库存」三行"
+msgstr ""
 
 msgid "在线预览"
-msgstr "在线预览"
+msgstr ""
 
 msgid "地址"
-msgstr "地址"
+msgstr ""
 
 msgid "地址不存在或已删除。"
 msgstr ""
@@ -1107,43 +1058,40 @@ msgid "城市"
 msgstr ""
 
 msgid "基本設定"
-msgstr "基本设定"
+msgstr ""
 
 msgid "增加数量"
-msgstr "增加数量"
+msgstr ""
 
 msgid "处理中"
-msgstr "处理中"
+msgstr ""
 
 msgid "备注"
-msgstr "备注"
+msgstr ""
 
 msgid "复制"
-msgstr "复制"
-
-msgid "失败"
-msgstr "失败"
+msgstr ""
 
 msgid "失败信息"
-msgstr "失败信息"
+msgstr ""
 
 msgid "如有优惠码请在此输入"
-msgstr "如有优惠码请在此输入"
+msgstr ""
 
 msgid "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
-msgstr "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
+msgstr ""
 
 msgid "字号"
-msgstr "字号"
+msgstr ""
 
 msgid "字重"
-msgstr "字重"
+msgstr ""
 
 msgid "实物"
-msgstr "实物"
+msgstr ""
 
 msgid "实物商品"
-msgstr "实物商品"
+msgstr ""
 
 msgid "实物已发货，请走售后协商"
 msgstr ""
@@ -1152,25 +1100,25 @@ msgid "实物订单需选择收货地址。"
 msgstr ""
 
 msgid "客单价"
-msgstr "客单价"
+msgstr ""
 
 msgid "客戶收到郵件時看到的「發件人」名字，留空用站點名稱。"
-msgstr "客户收到邮件时看到的「发件人」名字，留空用站点名称。"
+msgstr ""
 
 msgid "客户"
-msgstr "客户"
+msgstr ""
 
 msgid "客户数 %d"
-msgstr "客户数 %d"
+msgstr ""
 
 msgid "實物"
-msgstr "实物"
+msgstr ""
 
 msgid "實物商品寄送"
-msgstr "实物商品寄送"
+msgstr ""
 
 msgid "对齐"
-msgstr "对齐"
+msgstr ""
 
 msgid "导入卡密"
 msgstr ""
@@ -1179,34 +1127,34 @@ msgid "导入成功：%1$d 条入池，跳过重复 %2$d 条（批次 #%3$d）�
 msgstr ""
 
 msgid "将站内 WooCommerce 商品的标签（product_tag）整批汇入月光「商品标签」，并按 SKU / 标题对应到月光商品打标。可重复执行，不会重复建标签或重复打标。"
-msgstr "将站内 WooCommerce 商品的标签（product_tag）整批汇入月光「商品标签」，并按 SKU / 标题对应到月光商品打标。可重复执行，不会重复建标签或重复打标。"
+msgstr ""
 
 msgid "小計"
-msgstr "小计"
+msgstr ""
 
 msgid "小计"
-msgstr "小计"
+msgstr ""
 
 msgid "居中"
-msgstr "居中"
+msgstr ""
 
 msgid "左"
-msgstr "左"
+msgstr ""
 
 msgid "左側"
-msgstr "左侧"
+msgstr ""
 
 msgid "已付款"
-msgstr "已付款"
+msgstr ""
 
 msgid "已付款订单"
-msgstr "已付款订单"
+msgstr ""
 
 msgid "已使用 %d 次"
-msgstr "已使用 %d 次"
+msgstr ""
 
 msgid "已使用积分解锁，正在刷新…"
-msgstr "已使用积分解锁，正在刷新…"
+msgstr ""
 
 msgid "已保存（%s）。留空表示不修改。"
 msgstr ""
@@ -1230,28 +1178,28 @@ msgid "已创建"
 msgstr ""
 
 msgid "已加入 ✓"
-msgstr "已加入 ✓"
+msgstr ""
 
 msgid "已加入收藏。"
-msgstr "已加入收藏。"
+msgstr ""
 
 msgid "已加入购物车。"
-msgstr "已加入购物车。"
+msgstr ""
 
 msgid "已发货"
 msgstr ""
 
 msgid "已取消"
-msgstr "已取消"
+msgstr ""
 
 msgid "已取消收藏。"
-msgstr "已取消收藏。"
+msgstr ""
 
 msgid "已售"
 msgstr ""
 
 msgid "已售 %d 份"
-msgstr "已售 %d 份"
+msgstr ""
 
 msgid "已在网关后台手动退款（仅标记，跳过网关 API）"
 msgstr ""
@@ -1263,40 +1211,34 @@ msgid "已存在待处理的售后申请，请耐心等待。"
 msgstr ""
 
 msgid "已完成"
-msgstr "已完成"
+msgstr ""
 
 msgid "已批准"
 msgstr ""
 
 msgid "已拒绝"
-msgstr "已拒绝"
-
-msgid "已拒绝售后申请。"
-msgstr "已拒绝售后申请。"
+msgstr ""
 
 msgid "已收藏"
-msgstr "已收藏"
+msgstr ""
 
 msgid "已更新。"
-msgstr "已更新。"
+msgstr ""
 
 msgid "已有账号？登录"
 msgstr ""
-
-msgid "已标记为已打款。"
-msgstr "已标记为已打款。"
 
 msgid "已核销"
 msgstr ""
 
 msgid "已滿 %2$s，享 %1$s 免運費。"
-msgstr "已满 %2$s，享 %1$s 免运费。"
+msgstr ""
 
 msgid "已确认收货，感谢您的购买！"
 msgstr ""
 
 msgid "已移除。"
-msgstr "已移除。"
+msgstr ""
 
 msgid "已签收"
 msgstr ""
@@ -1311,67 +1253,58 @@ msgid "已过期/停用"
 msgstr ""
 
 msgid "已退款"
-msgstr "已退款"
+msgstr ""
 
 msgid "已退款累计：%1$s %2$s / %3$s %4$s"
 msgstr ""
 
-msgid "已通过"
-msgstr "已通过"
-
-msgid "已通过售后申请。"
-msgstr "已通过售后申请。"
-
 msgid "布局"
-msgstr "布局"
+msgstr ""
 
 msgid "平板端列数（≤900px）"
-msgstr "平板端列数（≤900px）"
+msgstr ""
 
 msgid "库存"
-msgstr "库存"
+msgstr ""
 
 msgid "库存不足，仅剩 %d 件。"
-msgstr "库存不足，仅剩 %d 件。"
+msgstr ""
 
 msgid "库存（-1 = 无限）"
-msgstr "库存（-1 = 无限）"
+msgstr ""
 
 msgid "库存（-1 表示无限，卡密类型填可用张数）"
-msgstr "库存（-1 表示无限，卡密类型填可用张数）"
+msgstr ""
 
 msgid "应付总额"
-msgstr "应付总额"
+msgstr ""
 
 msgid "应用"
-msgstr "应用"
+msgstr ""
 
 msgid "应用范围"
-msgstr "应用范围"
+msgstr ""
 
 msgid "建議使用與網域一致的郵箱（如 no-reply@yourdomain.com）以提升送達率，留空用商店聯絡郵箱。"
-msgstr "建议使用与网域一致的邮箱（如 no-reply@yourdomain.com）以提升送达率，留空用商店联络邮箱。"
+msgstr ""
 
 msgid "开始群发"
-msgstr "开始群发"
+msgstr ""
 
 msgid "异常"
 msgstr ""
 
 msgid "当前商品（循环中）"
-msgstr "当前商品（循环中）"
+msgstr ""
 
 msgid "当前库存池：%1$d 个批次，可售 %2$d 条（在「商城 → 卡密库存」管理批次）。历史明文池已迁移并清空（标记 _mlshop_cardkeys_migrated）。"
 msgstr ""
 
 msgid "当前浏览器不支持视频播放。"
-msgstr "当前浏览器不支持视频播放。"
+msgstr ""
 
 msgid "当前等级"
-msgstr "当前等级"
-
-msgid "当前订单不可申请售后。"
-msgstr "当前订单不可申请售后。"
+msgstr ""
 
 msgid "当前订单不可通过本表单退款：%s。如需协商退款，可使用上方「更新状态」改为已退款（仅标记，不调网关）。"
 msgstr ""
@@ -1389,16 +1322,16 @@ msgid "当前订单状态（%s）不支持退款。"
 msgstr ""
 
 msgid "当前订单的链接。"
-msgstr "当前订单的链接。"
+msgstr ""
 
 msgid "当前购物车商品不参与优惠活动。"
-msgstr "当前购物车商品不参与优惠活动。"
+msgstr ""
 
 msgid "影响商品列表页（含分类、搜索、Elementor 网格）卡片上的价格显示；商品详情页不受此设置控制。"
-msgstr "影响商品列表页（含分类、搜索、Elementor 网格）卡片上的价格显示；商品详情页不受此设置控制。"
+msgstr ""
 
 msgid "待付款"
-msgstr "待付款"
+msgstr ""
 
 msgid "待发货"
 msgstr ""
@@ -1407,7 +1340,7 @@ msgid "待发货订单"
 msgstr ""
 
 msgid "待处理"
-msgstr "待处理"
+msgstr ""
 
 msgid "待处理售后"
 msgstr ""
@@ -1476,49 +1409,46 @@ msgid "总数"
 msgstr ""
 
 msgid "总销售额"
-msgstr "总销售额"
+msgstr ""
 
 msgid "您尚未购买此内容。"
-msgstr "您尚未购买此内容。"
+msgstr ""
 
 msgid "您已解锁该内容。"
-msgstr "您已解锁该内容。"
+msgstr ""
 
 msgid "您当前的会员等级无权购买此内容。"
-msgstr "您当前的会员等级无权购买此内容。"
+msgstr ""
 
 msgid "您正在以访客身份购买，无需注册。请填写电子邮箱：订单确认、虚拟商品下载链接与卡密将发送到该邮箱。"
 msgstr ""
 
-msgid "您當前的會員等級無權查看此內容，請升級會員後繼續。"
-msgstr "您当前的会员等级无权查看此内容，请升级会员后继续。"
-
 msgid "您的余额：%s %s"
-msgstr "您的余额：%s %s"
+msgstr ""
 
 msgid "您的教材 / 卡密"
-msgstr "您的教材 / 卡密"
+msgstr ""
 
 msgid "您的訂單已付款完成，相關教材下載連結如下。請妥善保存。"
-msgstr "您的订单已付款完成，相关教材下载连结如下。请妥善保存。"
+msgstr ""
 
 msgid "您的訂單已提交，我們將盡快為您處理；貨到付款訂單將於驗貨後安排寄送。"
-msgstr "您的订单已提交，我们将尽快为您处理；货到付款订单将于验货后安排寄送。"
+msgstr ""
 
 msgid "您还没有使用过优惠码。"
-msgstr "您还没有使用过优惠码。"
+msgstr ""
 
 msgid "您还没有保存收货地址，请在下方新增。"
 msgstr ""
 
 msgid "您还没有订单。"
-msgstr "您还没有订单。"
+msgstr ""
 
 msgid "悬停颜色"
-msgstr "悬停颜色"
+msgstr ""
 
 msgid "感謝您的支持！您的會員等級已升級為：%s，相關權限立即生效。"
-msgstr "感谢您的支持！您的会员等级已升级为：%s，相关权限立即生效。"
+msgstr ""
 
 msgid "應用私鑰"
 msgstr ""
@@ -1527,22 +1457,16 @@ msgid "我已完成支付"
 msgstr ""
 
 msgid "我的下载"
-msgstr "我的下载"
+msgstr ""
 
 msgid "我的优惠券"
-msgstr "我的优惠券"
-
-msgid "我的推广"
-msgstr "我的推广"
-
-msgid "我的推广链接"
-msgstr "我的推广链接"
+msgstr ""
 
 msgid "我的收藏"
-msgstr "我的收藏"
+msgstr ""
 
 msgid "我的订单"
-msgstr "我的订单"
+msgstr ""
 
 msgid "或手工输入公司名（非空时优先于下拉）"
 msgstr ""
@@ -1554,13 +1478,13 @@ msgid "所有卡密商品库存充足。"
 msgstr ""
 
 msgid "所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。"
-msgstr "所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。"
+msgstr ""
 
 msgid "所选地址不存在，请重新选择。"
 msgstr ""
 
 msgid "手动输入邮箱"
-msgstr "手动输入邮箱"
+msgstr ""
 
 msgid "手工发货"
 msgstr ""
@@ -1575,16 +1499,13 @@ msgid "手机号需为 5-20 位数字或「-」。"
 msgstr ""
 
 msgid "手机端列数（≤520px）"
-msgstr "手机端列数（≤520px）"
-
-msgid "扣减余额失败，请稍后重试。"
-msgstr "扣减余额失败，请稍后重试。"
+msgstr ""
 
 msgid "执行退款"
 msgstr ""
 
 msgid "扫码 / 线下付款"
-msgstr "扫码 / 线下付款"
+msgstr ""
 
 msgid "批次列表"
 msgstr ""
@@ -1605,61 +1526,46 @@ msgid "批量导入卡密"
 msgstr ""
 
 msgid "承運商名稱"
-msgstr "承运商名称"
-
-msgid "折扣（按百分比）"
-msgstr "折扣（按百分比）"
+msgstr ""
 
 msgid "指定会员等级"
-msgstr "指定会员等级"
+msgstr ""
 
 msgid "按 %s %s / 1 货币单位计算"
-msgstr "按 %s %s / 1 货币单位计算"
+msgstr ""
 
 msgid "按件（首件 %s / 續件 %s）"
 msgstr ""
 
 msgid "按名称"
-msgstr "按名称"
+msgstr ""
 
 msgid "按商品計費的運費模板，每行一條：模板名|模式|首件|續件|免郵門檻。模式 fixed = 固定運費（小計未達門檻收「首件」列金額）；piece = 按件計費（首件 + (件數-1) × 續件）。門檻 > 0 且商品小計達標時該商品免運費。留空 = 未配置，全部商品走上方全局固定運費 + 滿額包郵。"
 msgstr ""
 
 msgid "按日期筛选订单"
-msgstr "按日期筛选订单"
+msgstr ""
 
 msgid "按钮文字"
-msgstr "按钮文字"
+msgstr ""
 
 msgid "排序"
-msgstr "排序"
+msgstr ""
 
 msgid "排序："
-msgstr "排序："
+msgstr ""
 
 msgid "推广链接购买可享 %s%% 折扣"
-msgstr "推广链接购买可享 %s%% 折扣"
+msgstr ""
 
 msgid "推荐您注册成为网站用户"
 msgstr ""
 
 msgid "提交订单"
-msgstr "提交订单"
+msgstr ""
 
 msgid "提供 %d 次免费下载机会"
-msgstr "提供 %d 次免费下载机会"
-
-msgid "提现"
-msgstr "提现"
-
-msgid "提现申请"
-msgstr "提现申请"
-
-msgid "提现申请已提交，等待管理员审核打款。"
-msgstr "提现申请已提交，等待管理员审核打款。"
-
-msgid "提现申请提交失败。"
-msgstr "提现申请提交失败。"
+msgstr ""
 
 msgid "提貨人姓名"
 msgstr ""
@@ -1668,34 +1574,34 @@ msgid "提貨人手機號"
 msgstr ""
 
 msgid "插入到商品"
-msgstr "插入到商品"
+msgstr ""
 
 msgid "插入至订单"
-msgstr "插入至订单"
+msgstr ""
 
 msgid "搜索"
-msgstr "搜索"
+msgstr ""
 
 msgid "搜索优惠券"
-msgstr "搜索优惠券"
+msgstr ""
 
 msgid "搜索商品"
-msgstr "搜索商品"
+msgstr ""
 
 msgid "搜索商品…"
-msgstr "搜索商品…"
+msgstr ""
 
 msgid "搜索商品分类"
-msgstr "搜索商品分类"
+msgstr ""
 
 msgid "搜索商品标签"
-msgstr "搜索商品标签"
+msgstr ""
 
 msgid "搜索订单"
-msgstr "搜索订单"
+msgstr ""
 
 msgid "操作"
-msgstr "操作"
+msgstr ""
 
 msgid "操作者"
 msgstr ""
@@ -1710,10 +1616,10 @@ msgid "支付場景"
 msgstr ""
 
 msgid "支付失败"
-msgstr "支付失败"
+msgstr ""
 
 msgid "支付失败，请重新下单或更换支付方式。"
-msgstr "支付失败，请重新下单或更换支付方式。"
+msgstr ""
 
 msgid "支付寶"
 msgstr ""
@@ -1758,46 +1664,43 @@ msgid "支付已确认，订单即将更新。"
 msgstr ""
 
 msgid "支付成功，订单已生效。"
-msgstr "支付成功，订单已生效。"
+msgstr ""
 
 msgid "支付方式"
-msgstr "支付方式"
+msgstr ""
 
 msgid "支付方式无效。"
-msgstr "支付方式无效。"
+msgstr ""
 
 msgid "支付时限已过期，请重新下单。"
-msgstr "支付时限已过期，请重新下单。"
-
-msgid "支付校验失败：订单与支付凭据不匹配。"
-msgstr "支付校验失败：订单与支付凭据不匹配。"
+msgstr ""
 
 msgid "支付模块不可用。"
-msgstr "支付模块不可用。"
+msgstr ""
 
 msgid "支付网关"
-msgstr "支付网关"
+msgstr ""
 
 msgid "支付金额与订单不符，已记录待人工核对。"
 msgstr ""
 
 msgid "支持占位符："
-msgstr "支持占位符："
+msgstr ""
 
 msgid "收件人"
-msgstr "收件人"
+msgstr ""
 
 msgid "收件人姓名需为 1-32 个字。"
 msgstr ""
 
 msgid "收件地址"
-msgstr "收件地址"
+msgstr ""
 
 msgid "收件資料"
-msgstr "收件资料"
+msgstr ""
 
 msgid "收件資料（實物商品寄送）"
-msgstr "收件资料（实物商品寄送）"
+msgstr ""
 
 msgid "收到商品请点击确认收货；超期未确认的订单将按商城设置自动完成。"
 msgstr ""
@@ -1806,16 +1709,16 @@ msgid "收到新的售后申请：\n\n订单：%1$s\n用户：%2$s\n原因：%3$
 msgstr ""
 
 msgid "收藏"
-msgstr "收藏"
+msgstr ""
 
 msgid "收藏是空白的。"
-msgstr "收藏是空白的。"
+msgstr ""
 
 msgid "收藏组件未加载。"
-msgstr "收藏组件未加载。"
+msgstr ""
 
 msgid "收货地址"
-msgstr "收货地址"
+msgstr ""
 
 msgid "收货城市无效，请重新选择。"
 msgstr ""
@@ -1827,25 +1730,25 @@ msgid "收起"
 msgstr ""
 
 msgid "数量"
-msgstr "数量"
+msgstr ""
 
 msgid "数量不能为负数。"
 msgstr ""
 
 msgid "數量"
-msgstr "数量"
+msgstr ""
 
 msgid "文件不存在。"
-msgstr "文件不存在。"
+msgstr ""
 
 msgid "新商品"
-msgstr "新商品"
+msgstr ""
 
 msgid "新商品分类名称"
-msgstr "新商品分类名称"
+msgstr ""
 
 msgid "新商品标签名称"
-msgstr "新商品标签名称"
+msgstr ""
 
 msgid "新商戶推薦「微信支付公鑰模式」：同時填寫下方公鑰內容。兩項均留空時回退平台證書模式（自動 GET /v3/certificates 下載並緩存 12 小時）。"
 msgstr ""
@@ -1857,22 +1760,19 @@ msgid "新增卡密（每行一条，保存后加密入库存池，明文不落�
 msgstr ""
 
 msgid "新建优惠券"
-msgstr "新建优惠券"
-
-msgid "新建优惠活动"
-msgstr "新建优惠活动"
+msgstr ""
 
 msgid "新建商品分类"
-msgstr "新建商品分类"
+msgstr ""
 
 msgid "新建商品标签"
-msgstr "新建商品标签"
+msgstr ""
 
 msgid "新订单"
-msgstr "新订单"
+msgstr ""
 
 msgid "无效的会员等级。"
-msgstr "无效的会员等级。"
+msgstr ""
 
 msgid "无权操作该订单。"
 msgstr ""
@@ -1881,7 +1781,7 @@ msgid "无权查看该卡密。"
 msgstr ""
 
 msgid "无权查看该订单。"
-msgstr "无权查看该订单。"
+msgstr ""
 
 msgid "无权访问该订单。"
 msgstr ""
@@ -1889,182 +1789,167 @@ msgstr ""
 msgid "无门槛"
 msgstr ""
 
-msgid "日期"
-msgstr "日期"
-
 msgid "时间"
-msgstr "时间"
+msgstr ""
 
 msgid "时间窗内无数据。"
-msgstr "时间窗内无数据。"
+msgstr ""
 
 msgid "时间窗内暂无销量数据。"
-msgstr "时间窗内暂无销量数据。"
+msgstr ""
 
 msgid "昨天"
-msgstr "昨天"
+msgstr ""
 
 msgid "显示"
-msgstr "显示"
+msgstr ""
 
 msgid "显示加入购物车"
-msgstr "显示加入购物车"
+msgstr ""
 
 msgid "显示商品数"
-msgstr "显示商品数"
+msgstr ""
 
 msgid "显示商品标签"
-msgstr "显示商品标签"
+msgstr ""
 
 msgid "显示描述/信息/评价标签"
-msgstr "显示描述/信息/评价标签"
+msgstr ""
 
 msgid "显示收藏按钮"
-msgstr "显示收藏按钮"
+msgstr ""
 
 msgid "显示数量"
-msgstr "显示数量"
+msgstr ""
 
 msgid "显示数量 (0 = 全部):"
-msgstr "显示数量 (0 = 全部):"
+msgstr ""
 
 msgid "显示数量:"
-msgstr "显示数量:"
+msgstr ""
 
 msgid "显示数量输入"
-msgstr "显示数量输入"
+msgstr ""
 
 msgid "显示相册（主图+缩略图）"
-msgstr "显示相册（主图+缩略图）"
+msgstr ""
 
 msgid "显示类型徽章"
-msgstr "显示类型徽章"
+msgstr ""
 
 msgid "显示评价标签"
-msgstr "显示评价标签"
-
-msgid "暂无佣金记录。"
-msgstr "暂无佣金记录。"
+msgstr ""
 
 msgid "暂无分类。"
-msgstr "暂无分类。"
+msgstr ""
 
 msgid "暂无可下载内容。"
-msgstr "暂无可下载内容。"
+msgstr ""
 
 msgid "暂无可用优惠券。"
 msgstr ""
 
 msgid "暂无商品"
-msgstr "暂无商品"
+msgstr ""
 
 msgid "暂无商品。"
-msgstr "暂无商品。"
+msgstr ""
 
 msgid "暂无商品分类"
-msgstr "暂无商品分类"
+msgstr ""
 
 msgid "暂无商品标签"
-msgstr "暂无商品标签"
+msgstr ""
 
 msgid "暂无标签。"
-msgstr "暂无标签。"
+msgstr ""
 
 msgid "暂无积分流水。"
-msgstr "暂无积分流水。"
+msgstr ""
 
 msgid "暂无订单。"
-msgstr "暂无订单。"
+msgstr ""
 
 msgid "暂未查询到支付结果，请稍后再试。"
 msgstr ""
 
 msgid "更多信息"
-msgstr "更多信息"
+msgstr ""
 
 msgid "更新商品分类"
-msgstr "更新商品分类"
+msgstr ""
 
 msgid "更新商品标签"
-msgstr "更新商品标签"
+msgstr ""
 
 msgid "更新地址"
 msgstr ""
 
 msgid "更新状态"
-msgstr "更新状态"
+msgstr ""
 
 msgid "最低价格"
-msgstr "最低价格"
+msgstr ""
 
 msgid "最低消费"
 msgstr ""
 
 msgid "最低消费（小计门槛）"
-msgstr "最低消费（小计门槛）"
+msgstr ""
 
 msgid "最多保存 %d 个收货地址。"
 msgstr ""
 
 msgid "最多显示行数"
-msgstr "最多显示行数"
+msgstr ""
 
 msgid "最新"
-msgstr "最新"
+msgstr ""
 
 msgid "最新商品"
-msgstr "最新商品"
+msgstr ""
 
 msgid "最近 30 天"
-msgstr "最近 30 天"
+msgstr ""
 
 msgid "最高价格"
-msgstr "最高价格"
+msgstr ""
 
 msgid "最高减免（百分比用）"
-msgstr "最高减免（百分比用）"
+msgstr ""
 
 msgid "會員升級"
-msgstr "会员升级"
-
-msgid "會員專享"
-msgstr "会员专享"
-
-msgid "會員專享內容"
-msgstr "会员专享内容"
+msgstr ""
 
 msgid "月費會員"
-msgstr "月费会员"
+msgstr ""
 
 msgid "有效期 %d 天"
-msgstr "有效期 %d 天"
+msgstr ""
 
 msgid "有效期至"
 msgstr ""
 
 msgid "有订单的客户"
-msgstr "有订单的客户"
+msgstr ""
 
 msgid "未分类"
-msgstr "未分类"
+msgstr ""
 
 msgid "未找到 PayPal 收款記錄（capture），無法退款。"
 msgstr ""
 
 msgid "未支付订单自动取消（分钟）"
-msgstr "未支付订单自动取消（分钟）"
+msgstr ""
 
 msgid "未检测到 WooCommerce 商品标签（product_tag），无可同步数据。"
-msgstr "未检测到 WooCommerce 商品标签（product_tag），无可同步数据。"
-
-msgid "未检测到会员等级，留空表示全部用户。"
-msgstr "未检测到会员等级，留空表示全部用户。"
+msgstr ""
 
 msgid "未注册用户下单，确认邮件已发往上述邮箱"
 msgstr ""
 
 msgid "未滿 %3$s，需加收 %1$s 運費 %2$s。"
-msgstr "未满 %3$s，需加收 %1$s 运费 %2$s。"
+msgstr ""
 
 msgid "未註冊訪客填寫電子郵箱即可下單"
 msgstr ""
@@ -2073,58 +1958,58 @@ msgid "未通过二次确认（confirm），已取消查看。"
 msgstr ""
 
 msgid "未達免運門檻時收取的統一運費（例：50 表示順豐統一運費 50）。"
-msgstr "未达免运门槛时收取的统一运费（例：50 表示顺丰统一运费 50）。"
+msgstr ""
 
 msgid "未配置 PayPal Webhook ID。"
-msgstr "未配置 PayPal Webhook ID。"
+msgstr ""
 
 msgid "本内容支持使用优惠码"
-msgstr "本内容支持使用优惠码"
+msgstr ""
 
 msgid "本周"
-msgstr "本周"
+msgstr ""
 
 msgid "本地訂單無效。"
 msgstr ""
 
 msgid "本月"
-msgstr "本月"
+msgstr ""
 
 msgid "本月销售额"
 msgstr ""
 
 msgid "本次訂單不包含可下載或卡密類商品。"
-msgstr "本次订单不包含可下载或卡密类商品。"
+msgstr ""
 
 msgid "本訂單含實物商品，將由 %s 安排寄送，付款後約 2–3 個工作天出貨。"
-msgstr "本订单含实物商品，将由 %s 安排寄送，付款后约 2–3 个工作天出货。"
+msgstr ""
 
 msgid "本郵件由系統自動發送，請勿直接回覆。"
-msgstr "本邮件由系统自动发送，请勿直接回复。"
+msgstr ""
 
 msgid "权限不足。"
-msgstr "权限不足。"
+msgstr ""
 
 msgid "来自 %s 的最新消息"
-msgstr "来自 %s 的最新消息"
+msgstr ""
 
 msgid "极兔速递"
 msgstr ""
 
 msgid "查看"
-msgstr "查看"
+msgstr ""
 
 msgid "查看卡密"
 msgstr ""
 
 msgid "查看商品"
-msgstr "查看商品"
+msgstr ""
 
 msgid "查看商品分类"
-msgstr "查看商品分类"
+msgstr ""
 
 msgid "查看商品标签"
-msgstr "查看商品标签"
+msgstr ""
 
 msgid "查看完整"
 msgstr ""
@@ -2136,28 +2021,28 @@ msgid "查看本次订单"
 msgstr ""
 
 msgid "查看订单"
-msgstr "查看订单"
+msgstr ""
 
 msgid "查询失败"
 msgstr ""
 
 msgid "标签"
-msgstr "标签"
+msgstr ""
 
 msgid "标签："
-msgstr "标签："
+msgstr ""
 
 msgid "标题"
-msgstr "标题"
+msgstr ""
 
 msgid "标题:"
-msgstr "标题:"
+msgstr ""
 
 msgid "标题颜色"
-msgstr "标题颜色"
+msgstr ""
 
 msgid "桌面端列数"
-msgstr "桌面端列数"
+msgstr ""
 
 msgid "構建支付請求時會自動攜帶 notify_url，無需在商戶平台另行登記；如需在商戶平台除錯可用以下地址："
 msgstr ""
@@ -2169,16 +2054,16 @@ msgid "標準快遞|fixed|50|0|400"
 msgstr ""
 
 msgid "權限不足。"
-msgstr "权限不足。"
+msgstr ""
 
 msgid "權限不足或校验失敗。"
-msgstr "权限不足或校验失败。"
+msgstr ""
 
 msgid "正在跳轉至 PayPal…"
-msgstr "正在跳转至 PayPal…"
+msgstr ""
 
 msgid "正在跳轉至 Stripe 支付頁面…"
-msgstr "正在跳转至 Stripe 支付页面…"
+msgstr ""
 
 msgid "正在跳轉至微信支付…"
 msgstr ""
@@ -2188,9 +2073,6 @@ msgstr ""
 
 msgid "正式（生產環境）"
 msgstr ""
-
-msgid "此內容僅限會員查看"
-msgstr "此内容仅限会员查看"
 
 msgid "每 15 分钟自动查询运输中发货单的物流轨迹（需服务器 WP-Cron；签收后订单自动转为「已签收」）"
 msgstr ""
@@ -2202,25 +2084,25 @@ msgid "每个下载链接允许下载的总次数；0 表示不限次数。"
 msgstr ""
 
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
-msgstr "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
+msgstr ""
 
 msgid "每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。"
 msgstr ""
 
 msgid "每行列数"
-msgstr "每行列数"
+msgstr ""
 
 msgid "每页商品数"
-msgstr "每页商品数"
+msgstr ""
 
 msgid "永不"
 msgstr ""
 
 msgid "永久有效"
-msgstr "永久有效"
+msgstr ""
 
 msgid "沙盒模式"
-msgstr "沙盒模式"
+msgstr ""
 
 msgid "沙盒（Sandbox，不會真實扣款）"
 msgstr ""
@@ -2229,7 +2111,7 @@ msgid "没有导入任何新卡密（可能全部与库存池中已有卡密重�
 msgstr ""
 
 msgid "注册"
-msgstr "注册"
+msgstr ""
 
 msgid "注册后可长期保存订单、随时重新下载虚拟商品、使用优惠码与积分，并享受更快的售后处理。"
 msgstr ""
@@ -2237,98 +2119,77 @@ msgstr ""
 msgid "注册时填写下单邮箱 %s，方便站长为您关联本次订单。"
 msgstr ""
 
-msgid "活动类型"
-msgstr "活动类型"
-
-msgid "活动规则"
-msgstr "活动规则"
-
 msgid "测试邮件发送失败，请检查服务器邮件配置。"
-msgstr "测试邮件发送失败，请检查服务器邮件配置。"
+msgstr ""
 
 msgid "测试邮件已发送到 %s。"
-msgstr "测试邮件已发送到 %s。"
-
-msgid "添加售后"
-msgstr "添加售后"
+msgstr ""
 
 msgid "添加商品"
-msgstr "添加商品"
+msgstr ""
 
 msgid "添加或移除商品分类"
-msgstr "添加或移除商品分类"
+msgstr ""
 
 msgid "添加或移除商品标签"
-msgstr "添加或移除商品标签"
+msgstr ""
 
 msgid "添加新订单"
-msgstr "添加新订单"
+msgstr ""
 
 msgid "添加订单"
-msgstr "添加订单"
-
-msgid "添加评价"
-msgstr "添加评价"
+msgstr ""
 
 msgid "測試 PayPal 連線"
-msgstr "测试 PayPal 连线"
+msgstr ""
 
 msgid "測試 Stripe 連線"
-msgstr "测试 Stripe 连线"
+msgstr ""
 
 msgid "測試模式"
-msgstr "测试模式"
+msgstr ""
 
 msgid "測試發送"
-msgstr "测试发送"
+msgstr ""
 
 msgid "測試郵件已發送到 %s。"
-msgstr "测试邮件已发送到 %s。"
+msgstr ""
 
 msgid "測試郵件已發送到 %s（使用訂單 #%s 模擬，卡密已掩碼，含下載連結）。"
 msgstr ""
 
-msgid "測試郵件已發送到 %s（使用訂單 #%s 模擬，含下載連結）。"
-msgstr "测试邮件已发送到 %s（使用订单 #%s 模拟，含下载连结）。"
-
-msgid "游客"
-msgstr "游客"
-
-msgid "满额门槛（小计）"
-msgstr "满额门槛（小计）"
-
 msgid "滾動頁面時讓側邊欄固定在視窗（吸頂），內容過長時小工具始終可見"
-msgstr "滚动页面时让侧边栏固定在视窗（吸顶），内容过长时小工具始终可见"
+msgstr ""
 
 msgid "滿額包郵門檻"
-msgstr "满额包邮门槛"
+msgstr ""
 
 msgid "漫步白月光商城"
-msgstr "漫步白月光商城"
+msgstr ""
 
 msgid "漫步白月光電子商城 設定"
-msgstr "漫步白月光电子商城 设定"
+msgstr ""
 
 msgid "点击复制"
-msgstr "点击复制"
+msgstr ""
 
 msgid "点击移除"
-msgstr "点击移除"
+msgstr ""
 
 msgid "热销商品 Top 10"
-msgstr "热销商品 Top 10"
+msgstr ""
 
 msgid "热门商品分类"
-msgstr "热门商品分类"
+msgstr ""
 
 msgid "热门商品标签"
-msgstr "热门商品标签"
+msgstr ""
 
 msgid "父级商品分类"
-msgstr "父级商品分类"
+msgstr ""
 
 msgid "父级商品分类："
-msgstr "父级商品分类："
+msgstr ""
 
 msgid "物流 Provider"
 msgstr ""
@@ -2337,55 +2198,46 @@ msgid "物流 Provider 下单失败。"
 msgstr ""
 
 msgid "物流信息"
-msgstr "物流信息"
+msgstr ""
 
 msgid "物流公司"
-msgstr "物流公司"
+msgstr ""
 
 msgid "物流公司（Provider 支持列表）"
 msgstr ""
 
 msgid "物流单号"
-msgstr "物流单号"
+msgstr ""
 
 msgid "状态"
-msgstr "状态"
+msgstr ""
 
 msgid "環境模式"
 msgstr ""
 
 msgid "生成订单后扫码付款，管理员确认到账后发货。"
-msgstr "生成订单后扫码付款，管理员确认到账后发货。"
-
-msgid "生效开始日期"
-msgstr "生效开始日期"
-
-msgid "生效结束日期"
-msgstr "生效结束日期"
+msgstr ""
 
 msgid "用户"
 msgstr ""
 
 msgid "用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。"
-msgstr "用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。"
+msgstr ""
 
 msgid "用户无效。"
-msgstr "用户无效。"
+msgstr ""
 
 msgid "用最近的訂單模擬一封完整郵件（含下載連結）發送到您的後台管理員郵箱，確認發信與模板正常。"
-msgstr "用最近的订单模拟一封完整邮件（含下载连结）发送到您的后台管理员邮箱，确认发信与模板正常。"
+msgstr ""
 
 msgid "用英文逗号分隔商品分类"
-msgstr "用英文逗号分隔商品分类"
+msgstr ""
 
 msgid "用英文逗号分隔商品标签"
-msgstr "用英文逗号分隔商品标签"
+msgstr ""
 
 msgid "申请售后"
 msgstr ""
-
-msgid "申请提现"
-msgstr "申请提现"
 
 msgid "申通快递"
 msgstr ""
@@ -2397,7 +2249,7 @@ msgid "留空 = 全额（%s %s）"
 msgstr ""
 
 msgid "留空使用內建主題。支持佔位符 {order_number}（訂單號）。"
-msgstr "留空使用内建主题。支持占位符 {order_number}（订单号）。"
+msgstr ""
 
 msgid "留空時取訂單首件商品標題"
 msgstr ""
@@ -2406,43 +2258,40 @@ msgid "留空自动命名（导入 Ymd-His）"
 msgstr ""
 
 msgid "留空自動選用。目前生效：%s"
-msgstr "留空自动选用。目前生效：%s"
+msgstr ""
 
 msgid "留空表示长期有效（YY-MM-DD）。"
-msgstr "留空表示长期有效（YY-MM-DD）。"
+msgstr ""
 
 msgid "異步通知 URL"
 msgstr ""
 
 msgid "登出"
-msgstr "登出"
+msgstr ""
 
 msgid "登录"
-msgstr "登录"
-
-msgid "登錄 / 註冊"
-msgstr "登录 / 注册"
+msgstr ""
 
 msgid "發件人名称"
-msgstr "发件人名称"
+msgstr ""
 
 msgid "發件人郵箱"
-msgstr "发件人邮箱"
+msgstr ""
 
 msgid "發送測試郵件到管理員"
-msgstr "发送测试邮件到管理员"
+msgstr ""
 
 msgid "百分比填 0–100；固定金额填金额（货币单位）。"
-msgstr "百分比填 0–100；固定金额填金额（货币单位）。"
+msgstr ""
 
 msgid "百分比折扣（%）"
-msgstr "百分比折扣（%）"
+msgstr ""
 
 msgid "目标商品的链接。"
-msgstr "目标商品的链接。"
+msgstr ""
 
 msgid "相关商品"
-msgstr "相关商品"
+msgstr ""
 
 msgid "省份"
 msgstr ""
@@ -2463,115 +2312,100 @@ msgid "确认收货"
 msgstr ""
 
 msgid "确认相册"
-msgstr "确认相册"
+msgstr ""
 
 msgid "示例：順豐標準|fixed|50|0|400 ／ 促銷品|piece|10|5|0。配置後在商品編輯頁「運費模板」下拉為每個實物商品選擇模板；未選擇的商品仍按全局規則計費。"
 msgstr ""
 
 msgid "积分"
-msgstr "积分"
+msgstr ""
 
 msgid "积分不足，需要 %s %s，当前余额 %s。"
-msgstr "积分不足，需要 %s %s，当前余额 %s。"
+msgstr ""
 
 msgid "积分价格未设置。"
-msgstr "积分价格未设置。"
+msgstr ""
 
 msgid "积分余额"
-msgstr "积分余额"
+msgstr ""
 
 msgid "积分充值"
-msgstr "积分充值"
+msgstr ""
 
 msgid "积分充值套餐"
-msgstr "积分充值套餐"
+msgstr ""
 
 msgid "积分名称"
-msgstr "积分名称"
+msgstr ""
 
 msgid "积分流水"
-msgstr "积分流水"
+msgstr ""
 
 msgid "移除商品主图"
-msgstr "移除商品主图"
+msgstr ""
 
 msgid "移除订单封面图"
-msgstr "移除订单封面图"
+msgstr ""
 
 msgid "空白字段将保持原值不变。"
-msgstr "空白字段将保持原值不变。"
-
-msgid "立减填金额；折扣填 0–100（百分比）。"
-msgstr "立减填金额；折扣填 0–100（百分比）。"
-
-msgid "立减（固定金额）"
-msgstr "立减（固定金额）"
+msgstr ""
 
 msgid "立即下载"
-msgstr "立即下载"
+msgstr ""
 
 msgid "立即注册"
 msgstr ""
 
 msgid "立即购买"
-msgstr "立即购买"
+msgstr ""
 
 msgid "第 %d 张"
-msgstr "第 %d 张"
+msgstr ""
 
 msgid "筛选"
-msgstr "筛选"
+msgstr ""
 
 msgid "筛选商品"
-msgstr "筛选商品"
+msgstr ""
 
 msgid "筛选订单列表"
-msgstr "筛选订单列表"
+msgstr ""
 
 msgid "签收后自动完成（天）"
 msgstr ""
 
 msgid "簽名驗證未通過。"
-msgstr "签名验证未通过。"
+msgstr ""
 
 msgid "类型"
-msgstr "类型"
-
-msgid "累计佣金"
-msgstr "累计佣金"
+msgstr ""
 
 msgid "結算頁實物訂單允許選擇「到店自提」（免運費，收件資料收起為提貨人姓名 + 手機號）"
 msgstr ""
 
 msgid "網關標識：%s"
-msgstr "网关标识：%s"
+msgstr ""
 
 msgid "編輯"
 msgstr ""
 
 msgid "线下转账"
-msgstr "线下转账"
-
-msgid "结算"
-msgstr "结算"
+msgstr ""
 
 msgid "编辑优惠券"
-msgstr "编辑优惠券"
-
-msgid "编辑优惠活动"
-msgstr "编辑优惠活动"
+msgstr ""
 
 msgid "编辑商品"
-msgstr "编辑商品"
+msgstr ""
 
 msgid "编辑商品分类"
-msgstr "编辑商品分类"
+msgstr ""
 
 msgid "编辑商品标签"
-msgstr "编辑商品标签"
+msgstr ""
 
 msgid "编辑订单"
-msgstr "编辑订单"
+msgstr ""
 
 msgid "缺少商品 ID。"
 msgstr ""
@@ -2589,13 +2423,13 @@ msgid "网关退款失败。"
 msgstr ""
 
 msgid "网格"
-msgstr "网格"
+msgstr ""
 
 msgid "网络错误，请重试"
-msgstr "网络错误，请重试"
+msgstr ""
 
 msgid "群发邮件"
-msgstr "群发邮件"
+msgstr ""
 
 msgid "联系邮箱"
 msgstr ""
@@ -2604,7 +2438,7 @@ msgid "联络电话"
 msgstr ""
 
 msgid "聯絡電話"
-msgstr "联络电话"
+msgstr ""
 
 msgid "自动轨迹查询"
 msgstr ""
@@ -2613,52 +2447,52 @@ msgid "自動（移動端 H5 / 桌面 Native 掃碼）"
 msgstr ""
 
 msgid "自定义"
-msgstr "自定义"
+msgstr ""
 
 msgid "自定义充值汇率（积分/货币单位）"
-msgstr "自定义充值汇率（积分/货币单位）"
+msgstr ""
 
 msgid "若站內已有其他內容類型佔用相同前綴，商城會自動改用備用前綴，避免頁面出現 404。修改後系統會自動更新連結規則，無需手動重新儲存永久連結。"
-msgstr "若站内已有其他内容类型占用相同前缀，商城会自动改用备用前缀，避免页面出现 404。修改后系统会自动更新连结规则，无需手动重新储存永久连结。"
+msgstr ""
 
 msgid "虚拟"
-msgstr "虚拟"
+msgstr ""
 
 msgid "虚拟下载"
-msgstr "虚拟下载"
+msgstr ""
 
 msgid "虚拟商品下载文件（附件 ID）"
-msgstr "虚拟商品下载文件（附件 ID）"
+msgstr ""
 
 msgid "虚拟商品已产生下载记录"
 msgstr ""
 
 msgid "虛擬下載"
-msgstr "虚拟下载"
+msgstr ""
 
 msgid "虛擬下載 / 卡密類商品會在郵件中附上下載連結或卡密；關閉後不再自動發信。"
-msgstr "虚拟下载 / 卡密类商品会在邮件中附上下载连结或卡密；关闭后不再自动发信。"
+msgstr ""
 
 msgid "补充卡密"
 msgstr ""
 
 msgid "观看视频"
-msgstr "观看视频"
+msgstr ""
 
 msgid "解密失败：记录不存在、已损坏或权限不足。"
 msgstr ""
 
 msgid "解锁内容 #%d"
-msgstr "解锁内容 #%d"
+msgstr ""
 
 msgid "訂單 / 下載確認郵件"
-msgstr "订单 / 下载确认邮件"
+msgstr ""
 
 msgid "訂單不存在。"
-msgstr "订单不存在。"
+msgstr ""
 
 msgid "訂單狀態已更新為「%s」。"
-msgstr "订单状态已更新为「%s」。"
+msgstr ""
 
 msgid "訂單缺少 PayPal 訂單號，無法退款。"
 msgstr ""
@@ -2676,13 +2510,13 @@ msgid "訂單缺少支付寶商戶單號，無法退款。"
 msgstr ""
 
 msgid "訂單號："
-msgstr "订单号："
+msgstr ""
 
 msgid "訂單詳情"
-msgstr "订单详情"
+msgstr ""
 
 msgid "訂單金額："
-msgstr "订单金额："
+msgstr ""
 
 msgid "訪客下單限流"
 msgstr ""
@@ -2691,7 +2525,7 @@ msgid "訪客需填寫有效郵箱接收訂單確認與虛擬商品；付款完�
 msgstr ""
 
 msgid "設定商品單頁與商品列表頁側邊欄出現在左邊、右邊，或完全隱藏（隱藏後內容區自動佔滿整行）。手機端（≤600px）一律自動堆疊在內容下方，不受此設定影響。"
-msgstr "设定商品单页与商品列表页侧边栏出现在左边、右边，或完全隐藏（隐藏后内容区自动占满整行）。手机端（≤600px）一律自动堆叠在内容下方，不受此设定影响。"
+msgstr ""
 
 msgid "設為默認地址"
 msgstr ""
@@ -2700,25 +2534,16 @@ msgid "詳細地址"
 msgstr ""
 
 msgid "說明"
-msgstr "说明"
+msgstr ""
 
 msgid "請使用微信掃描二維碼完成付款。"
 msgstr ""
 
-msgid "請先登錄會員帳號以查看此內容。"
-msgstr "请先登录会员帐号以查看此内容。"
-
 msgid "订单"
-msgstr "订单"
-
-msgid "订单 #%d 余额支付"
-msgstr "订单 #%d 余额支付"
+msgstr ""
 
 msgid "订单 #%d 退款回收充值积分"
-msgstr "订单 #%d 退款回收充值积分"
-
-msgid "订单 #%d 退款回补余额"
-msgstr "订单 #%d 退款回补余额"
+msgstr ""
 
 msgid "订单「已签收」超过该天数且用户未确认收货时，自动转为「已完成」。0 = 不自动完成（仅用户手动确认）。"
 msgstr ""
@@ -2730,172 +2555,163 @@ msgid "订单不存在或售后模块不可用。"
 msgstr ""
 
 msgid "订单信息"
-msgstr "订单信息"
+msgstr ""
 
 msgid "订单列表"
-msgstr "订单列表"
+msgstr ""
 
 msgid "订单列表导航"
-msgstr "订单列表导航"
+msgstr ""
 
 msgid "订单号"
-msgstr "订单号"
+msgstr ""
 
 msgid "订单号："
-msgstr "订单号："
+msgstr ""
 
 msgid "订单商品"
-msgstr "订单商品"
+msgstr ""
 
 msgid "订单封面图"
-msgstr "订单封面图"
+msgstr ""
 
 msgid "订单小计需达到该金额才可用，0 表示不限。"
-msgstr "订单小计需达到该金额才可用，0 表示不限。"
-
-msgid "订单小计需达到该金额才生效，0 表示不限。"
-msgstr "订单小计需达到该金额才生效，0 表示不限。"
+msgstr ""
 
 msgid "订单属性"
-msgstr "订单属性"
+msgstr ""
 
 msgid "订单已全额退款。"
 msgstr ""
 
 msgid "订单已创建，请扫码付款，到账后自动发货。"
-msgstr "订单已创建，请扫码付款，到账后自动发货。"
+msgstr ""
 
 msgid "订单已删除。"
-msgstr "订单已删除。"
+msgstr ""
 
 msgid "订单已发布。"
-msgstr "订单已发布。"
+msgstr ""
 
 msgid "订单已完成付款。"
 msgstr ""
 
 msgid "订单已恢复为草稿。"
-msgstr "订单已恢复为草稿。"
+msgstr ""
 
 msgid "订单已排入计划。"
-msgstr "订单已排入计划。"
+msgstr ""
 
 msgid "订单已提交，我们会尽快安排发货。"
-msgstr "订单已提交，我们会尽快安排发货。"
+msgstr ""
 
 msgid "订单已提交，请按支付网关提示完成付款。支付成功后系统会自动更新状态。"
-msgstr "订单已提交，请按支付网关提示完成付款。支付成功后系统会自动更新状态。"
+msgstr ""
 
 msgid "订单已更新。"
-msgstr "订单已更新。"
+msgstr ""
 
 msgid "订单已私密发布。"
-msgstr "订单已私密发布。"
+msgstr ""
 
 msgid "订单归档"
-msgstr "订单归档"
+msgstr ""
 
 msgid "订单总数"
-msgstr "订单总数"
+msgstr ""
 
 msgid "订单模块不可用。"
-msgstr "订单模块不可用。"
+msgstr ""
 
 msgid "订单满 %s 才可使用此优惠码。"
-msgstr "订单满 %s 才可使用此优惠码。"
+msgstr ""
 
 msgid "订单状态"
-msgstr "订单状态"
+msgstr ""
 
 msgid "订单状态「%1$s」不允许发货（需为待发货/处理中/已发货补录）。"
 msgstr ""
 
 msgid "订单状态不允许从 %s 变更为 %s。"
-msgstr "订单状态不允许从 %s 变更为 %s。"
+msgstr ""
 
 msgid "订单状态分布"
-msgstr "订单状态分布"
+msgstr ""
 
 msgid "订单确认"
-msgstr "订单确认"
+msgstr ""
 
 msgid "订单类型"
-msgstr "订单类型"
+msgstr ""
 
 msgid "订单统计"
-msgstr "订单统计"
+msgstr ""
 
 msgid "订单设置"
-msgstr "订单设置"
+msgstr ""
 
 msgid "订单金额"
-msgstr "订单金额"
+msgstr ""
 
 msgid "订单金额无效，无法退款。"
 msgstr ""
 
 msgid "订单链接"
-msgstr "订单链接"
+msgstr ""
 
 msgid "订单需处于待发货/处理中状态；创建后订单自动转为「已发货」。同一订单可创建多条发货单（多包裹分开发货）。轨迹由自动查询（快递100 Provider）或人工维护。"
 msgstr ""
 
 msgid "设为商品主图"
-msgstr "设为商品主图"
+msgstr ""
 
 msgid "设为订单封面图"
-msgstr "设为订单封面图"
+msgstr ""
 
 msgid "设置商品主图"
-msgstr "设置商品主图"
+msgstr ""
 
 msgid "设置导航"
-msgstr "设置导航"
+msgstr ""
 
 msgid "设置订单封面图"
-msgstr "设置订单封面图"
+msgstr ""
 
 msgid "设置页导航"
-msgstr "设置页导航"
+msgstr ""
 
 msgid "访客订单"
 msgstr ""
 
 msgid "评价"
-msgstr "评价"
-
-msgid "评价提交失败，请稍后再试。"
-msgstr "评价提交失败，请稍后再试。"
+msgstr ""
 
 msgid "该优惠码已停用。"
-msgstr "该优惠码已停用。"
+msgstr ""
 
 msgid "该优惠码已达到使用上限。"
-msgstr "该优惠码已达到使用上限。"
+msgstr ""
 
 msgid "该优惠码已过期。"
-msgstr "该优惠码已过期。"
+msgstr ""
 
 msgid "该内容无需付费。"
-msgstr "该内容无需付费。"
+msgstr ""
 
 msgid "该内容未启用付费。"
-msgstr "该内容未启用付费。"
+msgstr ""
 
 msgid "该商品暂无卡密批次。"
 msgstr ""
-
-msgid "该商品未开通此项售后服务。"
-msgstr "该商品未开通此项售后服务。"
 
 msgid "该批次暂无卡密。"
 msgstr ""
 
 msgid "该支付方式暂未开放。"
-msgstr "该支付方式暂未开放。"
+msgstr ""
 
 msgid "该等级未设置价格，暂不可购买。"
-msgstr "该等级未设置价格，暂不可购买。"
+msgstr ""
 
 msgid "该网关无需调用退款接口（原路回补 / 线下处理）。"
 msgstr ""
@@ -2916,28 +2732,25 @@ msgid "详细地址需为 1-120 个字。"
 msgstr ""
 
 msgid "说明"
-msgstr "说明"
+msgstr ""
 
 msgid "请使用微信扫描二维码完成付款，支付成功后本页状态会自动更新（异步通知）；也可点击按钮主动复核。"
 msgstr ""
 
 msgid "请先 %s 后再结算。"
-msgstr "请先 %s 后再结算。"
+msgstr ""
 
 msgid "请先 %s 后购买此内容。"
-msgstr "请先 %s 后购买此内容。"
+msgstr ""
 
 msgid "请先登录。"
-msgstr "请先登录。"
+msgstr ""
 
 msgid "请先登录查看优惠券。"
 msgstr ""
 
-msgid "请先登录查看推广中心。"
-msgstr "请先登录查看推广中心。"
-
 msgid "请先登录查看订单。"
-msgstr "请先登录查看订单。"
+msgstr ""
 
 msgid "请先登录管理收货地址。"
 msgstr ""
@@ -2946,10 +2759,10 @@ msgid "请先确认后再查看卡密明文。"
 msgstr ""
 
 msgid "请在 %d 分钟内完成支付，逾期订单将自动取消。"
-msgstr "请在 %d 分钟内完成支付，逾期订单将自动取消。"
+msgstr ""
 
 msgid "请在「选择商品」中指定一个商品。"
-msgstr "请在「选择商品」中指定一个商品。"
+msgstr ""
 
 msgid "请填写售后原因。"
 msgstr ""
@@ -2966,9 +2779,6 @@ msgstr ""
 msgid "请填写收件人、聯絡電話、省市與收件地址"
 msgstr ""
 
-msgid "请填写收件人、聯絡電話與收件地址"
-msgstr "请填写收件人、联络电话与收件地址"
-
 msgid "请填写有效的电子邮箱，订单确认与虚拟商品将发送到该邮箱。"
 msgstr ""
 
@@ -2979,25 +2789,25 @@ msgid "请完整填写收货信息：%s。"
 msgstr ""
 
 msgid "请扫码付款，并在备注中填写订单号。管理员确认到账后自动发货。"
-msgstr "请扫码付款，并在备注中填写订单号。管理员确认到账后自动发货。"
+msgstr ""
 
 msgid "请立即复制保存；此明文不再展示（刷新后消失）。"
 msgstr ""
 
 msgid "请输入优惠码"
-msgstr "请输入优惠码"
+msgstr ""
 
 msgid "请输入优惠码。"
-msgstr "请输入优惠码。"
+msgstr ""
 
 msgid "请输入有效的充值积分数。"
-msgstr "请输入有效的充值积分数。"
+msgstr ""
 
 msgid "请选择充值套餐"
-msgstr "请选择充值套餐"
+msgstr ""
 
 msgid "请选择支付方式。"
-msgstr "请选择支付方式。"
+msgstr ""
 
 msgid "请选择有效商品后再导入。"
 msgstr ""
@@ -3009,13 +2819,13 @@ msgid "请选择该省份下有效的城市。"
 msgstr ""
 
 msgid "调整每张商品卡之间的空隙。"
-msgstr "调整每张商品卡之间的空隙。"
+msgstr ""
 
 msgid "貨幣代碼（ISO 4217）"
-msgstr "货币代码（ISO 4217）"
+msgstr ""
 
 msgid "貨幣符號（顯示用）"
-msgstr "货币符号（显示用）"
+msgstr ""
 
 msgid "貼上商户 API 證書私鑰 apiclient_key.pem 內容（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）"
 msgstr ""
@@ -3030,61 +2840,52 @@ msgid "貼上支付寶公鑰（非應用公鑰）"
 msgstr ""
 
 msgid "購物車含實物商品時計算運費"
-msgstr "购物车含实物商品时计算运费"
+msgstr ""
 
 msgid "購買完成後自動向客戶發送訂單與虛擬商品下載連結郵件"
-msgstr "购买完成后自动向客户发送订单与虚拟商品下载连结邮件"
+msgstr ""
 
 msgid "購買後授予會員等級"
-msgstr "购买后授予会员等级"
+msgstr ""
 
 msgid "货到付款"
-msgstr "货到付款"
+msgstr ""
 
 msgid "货号"
-msgstr "货号"
+msgstr ""
 
 msgid "购买后 %d%s 内有效，逾期需重新购买"
-msgstr "购买后 %d%s 内有效，逾期需重新购买"
+msgstr ""
 
 msgid "购买数量必须大于 0。"
 msgstr ""
 
 msgid "购物车"
-msgstr "购物车"
+msgstr ""
 
 msgid "购物车与收藏"
-msgstr "购物车与收藏"
+msgstr ""
 
 msgid "购物车为空。"
-msgstr "购物车为空。"
+msgstr ""
 
 msgid "购物车为空，请先选购商品。"
-msgstr "购物车为空，请先选购商品。"
+msgstr ""
 
 msgid "购物车是空白的。"
-msgstr "购物车是空白的。"
-
-msgid "赠品"
-msgstr "赠品"
-
-msgid "赠品数量（仅赠品类型生效）。"
-msgstr "赠品数量（仅赠品类型生效）。"
-
-msgid "赠品（商品 ID）"
-msgstr "赠品（商品 ID）"
+msgstr ""
 
 msgid "超过该时长仍未付款的订单将自动取消并回滚库存。0 表示永不自动取消。即使未配置服务器计划任务，用户查看订单时也会惰性过期。"
-msgstr "超过该时长仍未付款的订单将自动取消并回滚库存。0 表示永不自动取消。即使未配置服务器计划任务，用户查看订单时也会惰性过期。"
+msgstr ""
 
 msgid "跳轉至支付寶完成付款（僅支持人民幣 CNY 計價訂單）。"
 msgstr ""
 
 msgid "输入框占位"
-msgstr "输入框占位"
+msgstr ""
 
 msgid "输入积分数"
-msgstr "输入积分数"
+msgstr ""
 
 msgid "过期天数"
 msgstr ""
@@ -3093,7 +2894,7 @@ msgid "过期批次自动停止售卖；停用批次可随时重新启用。"
 msgstr ""
 
 msgid "过期日期"
-msgstr "过期日期"
+msgstr ""
 
 msgid "过期时间"
 msgstr ""
@@ -3107,29 +2908,23 @@ msgstr ""
 msgid "运输中"
 msgstr ""
 
-msgid "返佣比例 %s%%，推广折扣 %s%%"
-msgstr "返佣比例 %s%%，推广折扣 %s%%"
-
 msgid "返回商品分类"
-msgstr "返回商品分类"
+msgstr ""
 
 msgid "返回商品标签"
-msgstr "返回商品标签"
+msgstr ""
 
 msgid "返回订单列表"
-msgstr "返回订单列表"
+msgstr ""
 
 msgid "还没有收藏的商品。"
-msgstr "还没有收藏的商品。"
-
-msgid "退款"
-msgstr "退款"
+msgstr ""
 
 msgid "退款原因"
 msgstr ""
 
 msgid "退款合计：%s"
-msgstr "退款合计：%s"
+msgstr ""
 
 msgid "退款成功。"
 msgstr ""
@@ -3149,32 +2944,29 @@ msgstr ""
 msgid "退款金额无效。"
 msgstr ""
 
-msgid "退货"
-msgstr "退货"
-
 msgid "选择 / 管理图片"
-msgstr "选择 / 管理图片"
+msgstr ""
 
 msgid "选择会员等级"
-msgstr "选择会员等级"
+msgstr ""
 
 msgid "选择商品"
-msgstr "选择商品"
+msgstr ""
 
 msgid "选择商品相册"
-msgstr "选择商品相册"
+msgstr ""
 
 msgid "选择支付方式"
-msgstr "选择支付方式"
+msgstr ""
 
 msgid "透過 Stripe 安全的支付頁面以信用卡、Apple Pay 或 Google Pay 完成付款。"
-msgstr "透过 Stripe 安全的支付页面以信用卡、Apple Pay 或 Google Pay 完成付款。"
+msgstr ""
 
 msgid "這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。"
-msgstr "这是一封测试邮件，确认您的发信配置正常。购买虚拟商品后，系统会自动把下载连结发送到客户邮箱。"
+msgstr ""
 
 msgid "運費"
-msgstr "运费"
+msgstr ""
 
 msgid "運費模板"
 msgstr ""
@@ -3183,7 +2975,7 @@ msgid "運費模板（實物商品）"
 msgstr ""
 
 msgid "運費設定"
-msgstr "运费设定"
+msgstr ""
 
 msgid "選擇城市"
 msgstr ""
@@ -3195,130 +2987,127 @@ msgid "選擇省份 / 直轄市"
 msgstr ""
 
 msgid "選項與「用戶中心」設置頁的會員等級同步；用戶購買並付款此商品即自動升級對應等級（含天數/永久）。"
-msgstr "选项与「用户中心」设置页的会员等级同步；用户购买并付款此商品即自动升级对应等级（含天数/永久）。"
+msgstr ""
 
 msgid "邮件主题"
-msgstr "邮件主题"
+msgstr ""
 
 msgid "邮件内容"
-msgstr "邮件内容"
+msgstr ""
 
 msgid "邮件正文"
-msgstr "邮件正文"
+msgstr ""
 
 msgid "邮箱列表"
-msgstr "邮箱列表"
+msgstr ""
 
 msgid "部分"
 msgstr ""
 
 msgid "郵件主題"
-msgstr "邮件主题"
+msgstr ""
 
 msgid "郵件發送失敗。"
-msgstr "邮件发送失败。"
+msgstr ""
 
 msgid "郵件發送失敗，請檢查伺服器郵件配置（wp_mail）。"
-msgstr "邮件发送失败，请检查伺服器邮件配置（wp_mail）。"
+msgstr ""
 
 msgid "郵件設置"
-msgstr "邮件设置"
+msgstr ""
 
 msgid "郵件頁腳"
-msgstr "邮件页脚"
+msgstr ""
 
 msgid "金额"
-msgstr "金额"
+msgstr ""
 
 msgid "销售额"
-msgstr "销售额"
+msgstr ""
 
 msgid "销售额走势"
-msgstr "销售额走势"
+msgstr ""
 
 msgid "销售额走势（按日）"
-msgstr "销售额走势（按日）"
+msgstr ""
 
 msgid "销售额走势（按月）"
-msgstr "销售额走势（按月）"
+msgstr ""
 
 msgid "销量"
-msgstr "销量"
+msgstr ""
 
 msgid "长期有效"
 msgstr ""
 
 msgid "關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。"
-msgstr "关闭后侧边栏随内容正常流动。手机端（≤600px）自动停用悬停。"
+msgstr ""
 
 msgid "關閉後，「评价」標籤頁與評論區不再渲染，標籤欄只保留「商品描述」與「更多信息」。已發表的歷史評論仍保留在資料庫，重新開啟後即恢復顯示。"
-msgstr "关闭后，「评价」标签页与评论区不再渲染，标签栏只保留「商品描述」与「更多信息」。已发表的历史评论仍保留在资料库，重新开启后即恢复显示。"
+msgstr ""
 
 msgid "關閉後，列表卡片上不再出現類型標籤，只顯示圖片、標題、價格、按鈕。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。"
-msgstr "关闭后，列表卡片上不再出现类型标签，只显示图片、标题、价格、按钮。如需针对单个 Elementor 网格区块显示，可在区块设定里覆盖。"
+msgstr ""
 
 msgid "關閉後，列表卡片上不再渲染標籤雲，版面更簡潔。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。"
-msgstr "关闭后，列表卡片上不再渲染标签云，版面更简洁。如需针对单个 Elementor 网格区块显示，可在区块设定里覆盖。"
+msgstr ""
 
 msgid "關閉後，商品單頁頂部只保留主圖。"
-msgstr "关闭后，商品单页顶部只保留主图。"
+msgstr ""
 
 msgid "關閉後，摘要區只保留標題 / 價格 / 類型標籤 / 描述 / 加購 / 收藏，更簡潔。「更多信息」標籤頁仍會包含完整資訊表。"
-msgstr "关闭后，摘要区只保留标题 / 价格 / 类型标签 / 描述 / 加购 / 收藏，更简洁。「更多信息」标签页仍会包含完整资讯表。"
-
-msgid "限定用户类型"
-msgstr "限定用户类型"
+msgstr ""
 
 msgid "隐藏"
-msgstr "隐藏"
+msgstr ""
 
 msgid "隱藏"
-msgstr "隐藏"
+msgstr ""
 
 msgid "電話"
-msgstr "电话"
+msgstr ""
 
 msgid "需黄金会员及以上可购买此内容，请先升级会员。"
-msgstr "需黄金会员及以上可购买此内容，请先升级会员。"
+msgstr ""
 
 msgid "面值"
 msgstr ""
 
 msgid "面包屑"
-msgstr "面包屑"
+msgstr ""
 
 msgid "韵达快递"
 msgstr ""
 
 msgid "頂部面包屑導航"
-msgstr "顶部面包屑导航"
+msgstr ""
 
 msgid "順豐速運"
-msgstr "顺丰速运"
+msgstr ""
 
 msgid "類型"
-msgstr "类型"
+msgstr ""
 
 msgid "顯示在郵件底部的補充說明（如客服聯絡方式、社群連結），支持換行。"
-msgstr "显示在邮件底部的补充说明（如客服联络方式、社群连结），支持换行。"
+msgstr ""
 
 msgid "顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。"
-msgstr "显示于结算页、订单与邮件中的运送说明（例：顺丰速运）。"
+msgstr ""
 
 msgid "顺丰速运"
 msgstr ""
 
 msgid "颜色"
-msgstr "颜色"
+msgstr ""
 
 msgid "首頁"
-msgstr "首页"
+msgstr ""
 
 msgid "驗簽模式：微信支付公鑰序列號"
 msgstr ""
 
 msgid "高級會員"
-msgstr "高级会员"
+msgstr ""
 
 msgid "默認"
 msgstr ""
@@ -3327,16 +3116,16 @@ msgid "默認全局運費（固定運費 + 滿額包郵）"
 msgstr ""
 
 msgid "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
-msgstr "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
+msgstr ""
 
 msgid "點此下載"
-msgstr "点此下载"
+msgstr ""
 
 msgid "（AOV = 销售额 / 已付款订单）"
-msgstr "（AOV = 销售额 / 已付款订单）"
+msgstr ""
 
 msgid "（不变）"
-msgstr "（不变）"
+msgstr ""
 
 msgid "（全部已收款状态：已付款→完成）"
 msgstr ""
@@ -3348,19 +3137,16 @@ msgid "（含未付款 / 已取消）"
 msgstr ""
 
 msgid "（含未付款/已取消）"
-msgstr "（含未付款/已取消）"
+msgstr ""
 
 msgid "（售后模块不可用。）"
 msgstr ""
 
 msgid "（实际通道："
-msgstr "（实际通道："
+msgstr ""
 
 msgid "（小计）"
-msgstr "（小计）"
-
-msgid "（已付款 + 处理中 + 完成）"
-msgstr "（已付款 + 处理中 + 完成）"
+msgstr ""
 
 msgid "（已发布商品）"
 msgstr ""
@@ -3384,34 +3170,34 @@ msgid "（有实物订单等待发货，请及时处理）"
 msgstr ""
 
 msgid "（未关联用户，可能为访客下单或用户已删除）"
-msgstr "（未关联用户，可能为访客下单或用户已删除）"
+msgstr ""
 
 msgid "（未支付或付款时间未记录）"
-msgstr "（未支付或付款时间未记录）"
+msgstr ""
 
 msgid "（未检测到用户中心插件，无法按会员等级筛选）"
-msgstr "（未检测到用户中心插件，无法按会员等级筛选）"
+msgstr ""
 
 msgid "（本月 1 日起，已收款状态口径）"
 msgstr ""
 
 msgid "（点击插入）"
-msgstr "（点击插入）"
+msgstr ""
 
 msgid "（解密失败）"
 msgstr ""
 
 msgid "（该订单无商品记录，可能是充值/升级订单）"
-msgstr "（该订单无商品记录，可能是充值/升级订单）"
+msgstr ""
 
 msgid "（超出自动省略，省略号结尾）"
-msgstr "（超出自动省略，省略号结尾）"
+msgstr ""
 
 msgid "（运费）"
-msgstr "（运费）"
+msgstr ""
 
 msgid "（非实物订单，无收货地址）"
-msgstr "（非实物订单，无收货地址）"
+msgstr ""
 
 msgid "，滿 %s 免郵"
 msgstr ""

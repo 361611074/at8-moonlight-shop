@@ -126,4 +126,4 @@ apply_filters('moonlight_regions', $regions);                  // 地区数据�
 
 ## 文档索引
 
-[架构](docs/ARCHITECTURE.md) · [数据库](docs/DATABASE.md) · [API](docs/API.md) · [支付](docs/PAYMENT.md) · [物流](docs/SHIPPING.md) · [Free/Pro](docs/FREE-PRO.md) · [迁移](docs/MIGRATION_PLAN.md) · [审计](docs/ARCHITECTURE_AUDIT.md) · [安全](SECURITY.md) · [安装](INSTALL.md) · [开发](DEVELOPMENT.md) · [变更](CHANGELOG.md)
+[架构](docs/ARCHITECTURE.md) · [数据库](docs/DATABASE.md) · [API](docs/API.md) · [支付](docs/PAYMENT.md) · [物流](docs/SHIPPING.md) · [Free/Pro](docs/FREE-PRO.md) · [迁移](docs/MIGRATION_PLAN.md) · [审计](docs/ARCHITECTURE_AUDIT.md) · [安全](SECURITY.md) · [安装](INSTALL.md) · [开发](DEVELOPMENT.md) · [支付测试](docs/PAYMENT-TESTING.md) · [变更](CHANGELOG.md)

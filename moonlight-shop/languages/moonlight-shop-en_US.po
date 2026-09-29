@@ -1,4 +1,3 @@
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: 1.0\n"
@@ -24,11 +23,29 @@ msgstr "%s Upgrade"
 msgid "%s 您好，感謝您的訂購！"
 msgstr "%s Hello, thank you for your order!"
 
+msgid "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
+msgstr ""
+
 msgid "0 表示不限次数。当前已用：%d"
 msgstr "0 means unlimited. Used so far: %d"
 
+msgid "APIv3 密鑰（32 位）"
+msgstr ""
+
+msgid "AppID（mch 綁定的公眾號 / 小程序 / APP）"
+msgstr ""
+
+msgid "AppID（應用編號）"
+msgstr ""
+
 msgid "Client ID"
 msgstr "Client ID"
+
+msgid "EMS"
+msgstr ""
+
+msgid "H5（手機瀏覽器跳轉）"
+msgstr ""
 
 msgid "ID"
 msgstr "ID"
@@ -39,6 +56,9 @@ msgstr "Live Publishable Key"
 msgid "Live Secret Key"
 msgstr "Live Secret Key"
 
+msgid "Native（PC 掃碼）"
+msgstr ""
+
 msgid "PayPal"
 msgstr "PayPal"
 
@@ -46,8 +66,7 @@ msgid "PayPal 創建訂單失敗（HTTP %d）"
 msgstr "PayPal failed to create the order (HTTP %d)"
 
 msgid "PayPal 回跳 URL（用於 return_url，可在 PayPal 應用設定中登記）："
-msgstr ""
-"PayPal return URL (for return_url; register it in your PayPal app settings):"
+msgstr "PayPal return URL (for return_url; register it in your PayPal app settings):"
 
 msgid "PayPal 尚未配置。"
 msgstr "PayPal is not configured yet."
@@ -64,6 +83,9 @@ msgstr "PayPal capture failed (HTTP %d)"
 msgid "PayPal 認證失敗（HTTP %d）"
 msgstr "PayPal authentication failed (HTTP %d)"
 
+msgid "PayPal 退款失敗（HTTP %d）"
+msgstr ""
+
 msgid "SKU"
 msgstr "SKU"
 
@@ -79,11 +101,17 @@ msgstr "Stripe"
 msgid "Stripe 創建會話失敗，請稍後重試。"
 msgstr "Stripe failed to create the checkout session. Please try again later."
 
+msgid "Stripe 尚未配置，無法退款。"
+msgstr ""
+
 msgid "Stripe 尚未配置，請聯絡管理員。"
 msgstr "Stripe is not configured. Please contact the administrator."
 
 msgid "Stripe 支付"
 msgstr "Stripe Payment"
+
+msgid "Stripe 退款失敗（未返回退款 ID）。"
+msgstr ""
 
 msgid "Stripe 錯誤（HTTP %d）"
 msgstr "Stripe error (HTTP %d)"
@@ -106,8 +134,20 @@ msgstr "Incomplete Webhook headers."
 msgid "WooCommerce 没有商品标签，无需同步。"
 msgstr "WooCommerce has no product tags; nothing to sync."
 
+msgid "[%1$s] 新售后申请：订单 %2$s"
+msgstr ""
+
+msgid "— 手動填寫 —"
+msgstr ""
+
 msgid "— 请选择 —"
 msgstr "— Select —"
+
+msgid "— 选择商品 —"
+msgstr ""
+
+msgid "— 选择物流公司 —"
+msgstr ""
 
 msgid "‹ 上一頁"
 msgstr "‹ Previous"
@@ -155,8 +195,7 @@ msgid "下一頁 ›"
 msgstr "Next ›"
 
 msgid "下单后由客服安排发货，验货付款。"
-msgstr ""
-"After ordering, our staff will arrange delivery; pay on inspection (COD)."
+msgstr "After ordering, our staff will arrange delivery; pay on inspection (COD)."
 
 msgid "下单失败。"
 msgstr "Failed to place the order."
@@ -173,6 +212,12 @@ msgstr "Download File"
 msgid "下载有效期（天）"
 msgstr "Download validity (days)"
 
+msgid "下载次数上限（0 = 不限）"
+msgstr ""
+
+msgid "下载次数已达上限（%d 次）。如需重新获取请联系站长。"
+msgstr ""
+
 msgid "下载链接无效或已过期。"
 msgstr "Download link is invalid or expired."
 
@@ -185,6 +230,12 @@ msgstr "None selected (default)"
 msgid "与下方间距"
 msgstr "Spacing below"
 
+msgid "中国邮政"
+msgstr ""
+
+msgid "中通快递"
+msgstr ""
+
 msgid "买过指定商品的客户"
 msgstr "Customers who bought selected products"
 
@@ -195,13 +246,16 @@ msgid "交易号"
 msgstr "Transaction ID"
 
 msgid "产品 Meta Box 未填写\"商品标题\"时的回退文案。"
-msgstr ""
-"Fallback text when the product Meta Box has no \"Product Title\" filled in."
+msgstr "Fallback text when the product Meta Box has no \"Product Title\" filled in."
 
-msgid "亲爱的 {customer_name}：\\n\\n感谢您一直以来的支持！\\n\\n{site_name}"
+msgid "京东物流"
 msgstr ""
-"Dear {customer_name}:\\n\\nThank you for your continued "
-"support!\\n\\n{site_name}"
+
+msgid "亲爱的 {customer_name}：\n\n感谢您一直以来的支持！\n\n{site_name}"
+msgstr ""
+
+msgid "亲爱的 {customer_name}：\\\n\\\n感谢您一直以来的支持！\\\n\\\n{site_name}"
+msgstr "Dear {customer_name}:\\\n\\\nThank you for your continued support!\\\n\\\n{site_name}"
 
 msgid "仅百分比类型生效，0 表示不限。"
 msgstr "Only applies to percentage types; 0 means unlimited."
@@ -211,6 +265,9 @@ msgstr "This content is for Diamond members only. Please upgrade first."
 
 msgid "今天"
 msgstr "Today"
+
+msgid "今日销售额"
+msgstr ""
 
 msgid "从"
 msgstr "From"
@@ -226,6 +283,12 @@ msgstr "Pick from common product tags"
 
 msgid "付款二维码占位"
 msgstr "Payment QR code placeholder"
+
+msgid "付款完成后，我们会在此页面推荐您注册成为网站用户，以便保存订单与再次下载。"
+msgstr ""
+
+msgid "付款成功！推荐您注册成为网站用户"
+msgstr ""
 
 msgid "付款时间"
 msgstr "Paid At"
@@ -296,14 +359,26 @@ msgstr "Coupon does not exist."
 msgid "优惠码已应用。"
 msgstr "Coupon already applied."
 
+msgid "优惠码需登录后使用。"
+msgstr ""
+
 msgid "优惠类型"
 msgstr "Discount type"
+
+msgid "会员/付费内容已授予超过退款时限"
+msgstr ""
 
 msgid "会员中心"
 msgstr "Member Center"
 
 msgid "会员升级"
 msgstr "Membership Upgrade"
+
+msgid "会员升级：%s"
+msgstr ""
+
+msgid "会员数"
+msgstr ""
 
 msgid "会员模块未启用。"
 msgstr "Membership module not enabled."
@@ -316,6 +391,9 @@ msgstr "Insufficient balance. Current balance: %s."
 
 msgid "余额支付"
 msgstr "Pay with Balance"
+
+msgid "余额支付需登录后使用。"
+msgstr ""
 
 msgid "佣金"
 msgstr "Commission"
@@ -344,8 +422,17 @@ msgstr "Insured"
 msgid "保存后作为优惠码，建议全大写、无空格。"
 msgstr "Saved as the coupon code; use uppercase letters without spaces."
 
+msgid "保存后每行卡密加密为一个新批次入库；存量明文卡密池将在升级迁移中自动导入并清空。"
+msgstr ""
+
+msgid "保存地址"
+msgstr ""
+
 msgid "信用卡 / Apple Pay / Google Pay（Stripe）"
 msgstr "Credit card / Apple Pay / Google Pay (Stripe)"
+
+msgid "停用"
+msgstr ""
 
 msgid "側邊欄"
 msgstr "Sidebar"
@@ -362,6 +449,9 @@ msgstr "Note"
 msgid "備註（選填）"
 msgstr "Note (optional)"
 
+msgid "允許訪客購買"
+msgstr ""
+
 msgid "充值不可使用余额支付。"
 msgstr "Top-ups cannot be paid with balance."
 
@@ -373,6 +463,9 @@ msgstr "Top-up module unavailable."
 
 msgid "充值积分"
 msgstr "Top up credits"
+
+msgid "充值积分已消费，无法退款"
+msgstr ""
 
 msgid "充值金额无效。"
 msgstr "Invalid top-up amount."
@@ -407,27 +500,32 @@ msgstr "All registered users"
 msgid "全部订单"
 msgstr "All orders"
 
+msgid "全额"
+msgstr ""
+
+msgid "全额退款已处理，订单已标记为已退款。"
+msgstr ""
+
+msgid "全额退款成功后订单转为「已退款」，自动回滚库存、回补余额/回收充值积分、释放优惠券名额；卡密不回滚。余额网关订单不调网关 API，由状态机回补钱包。"
+msgstr ""
+
 msgid "共 %d 件商品"
 msgstr "%d products"
 
 msgid "关闭后只保留「商品描述 / 更多信息」两个标签。可在商城设置里关闭「商品评价」总开关后此项自动隐藏。"
-msgstr ""
-"When off, only the \"Description / Additional information\" tabs remain. "
-"Hides automatically once the \"Reviews\" master switch is off in shop "
-"settings."
+msgstr "When off, only the \"Description / Additional information\" tabs remain. Hides automatically once the \"Reviews\" master switch is off in shop settings."
 
 msgid "关闭后此区域内的列表卡片不显示「实物 / 虚拟 / 卡密」徽章；留「默认」则跟随后台「列表显示」设置。"
-msgstr ""
-"When off, list cards in this block hide the \"Physical / Virtual / Card-"
-"key\" badges; \"Default\" follows the shop List Display settings."
+msgstr "When off, list cards in this block hide the \"Physical / Virtual / Card-key\" badges; \"Default\" follows the shop List Display settings."
 
 msgid "关闭后此区域内的列表卡片不渲染标签云；留「默认」则跟随后台「列表显示」设置。"
-msgstr ""
-"When off, list cards in this block hide the tag cloud; \"Default\" follows "
-"the shop List Display settings."
+msgstr "When off, list cards in this block hide the tag cloud; \"Default\" follows the shop List Display settings."
 
 msgid "关闭后，产品的付费 Meta Box 不生效。"
 msgstr "When off, the paid-product Meta Box has no effect."
+
+msgid "其他商品"
+msgstr ""
 
 msgid "其它标识"
 msgstr "Other identifiers"
@@ -459,31 +557,53 @@ msgstr "List Display"
 msgid "刚刚"
 msgstr "Just now"
 
+msgid "创建发货单并标记已发货"
+msgstr ""
+
+msgid "创建时间"
+msgstr ""
+
+msgid "刪除"
+msgstr ""
+
 msgid "到"
 msgstr "to"
 
-msgid "前 %d 张免费，剩余 %d 张购买后查看。"
+msgid "到店自提"
 msgstr ""
-"First %d images are free; the remaining %d are visible after purchase."
+
+msgid "到店自提免運費，請憑提貨人手機號到店領取。"
+msgstr ""
+
+msgid "到店自提（免运费）"
+msgstr ""
+
+msgid "到店自提（免運費）"
+msgstr ""
+
+msgid "前 %d 张免费，剩余 %d 张购买后查看。"
+msgstr "First %d images are free; the remaining %d are visible after purchase."
 
 msgid "前台公開支付方式"
 msgstr "Publicly visible payment methods"
+
+msgid "前台展示名（可選）"
+msgstr ""
+
+msgid "剩余 %d 次"
+msgstr ""
 
 msgid "加入购物车"
 msgstr "Add to Cart"
 
 msgid "勾选后仅指定会员等级可用，不选则所有用户。"
-msgstr ""
-"If checked, only selected member levels can use it; otherwise all users."
+msgstr "If checked, only selected member levels can use it; otherwise all users."
 
-msgid ""
-"勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP "
-"跳轉型網關）請單獨告訴我對接。"
+msgid "勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP 跳轉型網關）請單獨告訴我對接。"
+msgstr "Check the payment methods to show on the front-end checkout; unchecked methods are hidden from the \"Select Payment Method\" list and rejected at ordering. To add a new gateway (e.g. a standalone app-redirect gateway), ask the developer to integrate it."
+
+msgid "包裹已交运（%1$s %2$s）"
 msgstr ""
-"Check the payment methods to show on the front-end checkout; unchecked "
-"methods are hidden from the \"Select Payment Method\" list and rejected at "
-"ordering. To add a new gateway (e.g. a standalone app-redirect gateway), ask"
-" the developer to integrate it."
 
 msgid "升級會員"
 msgstr "Upgrade Membership"
@@ -509,20 +629,65 @@ msgstr "Single order"
 msgid "单价"
 msgstr "Unit Price"
 
+msgid "单次最多导入 %d 行（当前 %d 行），请分批导入。"
+msgstr ""
+
 msgid "卡密"
 msgstr "Card key"
+
+msgid "卡密不存在。"
+msgstr ""
+
+msgid "卡密以加密批次入库（AES-256-CBC，明文不落库）。停用批次后其卡密不再参与发货；每次查看（含掩码展开）都会记录审计日志。"
+msgstr ""
+
+msgid "卡密内容为空，未导入。"
+msgstr ""
+
+msgid "卡密列表（掩码，前 100 条）"
+msgstr ""
 
 msgid "卡密商品"
 msgstr "Card-key product"
 
+msgid "卡密已交付"
+msgstr ""
+
+msgid "卡密库存"
+msgstr ""
+
+msgid "卡密库存预警"
+msgstr ""
+
+msgid "卡密库存预警（可售 < 10）"
+msgstr ""
+
+msgid "卡密批次"
+msgstr ""
+
+msgid "卡密明文（已记录审计）："
+msgstr ""
+
 msgid "卡密池（每行一条，售出后自动扣减）"
 msgstr "Card-key pool (one per line; auto-deducted after sale)"
+
+msgid "卡密解密失败，请联系站长。"
+msgstr ""
+
+msgid "卡密（掩码）"
+msgstr ""
+
+msgid "卡密（每行一条）"
+msgstr ""
 
 msgid "卡密："
 msgstr "Card key:"
 
 msgid "卡片标题"
 msgstr "Card title"
+
+msgid "原因"
+msgstr ""
 
 msgid "去充值"
 msgstr "Top Up"
@@ -542,6 +707,18 @@ msgstr "Sender name"
 msgid "发件人邮箱"
 msgstr "Sender email"
 
+msgid "发货单"
+msgstr ""
+
+msgid "发货单 #%1$d 已创建（运单号 %2$s），订单已标记为已发货。"
+msgstr ""
+
+msgid "发货单创建失败。"
+msgstr ""
+
+msgid "发货备注"
+msgstr ""
+
 msgid "发货时间"
 msgstr "Shipped at"
 
@@ -555,13 +732,16 @@ msgid "变动"
 msgstr "Change"
 
 msgid "变更状态会触发对应副作用（发货/交付/退款回补/优惠券释放），并受状态流转规则约束。"
-msgstr ""
-"Changing the status triggers the corresponding side effects (delivery / "
-"fulfilment / refund reversal / coupon release) and is subject to status "
-"transition rules."
+msgstr "Changing the status triggers the corresponding side effects (delivery / fulfilment / refund reversal / coupon release) and is subject to status transition rules."
 
 msgid "变更订单状态"
 msgstr "Change order status"
+
+msgid "可售"
+msgstr ""
+
+msgid "可售卡密"
+msgstr ""
 
 msgid "可提现余额不足，最低提现 %s。"
 msgstr "Withdrawable balance too low; minimum withdrawal is %s."
@@ -571,6 +751,12 @@ msgstr "A withdrawable balance of %s is required to request a withdrawal."
 
 msgid "可提现佣金"
 msgstr "Withdrawable commission"
+
+msgid "可退金额不足（累计退款已接近订单总额）。"
+msgstr ""
+
+msgid "可选，写入轨迹首条"
+msgstr ""
 
 msgid "右"
 msgstr "Right"
@@ -587,16 +773,23 @@ msgstr "Total"
 msgid "合计："
 msgstr "Total:"
 
+msgid "同一 IP 每小時最多下單次數，0 表示不限流（防灌單濫用）。"
+msgstr ""
+
+msgid "同一发货单连续查询失败 3 次会自动暂停 24 小时，避免无效请求。手工发货 Provider 无轨迹能力，此开关仅对查询型 Provider 生效。"
+msgstr ""
+
 msgid "同步 WooCommerce 商品标签"
 msgstr "Sync WooCommerce product tags"
 
 msgid "同步完成：共导入 %1$d 个商品标签，为 %2$d 件月光商品标注标签。"
-msgstr ""
-"Sync complete: imported %1$d product tags and tagged %2$d Moonlight "
-"products."
+msgstr "Sync complete: imported %1$d product tags and tagged %2$d Moonlight products."
 
 msgid "启用"
 msgstr "Enable"
+
+msgid "启用中"
+msgstr ""
 
 msgid "启用产品付费阅读/下载/积分购买等功能"
 msgstr "Enable paid reading / download / credit purchase for products"
@@ -610,11 +803,26 @@ msgstr "Enable this coupon"
 msgid "启用此活动"
 msgstr "Enable this promotion"
 
+msgid "响应解析失败"
+msgstr ""
+
+msgid "售后与退款"
+msgstr ""
+
 msgid "售后服务"
 msgstr "After-sales service"
 
+msgid "售后模块不可用。"
+msgstr ""
+
 msgid "售后申请"
 msgstr "After-sales request"
+
+msgid "售后申请处理中，管理员会尽快与您联系。"
+msgstr ""
+
+msgid "售后申请已提交，管理员会尽快处理。"
+msgstr ""
 
 msgid "售后申请提交失败。"
 msgstr "Failed to submit the after-sales request."
@@ -624,6 +832,9 @@ msgstr "Invalid after-sales type."
 
 msgid "商品"
 msgstr "Product"
+
+msgid "商品「%1$s」卡密库存不足，仅剩 %2$d 条，请及时补充（进入后台 → 商城 → 卡密库存 导入新批次）。"
+msgstr ""
 
 msgid "商品不存在。"
 msgstr "Product not found."
@@ -668,15 +879,16 @@ msgid "商品單頁前綴"
 msgstr "Single product page prefix"
 
 msgid "商品小計達到此金額即免運費（例：400 表示滿 400 包郵）。"
-msgstr ""
-"Free shipping when the subtotal reaches this amount (e.g. 400 = free "
-"shipping over 400)."
+msgstr "Free shipping when the subtotal reaches this amount (e.g. 400 = free shipping over 400)."
 
 msgid "商品小计"
 msgstr "Subtotal"
 
 msgid "商品属性"
 msgstr "Product attributes"
+
+msgid "商品已下架或未发布。"
+msgstr ""
 
 msgid "商品已删除。"
 msgstr "Product deleted."
@@ -710,6 +922,9 @@ msgstr "Product search: %s"
 
 msgid "商品摘要 meta 區塊"
 msgstr "Product summary meta block"
+
+msgid "商品数"
+msgstr ""
 
 msgid "商品标签"
 msgstr "Product tags"
@@ -774,6 +989,9 @@ msgstr "Shop · My Favorites"
 msgid "商城·购物车"
 msgstr "Shop · Cart"
 
+msgid "商城仪表盘"
+msgstr ""
+
 msgid "商城侧栏"
 msgstr "Shop sidebar"
 
@@ -783,14 +1001,38 @@ msgstr "Shop Settings"
 msgid "商店聯絡電郵"
 msgstr "Shop contact email"
 
+msgid "商戶 API 證書序列號（商戶平台 → API 安全）"
+msgstr ""
+
+msgid "商戶平台設置的 APIv3 密鑰（32 位）"
+msgstr ""
+
+msgid "商戶號（mchid）"
+msgstr ""
+
+msgid "商戶證書序列號"
+msgstr ""
+
 msgid "啟用實物商品運費"
 msgstr "Enable shipping for physical products"
+
+msgid "啟用微信支付"
+msgstr ""
+
+msgid "啟用支付寶"
+msgstr ""
+
+msgid "啟用（AppID、應用私鑰、支付寶公鑰齊全後前台可用）"
+msgstr ""
 
 msgid "啟用（使用 Sandbox 環境）"
 msgstr "Enable (Sandbox mode)"
 
 msgid "啟用（使用 Test Key，不會真實扣款）"
 msgstr "Enable (Test Keys; no real charges)"
+
+msgid "啟用（商戶號、AppID、證書序列號、私鑰、APIv3 密鑰齊全後前台可用）"
+msgstr ""
 
 msgid "單頁顯示"
 msgstr "Single page display"
@@ -801,19 +1043,26 @@ msgstr "No products in trash"
 msgid "回收站中暂无订单。"
 msgstr "No orders in trash."
 
+msgid "固定 %s"
+msgstr ""
+
 msgid "固定運費"
 msgstr "Flat shipping rate"
 
 msgid "固定金额减免"
 msgstr "Fixed amount discount"
 
-msgid "在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID："
+msgid "圆通速递"
 msgstr ""
-"Add an endpoint under PayPal Developer → Webhooks and fill in its Webhook "
-"ID:"
+
+msgid "在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID："
+msgstr "Add an endpoint under PayPal Developer → Webhooks and fill in its Webhook ID:"
 
 msgid "在 Stripe Dashboard → Developers → Webhooks 新增端點："
 msgstr "Add an endpoint under Stripe Dashboard → Developers → Webhooks:"
+
+msgid "在「商城設定 → 運費設定 → 運費模板」配置；留空按默認全局運費計算。"
+msgstr ""
 
 msgid "在商品列表卡片上顯示「实物 / 虚拟 / 卡密」類型徽章"
 msgstr "Show \"Physical / Virtual / Card-key\" type badges on list cards"
@@ -822,22 +1071,16 @@ msgid "在商品列表卡片上顯示商品標籤（小藥丸樣式）"
 msgstr "Show product tags on list cards (small pill style)"
 
 msgid "在商品单页底部「评价」标签页启用 WordPress 評論區"
-msgstr ""
-"Enable the WordPress comment area in the \"Reviews\" tab on single product "
-"pages"
+msgstr "Enable the WordPress comment area in the \"Reviews\" tab on single product pages"
 
 msgid "在商品單頁頂部顯示「首頁 › 商城 › 分類 › 商品」面包屑"
-msgstr ""
-"Show \"Home › Shop › Category › Product\" breadcrumbs on single product "
-"pages"
+msgstr "Show \"Home › Shop › Category › Product\" breadcrumbs on single product pages"
 
 msgid "在媒体库上传文件后填入其 ID。"
 msgstr "Upload the file in the Media Library and enter its ID."
 
 msgid "在媒体库框中选多张；留空则仅用特色图片。点击缩略图可移除。"
-msgstr ""
-"Select multiple images in the Media Library; leave empty to use the featured"
-" image only. Click a thumbnail to remove it."
+msgstr "Select multiple images in the Media Library; leave empty to use the featured image only. Click a thumbnail to remove it."
 
 msgid "在摘要下方顯示「貨號 / 分類 / 庫存」三行"
 msgstr "Show \"SKU / Category / Stock\" lines under the excerpt"
@@ -847,6 +1090,21 @@ msgstr "Preview online"
 
 msgid "地址"
 msgstr "Address"
+
+msgid "地址不存在或已删除。"
+msgstr ""
+
+msgid "地址已保存。"
+msgstr ""
+
+msgid "地址已删除。"
+msgstr ""
+
+msgid "地址簿模块不可用。"
+msgstr ""
+
+msgid "城市"
+msgstr ""
 
 msgid "基本設定"
 msgstr "General"
@@ -873,9 +1131,7 @@ msgid "如有优惠码请在此输入"
 msgstr "Enter a coupon code if you have one"
 
 msgid "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
-msgstr ""
-"e.g. Points / Z-coins / Gold. Shown in the product Meta Box and on the front"
-" end."
+msgstr "e.g. Points / Z-coins / Gold. Shown in the product Meta Box and on the front end."
 
 msgid "字号"
 msgstr "Font size"
@@ -889,12 +1145,17 @@ msgstr "Physical"
 msgid "实物商品"
 msgstr "Physical product"
 
+msgid "实物已发货，请走售后协商"
+msgstr ""
+
+msgid "实物订单需选择收货地址。"
+msgstr ""
+
 msgid "客单价"
 msgstr "Average order value"
 
 msgid "客戶收到郵件時看到的「發件人」名字，留空用站點名稱。"
-msgstr ""
-"The \"From\" name customers see in emails; leave empty to use the site name."
+msgstr "The \"From\" name customers see in emails; leave empty to use the site name."
 
 msgid "客户"
 msgstr "Customer"
@@ -911,13 +1172,14 @@ msgstr "Physical goods delivery"
 msgid "对齐"
 msgstr "Alignment"
 
-msgid ""
-"将站内 WooCommerce 商品的标签（product_tag）整批汇入月光「商品标签」，并按 SKU / "
-"标题对应到月光商品打标。可重复执行，不会重复建标签或重复打标。"
+msgid "导入卡密"
 msgstr ""
-"Import WooCommerce product tags into Moonlight \"Product Tags\" in bulk and "
-"tag Moonlight products by SKU / title. Safe to re-run; no duplicate tags or "
-"tagging."
+
+msgid "导入成功：%1$d 条入池，跳过重复 %2$d 条（批次 #%3$d）。"
+msgstr ""
+
+msgid "将站内 WooCommerce 商品的标签（product_tag）整批汇入月光「商品标签」，并按 SKU / 标题对应到月光商品打标。可重复执行，不会重复建标签或重复打标。"
+msgstr "Import WooCommerce product tags into Moonlight \"Product Tags\" in bulk and tag Moonlight products by SKU / title. Safe to re-run; no duplicate tags or tagging."
 
 msgid "小計"
 msgstr "Subtotal"
@@ -946,6 +1208,27 @@ msgstr "Used %d times"
 msgid "已使用积分解锁，正在刷新…"
 msgstr "Unlocked with credits; refreshing…"
 
+msgid "已保存（%s）。留空表示不修改。"
+msgstr ""
+
+msgid "已保存（%s）。留空表示不修改；如需更换请输入新值。"
+msgstr ""
+
+msgid "已保存（%s）。留空表示不修改；如需更换请输入新值。官方接口参数结构变化时，可用过滤器 moonlight_shipping_express100_request 校正请求。"
+msgstr ""
+
+msgid "已保存（%s）。留空表示不修改；如需更換請輸入新值。"
+msgstr ""
+
+msgid "已保存（%s）。留空表示不修改；用於回調 resource（AES-256-GCM）與平台證書解密。"
+msgstr ""
+
+msgid "已停用"
+msgstr ""
+
+msgid "已创建"
+msgstr ""
+
 msgid "已加入 ✓"
 msgstr "Added ✓"
 
@@ -955,17 +1238,35 @@ msgstr "Added to favorites."
 msgid "已加入购物车。"
 msgstr "Added to cart."
 
+msgid "已发货"
+msgstr ""
+
 msgid "已取消"
 msgstr "Cancelled"
 
 msgid "已取消收藏。"
 msgstr "Removed from favorites."
 
+msgid "已售"
+msgstr ""
+
 msgid "已售 %d 份"
 msgstr "%d sold"
 
+msgid "已在网关后台手动退款（仅标记，跳过网关 API）"
+msgstr ""
+
+msgid "已处理退款 %s。"
+msgstr ""
+
+msgid "已存在待处理的售后申请，请耐心等待。"
+msgstr ""
+
 msgid "已完成"
 msgstr "Completed"
+
+msgid "已批准"
+msgstr ""
 
 msgid "已拒绝"
 msgstr "Rejected"
@@ -979,17 +1280,41 @@ msgstr "Favorited"
 msgid "已更新。"
 msgstr "Updated."
 
+msgid "已有账号？登录"
+msgstr ""
+
 msgid "已标记为已打款。"
 msgstr "Marked as paid out."
+
+msgid "已核销"
+msgstr ""
 
 msgid "已滿 %2$s，享 %1$s 免運費。"
 msgstr "Reached %2$s — %1$s free shipping applies."
 
+msgid "已确认收货，感谢您的购买！"
+msgstr ""
+
 msgid "已移除。"
 msgstr "Removed."
 
+msgid "已签收"
+msgstr ""
+
+msgid "已跳过网关（仅标记退款）。"
+msgstr ""
+
+msgid "已过期"
+msgstr ""
+
+msgid "已过期/停用"
+msgstr ""
+
 msgid "已退款"
 msgstr "Refunded"
+
+msgid "已退款累计：%1$s %2$s / %3$s %4$s"
+msgstr ""
 
 msgid "已通过"
 msgstr "Approved"
@@ -1013,9 +1338,7 @@ msgid "库存（-1 = 无限）"
 msgstr "Stock (-1 = unlimited)"
 
 msgid "库存（-1 表示无限，卡密类型填可用张数）"
-msgstr ""
-"Stock (-1 = unlimited; for card-key products enter the number of available "
-"codes)"
+msgstr "Stock (-1 = unlimited; for card-key products enter the number of available codes)"
 
 msgid "应付总额"
 msgstr "Total Due"
@@ -1027,15 +1350,19 @@ msgid "应用范围"
 msgstr "Scope"
 
 msgid "建議使用與網域一致的郵箱（如 no-reply@yourdomain.com）以提升送達率，留空用商店聯絡郵箱。"
-msgstr ""
-"Use an email on your own domain (e.g. no-reply@yourdomain.com) for better "
-"deliverability; leave empty to use the shop contact email."
+msgstr "Use an email on your own domain (e.g. no-reply@yourdomain.com) for better deliverability; leave empty to use the shop contact email."
 
 msgid "开始群发"
 msgstr "Start bulk send"
 
+msgid "异常"
+msgstr ""
+
 msgid "当前商品（循环中）"
 msgstr "Current product (in loop)"
+
+msgid "当前库存池：%1$d 个批次，可售 %2$d 条（在「商城 → 卡密库存」管理批次）。历史明文池已迁移并清空（标记 _mlshop_cardkeys_migrated）。"
+msgstr ""
 
 msgid "当前浏览器不支持视频播放。"
 msgstr "Your browser does not support video playback."
@@ -1046,6 +1373,21 @@ msgstr "Current Level"
 msgid "当前订单不可申请售后。"
 msgstr "After-sales requests are not available for this order."
 
+msgid "当前订单不可通过本表单退款：%s。如需协商退款，可使用上方「更新状态」改为已退款（仅标记，不调网关）。"
+msgstr ""
+
+msgid "当前订单状态不支持取消。"
+msgstr ""
+
+msgid "当前订单状态不支持确认收货。"
+msgstr ""
+
+msgid "当前订单状态（%s）不支持申请售后。"
+msgstr ""
+
+msgid "当前订单状态（%s）不支持退款。"
+msgstr ""
+
 msgid "当前订单的链接。"
 msgstr "Link to the current order."
 
@@ -1053,15 +1395,85 @@ msgid "当前购物车商品不参与优惠活动。"
 msgstr "Items in your cart are not part of any promotion."
 
 msgid "影响商品列表页（含分类、搜索、Elementor 网格）卡片上的价格显示；商品详情页不受此设置控制。"
-msgstr ""
-"Affects price display on list cards (categories, search, Elementor grids); "
-"the single product page is not affected."
+msgstr "Affects price display on list cards (categories, search, Elementor grids); the single product page is not affected."
 
 msgid "待付款"
 msgstr "Awaiting payment"
 
+msgid "待发货"
+msgstr ""
+
+msgid "待发货订单"
+msgstr ""
+
 msgid "待处理"
 msgstr "Pending"
+
+msgid "待处理售后"
+msgstr ""
+
+msgid "從地址簿選擇"
+msgstr ""
+
+msgid "微信掃碼（Native）/ H5 支付（僅支持人民幣 CNY 計價訂單）。"
+msgstr ""
+
+msgid "微信支付"
+msgstr ""
+
+msgid "微信支付 API v3（Native 掃碼 / H5），僅支持人民幣（CNY）計價：商城貨幣代碼非 CNY 時，微信支付在前台不會出現。需伺服器啟用 PHP OpenSSL 擴展（RSA-SHA256 簽名 + AES-256-GCM 解密）。"
+msgstr ""
+
+msgid "微信支付 WeChat Pay"
+msgstr ""
+
+msgid "微信支付下單失敗（未返回 H5 支付鏈接）。"
+msgstr ""
+
+msgid "微信支付下單失敗（未返回二維碼鏈接）。"
+msgstr ""
+
+msgid "微信支付二维码"
+msgstr ""
+
+msgid "微信支付僅支持人民幣（CNY）計價訂單。"
+msgstr ""
+
+msgid "微信支付公鑰"
+msgstr ""
+
+msgid "微信支付商戶私鑰無效，請檢查格式（支持 PKCS#1 / PKCS#8）。"
+msgstr ""
+
+msgid "微信支付未啟用。"
+msgstr ""
+
+msgid "微信支付請求簽名失敗，請檢查商戶私鑰。"
+msgstr ""
+
+msgid "微信退款失敗（未返回退款單號）。"
+msgstr ""
+
+msgid "快捷入口"
+msgstr ""
+
+msgid "快递100 Customer 编号"
+msgstr ""
+
+msgid "快递100 授权 Key"
+msgstr ""
+
+msgid "快递100 未配置或运单号为空。"
+msgstr ""
+
+msgid "快递100（聚合查询）"
+msgstr ""
+
+msgid "快遞配送"
+msgstr ""
+
+msgid "总数"
+msgstr ""
 
 msgid "总销售额"
 msgstr "Total sales"
@@ -1075,10 +1487,11 @@ msgstr "You have unlocked this content."
 msgid "您当前的会员等级无权购买此内容。"
 msgstr "Your current member level cannot purchase this content."
 
-msgid "您當前的會員等級無權查看此內容，請升級會員後繼續。"
+msgid "您正在以访客身份购买，无需注册。请填写电子邮箱：订单确认、虚拟商品下载链接与卡密将发送到该邮箱。"
 msgstr ""
-"Your current member level cannot view this content. Please upgrade to "
-"continue."
+
+msgid "您當前的會員等級無權查看此內容，請升級會員後繼續。"
+msgstr "Your current member level cannot view this content. Please upgrade to continue."
 
 msgid "您的余额：%s %s"
 msgstr "Your balance: %s %s"
@@ -1087,17 +1500,16 @@ msgid "您的教材 / 卡密"
 msgstr "Your materials / card keys"
 
 msgid "您的訂單已付款完成，相關教材下載連結如下。請妥善保存。"
-msgstr ""
-"Your order has been paid. The download links for your materials are below. "
-"Please keep them safe."
+msgstr "Your order has been paid. The download links for your materials are below. Please keep them safe."
 
 msgid "您的訂單已提交，我們將盡快為您處理；貨到付款訂單將於驗貨後安排寄送。"
-msgstr ""
-"Your order has been received and will be processed shortly; COD orders ship "
-"after inspection."
+msgstr "Your order has been received and will be processed shortly; COD orders ship after inspection."
 
 msgid "您还没有使用过优惠码。"
 msgstr "You have not used any coupons yet."
+
+msgid "您还没有保存收货地址，请在下方新增。"
+msgstr ""
 
 msgid "您还没有订单。"
 msgstr "You have no orders yet."
@@ -1106,9 +1518,13 @@ msgid "悬停颜色"
 msgstr "Hover color"
 
 msgid "感謝您的支持！您的會員等級已升級為：%s，相關權限立即生效。"
+msgstr "Thank you for your support! Your membership has been upgraded to: %s. Access is effective immediately."
+
+msgid "應用私鑰"
 msgstr ""
-"Thank you for your support! Your membership has been upgraded to: %s. Access"
-" is effective immediately."
+
+msgid "我已完成支付"
+msgstr ""
 
 msgid "我的下载"
 msgstr "My Downloads"
@@ -1128,14 +1544,35 @@ msgstr "My Favorites"
 msgid "我的订单"
 msgstr "My Orders"
 
-msgid "所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。"
+msgid "或手工输入公司名（非空时优先于下拉）"
 msgstr ""
-"All product list pages (categories, search, Elementor grids) share the "
-"typography above. Fine-tune individual spots via templates or Elementor "
-"settings."
+
+msgid "所在省市"
+msgstr ""
+
+msgid "所有卡密商品库存充足。"
+msgstr ""
+
+msgid "所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。"
+msgstr "All product list pages (categories, search, Elementor grids) share the typography above. Fine-tune individual spots via templates or Elementor settings."
+
+msgid "所选地址不存在，请重新选择。"
+msgstr ""
 
 msgid "手动输入邮箱"
 msgstr "Enter emails manually"
+
+msgid "手工发货"
+msgstr ""
+
+msgid "手工发货模式不提供轨迹查询。"
+msgstr ""
+
+msgid "手工發貨 = 零依賴（默認，無軌跡查詢）；快遞100 = 聚合軌跡查詢（需配置下方 Key）。選中的 Provider 不可用時自動回退手工發貨。查詢失敗絕不影響訂單狀態。"
+msgstr ""
+
+msgid "手机号需为 5-20 位数字或「-」。"
+msgstr ""
 
 msgid "手机端列数（≤520px）"
 msgstr "Mobile columns (≤520px)"
@@ -1143,8 +1580,29 @@ msgstr "Mobile columns (≤520px)"
 msgid "扣减余额失败，请稍后重试。"
 msgstr "Failed to deduct balance. Please try again later."
 
+msgid "执行退款"
+msgstr ""
+
 msgid "扫码 / 线下付款"
 msgstr "QR code / offline payment"
+
+msgid "批次列表"
+msgstr ""
+
+msgid "批次名"
+msgstr ""
+
+msgid "批次已停用。"
+msgstr ""
+
+msgid "批次已启用。"
+msgstr ""
+
+msgid "批次状态更新失败。"
+msgstr ""
+
+msgid "批量导入卡密"
+msgstr ""
 
 msgid "承運商名稱"
 msgstr "Carrier name"
@@ -1158,8 +1616,14 @@ msgstr "Assign member levels"
 msgid "按 %s %s / 1 货币单位计算"
 msgstr "Calculated at %s %s per 1 currency unit"
 
+msgid "按件（首件 %s / 續件 %s）"
+msgstr ""
+
 msgid "按名称"
 msgstr "Name"
+
+msgid "按商品計費的運費模板，每行一條：模板名|模式|首件|續件|免郵門檻。模式 fixed = 固定運費（小計未達門檻收「首件」列金額）；piece = 按件計費（首件 + (件數-1) × 續件）。門檻 > 0 且商品小計達標時該商品免運費。留空 = 未配置，全部商品走上方全局固定運費 + 滿額包郵。"
+msgstr ""
 
 msgid "按日期筛选订单"
 msgstr "Filter orders by date"
@@ -1175,6 +1639,9 @@ msgstr "Sort:"
 
 msgid "推广链接购买可享 %s%% 折扣"
 msgstr "Purchases via your affiliate link get %s%% off"
+
+msgid "推荐您注册成为网站用户"
+msgstr ""
 
 msgid "提交订单"
 msgstr "Place Order"
@@ -1193,6 +1660,12 @@ msgstr "Withdrawal request submitted; awaiting admin review and payout."
 
 msgid "提现申请提交失败。"
 msgstr "Failed to submit the withdrawal request."
+
+msgid "提貨人姓名"
+msgstr ""
+
+msgid "提貨人手機號"
+msgstr ""
 
 msgid "插入到商品"
 msgstr "Insert into product"
@@ -1224,13 +1697,65 @@ msgstr "Search orders"
 msgid "操作"
 msgstr "Actions"
 
+msgid "操作者"
+msgstr ""
+
+msgid "操作过于频繁，请稍后再试。"
+msgstr ""
+
+msgid "支付发起失败。"
+msgstr ""
+
+msgid "支付場景"
+msgstr ""
+
 msgid "支付失败"
 msgstr "Payment failed"
 
 msgid "支付失败，请重新下单或更换支付方式。"
+msgstr "Payment failed. Please place the order again or choose another payment method."
+
+msgid "支付寶"
 msgstr ""
-"Payment failed. Please place the order again or choose another payment "
-"method."
+
+msgid "支付寶 Alipay"
+msgstr ""
+
+msgid "支付寶僅支持人民幣（CNY）計價訂單。"
+msgstr ""
+
+msgid "支付寶僅支持人民幣（CNY）計價：商城貨幣代碼非 CNY 時，支付寶在前台不會出現。需伺服器啟用 PHP OpenSSL 擴展（RSA2 簽名）。"
+msgstr ""
+
+msgid "支付寶公鑰"
+msgstr ""
+
+msgid "支付寶應用私鑰無效，請檢查格式（支持 PKCS#1 / PKCS#8）。"
+msgstr ""
+
+msgid "支付寶支付"
+msgstr ""
+
+msgid "支付寶支付未啟用。"
+msgstr ""
+
+msgid "支付寶查詢響應驗簽失敗。"
+msgstr ""
+
+msgid "支付寶訂單查詢失敗。"
+msgstr ""
+
+msgid "支付寶請求簽名失敗，請檢查應用私鑰。"
+msgstr ""
+
+msgid "支付寶退款失敗。"
+msgstr ""
+
+msgid "支付寶退款響應驗簽失敗。"
+msgstr ""
+
+msgid "支付已确认，订单即将更新。"
+msgstr ""
 
 msgid "支付成功，订单已生效。"
 msgstr "Payment successful. Your order is now active."
@@ -1245,8 +1770,7 @@ msgid "支付时限已过期，请重新下单。"
 msgstr "The payment window has expired. Please place the order again."
 
 msgid "支付校验失败：订单与支付凭据不匹配。"
-msgstr ""
-"Payment verification failed: order and payment credentials do not match."
+msgstr "Payment verification failed: order and payment credentials do not match."
 
 msgid "支付模块不可用。"
 msgstr "Payment module unavailable."
@@ -1254,11 +1778,17 @@ msgstr "Payment module unavailable."
 msgid "支付网关"
 msgstr "Payment Gateway"
 
+msgid "支付金额与订单不符，已记录待人工核对。"
+msgstr ""
+
 msgid "支持占位符："
 msgstr "Supported placeholders:"
 
 msgid "收件人"
 msgstr "Recipient"
+
+msgid "收件人姓名需为 1-32 个字。"
+msgstr ""
 
 msgid "收件地址"
 msgstr "Shipping Address"
@@ -1268,6 +1798,12 @@ msgstr "Shipping information"
 
 msgid "收件資料（實物商品寄送）"
 msgstr "Shipping Information"
+
+msgid "收到商品请点击确认收货；超期未确认的订单将按商城设置自动完成。"
+msgstr ""
+
+msgid "收到新的售后申请：\n\n订单：%1$s\n用户：%2$s\n原因：%3$s\n\n请进入后台订单编辑页处理。"
+msgstr ""
 
 msgid "收藏"
 msgstr "Favorites"
@@ -1281,8 +1817,20 @@ msgstr "Favorites component not loaded."
 msgid "收货地址"
 msgstr "Shipping address"
 
+msgid "收货城市无效，请重新选择。"
+msgstr ""
+
+msgid "收货省份无效，请重新选择。"
+msgstr ""
+
+msgid "收起"
+msgstr ""
+
 msgid "数量"
 msgstr "Quantity"
+
+msgid "数量不能为负数。"
+msgstr ""
 
 msgid "數量"
 msgstr "Quantity"
@@ -1298,6 +1846,15 @@ msgstr "New product category name"
 
 msgid "新商品标签名称"
 msgstr "New product tag name"
+
+msgid "新商戶推薦「微信支付公鑰模式」：同時填寫下方公鑰內容。兩項均留空時回退平台證書模式（自動 GET /v3/certificates 下載並緩存 12 小時）。"
+msgstr ""
+
+msgid "新增 / 編輯收貨地址"
+msgstr ""
+
+msgid "新增卡密（每行一条，保存后加密入库存池，明文不落库）"
+msgstr ""
 
 msgid "新建优惠券"
 msgstr "New coupon"
@@ -1317,8 +1874,20 @@ msgstr "New order"
 msgid "无效的会员等级。"
 msgstr "Invalid member level."
 
+msgid "无权操作该订单。"
+msgstr ""
+
+msgid "无权查看该卡密。"
+msgstr ""
+
 msgid "无权查看该订单。"
 msgstr "You do not have permission to view this order."
+
+msgid "无权访问该订单。"
+msgstr ""
+
+msgid "无门槛"
+msgstr ""
 
 msgid "日期"
 msgstr "Date"
@@ -1383,6 +1952,9 @@ msgstr "No categories yet."
 msgid "暂无可下载内容。"
 msgstr "Nothing available to download yet."
 
+msgid "暂无可用优惠券。"
+msgstr ""
+
 msgid "暂无商品"
 msgstr "No products"
 
@@ -1404,6 +1976,9 @@ msgstr "No credit transactions yet."
 msgid "暂无订单。"
 msgstr "No orders yet."
 
+msgid "暂未查询到支付结果，请稍后再试。"
+msgstr ""
+
 msgid "更多信息"
 msgstr "Additional information"
 
@@ -1413,14 +1988,23 @@ msgstr "Update product category"
 msgid "更新商品标签"
 msgstr "Update product tag"
 
+msgid "更新地址"
+msgstr ""
+
 msgid "更新状态"
 msgstr "Update status"
 
 msgid "最低价格"
 msgstr "Min price"
 
+msgid "最低消费"
+msgstr ""
+
 msgid "最低消费（小计门槛）"
 msgstr "Minimum spend (subtotal threshold)"
+
+msgid "最多保存 %d 个收货地址。"
+msgstr ""
 
 msgid "最多显示行数"
 msgstr "Max rows to show"
@@ -1455,11 +2039,17 @@ msgstr "Monthly member"
 msgid "有效期 %d 天"
 msgstr "Valid for %d days"
 
+msgid "有效期至"
+msgstr ""
+
 msgid "有订单的客户"
 msgstr "Customers with orders"
 
 msgid "未分类"
 msgstr "Uncategorized"
+
+msgid "未找到 PayPal 收款記錄（capture），無法退款。"
+msgstr ""
 
 msgid "未支付订单自动取消（分钟）"
 msgstr "Auto-cancel unpaid orders (minutes)"
@@ -1470,13 +2060,20 @@ msgstr "No WooCommerce product tags (product_tag) found; nothing to sync."
 msgid "未检测到会员等级，留空表示全部用户。"
 msgstr "No member levels detected; leave empty for all users."
 
+msgid "未注册用户下单，确认邮件已发往上述邮箱"
+msgstr ""
+
 msgid "未滿 %3$s，需加收 %1$s 運費 %2$s。"
 msgstr "Below %3$s, a shipping fee of %2$s applies via %1$s."
 
-msgid "未達免運門檻時收取的統一運費（例：50 表示順豐統一運費 50）。"
+msgid "未註冊訪客填寫電子郵箱即可下單"
 msgstr ""
-"Flat shipping fee when below the free-shipping threshold (e.g. 50 = flat SF "
-"Express fee of 50)."
+
+msgid "未通过二次确认（confirm），已取消查看。"
+msgstr ""
+
+msgid "未達免運門檻時收取的統一運費（例：50 表示順豐統一運費 50）。"
+msgstr "Flat shipping fee when below the free-shipping threshold (e.g. 50 = flat SF Express fee of 50)."
 
 msgid "未配置 PayPal Webhook ID。"
 msgstr "PayPal Webhook ID not configured."
@@ -1487,16 +2084,20 @@ msgstr "This content supports coupon codes"
 msgid "本周"
 msgstr "This week"
 
+msgid "本地訂單無效。"
+msgstr ""
+
 msgid "本月"
 msgstr "This month"
+
+msgid "本月销售额"
+msgstr ""
 
 msgid "本次訂單不包含可下載或卡密類商品。"
 msgstr "This order contains no downloadable or card-key products."
 
 msgid "本訂單含實物商品，將由 %s 安排寄送，付款後約 2–3 個工作天出貨。"
-msgstr ""
-"This order contains physical goods and will be shipped via %s, usually "
-"within 2–3 business days after payment."
+msgstr "This order contains physical goods and will be shipped via %s, usually within 2–3 business days after payment."
 
 msgid "本郵件由系統自動發送，請勿直接回覆。"
 msgstr "This is an automated email — please do not reply."
@@ -1507,8 +2108,14 @@ msgstr "Permission denied."
 msgid "来自 %s 的最新消息"
 msgstr "Latest news from %s"
 
+msgid "极兔速递"
+msgstr ""
+
 msgid "查看"
 msgstr "View"
+
+msgid "查看卡密"
+msgstr ""
 
 msgid "查看商品"
 msgstr "View product"
@@ -1519,8 +2126,20 @@ msgstr "View product category"
 msgid "查看商品标签"
 msgstr "View product tag"
 
+msgid "查看完整"
+msgstr ""
+
+msgid "查看批次"
+msgstr ""
+
+msgid "查看本次订单"
+msgstr ""
+
 msgid "查看订单"
 msgstr "View Order"
+
+msgid "查询失败"
+msgstr ""
 
 msgid "标签"
 msgstr "Tags"
@@ -1540,6 +2159,15 @@ msgstr "Title color"
 msgid "桌面端列数"
 msgstr "Desktop columns"
 
+msgid "構建支付請求時會自動攜帶 notify_url，無需在商戶平台另行登記；如需在商戶平台除錯可用以下地址："
+msgstr ""
+
+msgid "構建支付請求時會自動攜帶 notify_url，無需在支付寶後台另行登記；如需在開放平台除錯可用以下地址："
+msgstr ""
+
+msgid "標準快遞|fixed|50|0|400"
+msgstr ""
+
 msgid "權限不足。"
 msgstr "Permission denied."
 
@@ -1552,13 +2180,32 @@ msgstr "Redirecting to PayPal…"
 msgid "正在跳轉至 Stripe 支付頁面…"
 msgstr "Redirecting to Stripe checkout…"
 
+msgid "正在跳轉至微信支付…"
+msgstr ""
+
+msgid "正在跳轉至支付寶…"
+msgstr ""
+
+msgid "正式（生產環境）"
+msgstr ""
+
 msgid "此內容僅限會員查看"
 msgstr "This content is for members only"
 
-msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
+msgid "每 15 分钟自动查询运输中发货单的物流轨迹（需服务器 WP-Cron；签收后订单自动转为「已签收」）"
 msgstr ""
-"One package per line, format: credits|amount (e.g. 100|10). Leave empty for "
-"defaults."
+
+msgid "每 15 分钟（商城物流查询）"
+msgstr ""
+
+msgid "每个下载链接允许下载的总次数；0 表示不限次数。"
+msgstr ""
+
+msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
+msgstr "One package per line, format: credits|amount (e.g. 100|10). Leave empty for defaults."
+
+msgid "每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。"
+msgstr ""
 
 msgid "每行列数"
 msgstr "Columns per row"
@@ -1566,14 +2213,29 @@ msgstr "Columns per row"
 msgid "每页商品数"
 msgstr "Products per page"
 
+msgid "永不"
+msgstr ""
+
 msgid "永久有效"
 msgstr "Lifetime access"
 
 msgid "沙盒模式"
 msgstr "Sandbox mode"
 
+msgid "沙盒（Sandbox，不會真實扣款）"
+msgstr ""
+
+msgid "没有导入任何新卡密（可能全部与库存池中已有卡密重复）。"
+msgstr ""
+
 msgid "注册"
 msgstr "Register"
+
+msgid "注册后可长期保存订单、随时重新下载虚拟商品、使用优惠码与积分，并享受更快的售后处理。"
+msgstr ""
+
+msgid "注册时填写下单邮箱 %s，方便站长为您关联本次订单。"
+msgstr ""
 
 msgid "活动类型"
 msgstr "Promotion type"
@@ -1623,9 +2285,11 @@ msgstr "Test send"
 msgid "測試郵件已發送到 %s。"
 msgstr "Test email sent to %s."
 
-msgid "測試郵件已發送到 %s（使用訂單 #%s 模擬，含下載連結）。"
+msgid "測試郵件已發送到 %s（使用訂單 #%s 模擬，卡密已掩碼，含下載連結）。"
 msgstr ""
-"Test email sent to %s (simulated with order #%s, including download links)."
+
+msgid "測試郵件已發送到 %s（使用訂單 #%s 模擬，含下載連結）。"
+msgstr "Test email sent to %s (simulated with order #%s, including download links)."
 
 msgid "游客"
 msgstr "Guest"
@@ -1634,9 +2298,7 @@ msgid "满额门槛（小计）"
 msgstr "Free-shipping threshold (subtotal)"
 
 msgid "滾動頁面時讓側邊欄固定在視窗（吸頂），內容過長時小工具始終可見"
-msgstr ""
-"Keep the sidebar fixed (sticky) while scrolling so widgets stay visible on "
-"long pages"
+msgstr "Keep the sidebar fixed (sticky) while scrolling so widgets stay visible on long pages"
 
 msgid "滿額包郵門檻"
 msgstr "Free-shipping threshold"
@@ -1668,11 +2330,20 @@ msgstr "Parent category"
 msgid "父级商品分类："
 msgstr "Parent category:"
 
+msgid "物流 Provider"
+msgstr ""
+
+msgid "物流 Provider 下单失败。"
+msgstr ""
+
 msgid "物流信息"
 msgstr "Shipping Info"
 
 msgid "物流公司"
 msgstr "Carrier"
+
+msgid "物流公司（Provider 支持列表）"
+msgstr ""
 
 msgid "物流单号"
 msgstr "Tracking number"
@@ -1680,10 +2351,11 @@ msgstr "Tracking number"
 msgid "状态"
 msgstr "Status"
 
-msgid "生成订单后扫码付款，管理员确认到账后发货。"
+msgid "環境模式"
 msgstr ""
-"Scan the QR code to pay after ordering; the admin ships after confirming "
-"receipt."
+
+msgid "生成订单后扫码付款，管理员确认到账后发货。"
+msgstr "Scan the QR code to pay after ordering; the admin ships after confirming receipt."
 
 msgid "生效开始日期"
 msgstr "Start date"
@@ -1691,18 +2363,17 @@ msgstr "Start date"
 msgid "生效结束日期"
 msgstr "End date"
 
-msgid "用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。"
+msgid "用户"
 msgstr ""
-"For custom credit amounts, cost = credits ÷ rate. E.g. 10 means 1 unit buys "
-"10 credits."
+
+msgid "用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。"
+msgstr "For custom credit amounts, cost = credits ÷ rate. E.g. 10 means 1 unit buys 10 credits."
 
 msgid "用户无效。"
 msgstr "Invalid user."
 
 msgid "用最近的訂單模擬一封完整郵件（含下載連結）發送到您的後台管理員郵箱，確認發信與模板正常。"
-msgstr ""
-"Simulates a full email (with download links) from the latest order to your "
-"admin inbox to verify sending and the template."
+msgstr "Simulates a full email (with download links) from the latest order to your admin inbox to verify sending and the template."
 
 msgid "用英文逗号分隔商品分类"
 msgstr "Separate categories with commas"
@@ -1710,19 +2381,38 @@ msgstr "Separate categories with commas"
 msgid "用英文逗号分隔商品标签"
 msgstr "Separate tags with commas"
 
+msgid "申请售后"
+msgstr ""
+
 msgid "申请提现"
 msgstr "Request withdrawal"
 
-msgid "留空使用內建主題。支持佔位符 {order_number}（訂單號）。"
+msgid "申通快递"
 msgstr ""
-"Leave empty for the built-in template. Supports the {order_number} "
-"placeholder."
+
+msgid "电子邮箱"
+msgstr ""
+
+msgid "留空 = 全额（%s %s）"
+msgstr ""
+
+msgid "留空使用內建主題。支持佔位符 {order_number}（訂單號）。"
+msgstr "Leave empty for the built-in template. Supports the {order_number} placeholder."
+
+msgid "留空時取訂單首件商品標題"
+msgstr ""
+
+msgid "留空自动命名（导入 Ymd-His）"
+msgstr ""
 
 msgid "留空自動選用。目前生效：%s"
 msgstr "Leave empty to auto-select. Currently active: %s"
 
 msgid "留空表示长期有效（YY-MM-DD）。"
 msgstr "Leave empty for no expiry (YY-MM-DD)."
+
+msgid "異步通知 URL"
+msgstr ""
 
 msgid "登出"
 msgstr "Log Out"
@@ -1754,8 +2444,29 @@ msgstr "Link to the target product."
 msgid "相关商品"
 msgstr "Related products"
 
+msgid "省份"
+msgstr ""
+
+msgid "确定删除该收货地址？"
+msgstr ""
+
+msgid "确定已收到商品？确认后订单将完成。"
+msgstr ""
+
+msgid "确定提交售后申请？提交后请等待管理员处理。"
+msgstr ""
+
+msgid "确定查看完整卡密？此操作将记入审计日志。"
+msgstr ""
+
+msgid "确认收货"
+msgstr ""
+
 msgid "确认相册"
 msgstr "Confirm gallery"
+
+msgid "示例：順豐標準|fixed|50|0|400 ／ 促銷品|piece|10|5|0。配置後在商品編輯頁「運費模板」下拉為每個實物商品選擇模板；未選擇的商品仍按全局規則計費。"
+msgstr ""
 
 msgid "积分"
 msgstr "Credits"
@@ -1799,6 +2510,9 @@ msgstr "Instant discount (fixed amount)"
 msgid "立即下载"
 msgstr "Download now"
 
+msgid "立即注册"
+msgstr ""
+
 msgid "立即购买"
 msgstr "Buy Now"
 
@@ -1814,6 +2528,9 @@ msgstr "Filter products"
 msgid "筛选订单列表"
 msgstr "Filter the order list"
 
+msgid "签收后自动完成（天）"
+msgstr ""
+
 msgid "簽名驗證未通過。"
 msgstr "Signature verification failed."
 
@@ -1823,8 +2540,14 @@ msgstr "Type"
 msgid "累计佣金"
 msgstr "Total commission"
 
+msgid "結算頁實物訂單允許選擇「到店自提」（免運費，收件資料收起為提貨人姓名 + 手機號）"
+msgstr ""
+
 msgid "網關標識：%s"
 msgstr "Gateway ID: %s"
+
+msgid "編輯"
+msgstr ""
 
 msgid "线下转账"
 msgstr "Offline transfer"
@@ -1850,6 +2573,21 @@ msgstr "Edit product tag"
 msgid "编辑订单"
 msgstr "Edit order"
 
+msgid "缺少商品 ID。"
+msgstr ""
+
+msgid "缺少地址 ID。"
+msgstr ""
+
+msgid "网关 %s 不支持在线退款，请人工到网关后台处理。"
+msgstr ""
+
+msgid "网关退款号"
+msgstr ""
+
+msgid "网关退款失败。"
+msgstr ""
+
 msgid "网格"
 msgstr "Grid"
 
@@ -1859,8 +2597,20 @@ msgstr "Network error. Please try again"
 msgid "群发邮件"
 msgstr "Bulk email"
 
+msgid "联系邮箱"
+msgstr ""
+
+msgid "联络电话"
+msgstr ""
+
 msgid "聯絡電話"
 msgstr "Phone"
+
+msgid "自动轨迹查询"
+msgstr ""
+
+msgid "自動（移動端 H5 / 桌面 Native 掃碼）"
+msgstr ""
 
 msgid "自定义"
 msgstr "Custom"
@@ -1869,10 +2619,7 @@ msgid "自定义充值汇率（积分/货币单位）"
 msgstr "Custom top-up rate (credits per currency unit)"
 
 msgid "若站內已有其他內容類型佔用相同前綴，商城會自動改用備用前綴，避免頁面出現 404。修改後系統會自動更新連結規則，無需手動重新儲存永久連結。"
-msgstr ""
-"If another content type already uses the same prefix, the shop falls back to"
-" an alternate prefix automatically to avoid 404s. After a change, rewrite "
-"rules update automatically — no need to re-save permalinks."
+msgstr "If another content type already uses the same prefix, the shop falls back to an alternate prefix automatically to avoid 404s. After a change, rewrite rules update automatically — no need to re-save permalinks."
 
 msgid "虚拟"
 msgstr "Virtual"
@@ -1883,16 +2630,23 @@ msgstr "Virtual download"
 msgid "虚拟商品下载文件（附件 ID）"
 msgstr "Virtual product download file (attachment ID)"
 
+msgid "虚拟商品已产生下载记录"
+msgstr ""
+
 msgid "虛擬下載"
 msgstr "Virtual download"
 
 msgid "虛擬下載 / 卡密類商品會在郵件中附上下載連結或卡密；關閉後不再自動發信。"
+msgstr "Download links or card keys for virtual / card-key products are attached in emails; when off, no automatic email is sent."
+
+msgid "补充卡密"
 msgstr ""
-"Download links or card keys for virtual / card-key products are attached in "
-"emails; when off, no automatic email is sent."
 
 msgid "观看视频"
 msgstr "Watch video"
+
+msgid "解密失败：记录不存在、已损坏或权限不足。"
+msgstr ""
 
 msgid "解锁内容 #%d"
 msgstr "Unlock content #%d"
@@ -1906,6 +2660,21 @@ msgstr "Order not found."
 msgid "訂單狀態已更新為「%s」。"
 msgstr "Order status updated to \"%s\"."
 
+msgid "訂單缺少 PayPal 訂單號，無法退款。"
+msgstr ""
+
+msgid "訂單缺少 Stripe Payment Intent，無法退款。"
+msgstr ""
+
+msgid "訂單缺少微信支付商戶單號。"
+msgstr ""
+
+msgid "訂單缺少微信支付商戶單號，無法退款。"
+msgstr ""
+
+msgid "訂單缺少支付寶商戶單號，無法退款。"
+msgstr ""
+
 msgid "訂單號："
 msgstr "Order no.:"
 
@@ -1915,15 +2684,26 @@ msgstr "Order details"
 msgid "訂單金額："
 msgstr "Order amount:"
 
-msgid ""
-"設定商品單頁與商品列表頁側邊欄出現在左邊、右邊，或完全隱藏（隱藏後內容區自動佔滿整行）。手機端（≤600px）一律自動堆疊在內容下方，不受此設定影響。"
+msgid "訪客下單限流"
 msgstr ""
-"Set whether the sidebar on single and list product pages appears on the "
-"left, right, or is hidden (content fills the row when hidden). On mobile "
-"(≤600px) it always stacks below the content."
+
+msgid "訪客需填寫有效郵箱接收訂單確認與虛擬商品；付款完成後將在訂單頁與郵件中推薦其註冊成為網站用戶。關閉後結算頁僅對已登錄用戶開放。"
+msgstr ""
+
+msgid "設定商品單頁與商品列表頁側邊欄出現在左邊、右邊，或完全隱藏（隱藏後內容區自動佔滿整行）。手機端（≤600px）一律自動堆疊在內容下方，不受此設定影響。"
+msgstr "Set whether the sidebar on single and list product pages appears on the left, right, or is hidden (content fills the row when hidden). On mobile (≤600px) it always stacks below the content."
+
+msgid "設為默認地址"
+msgstr ""
+
+msgid "詳細地址"
+msgstr ""
 
 msgid "說明"
 msgstr "Description"
+
+msgid "請使用微信掃描二維碼完成付款。"
+msgstr ""
 
 msgid "請先登錄會員帳號以查看此內容。"
 msgstr "Please log in to your member account to view this content."
@@ -1939,6 +2719,15 @@ msgstr "Order #%d refund: top-up credits reversed"
 
 msgid "订单 #%d 退款回补余额"
 msgstr "Order #%d refund: balance restored"
+
+msgid "订单「已签收」超过该天数且用户未确认收货时，自动转为「已完成」。0 = 不自动完成（仅用户手动确认）。"
+msgstr ""
+
+msgid "订单不存在。"
+msgstr ""
+
+msgid "订单不存在或售后模块不可用。"
+msgstr ""
 
 msgid "订单信息"
 msgstr "Order Information"
@@ -1970,16 +2759,20 @@ msgstr "Cart subtotal must reach this amount to apply; 0 means no limit."
 msgid "订单属性"
 msgstr "Order attributes"
 
-msgid "订单已创建，请扫码付款，到账后自动发货。"
+msgid "订单已全额退款。"
 msgstr ""
-"Order created. Scan the QR code to pay; delivery is automatic once payment "
-"is confirmed."
+
+msgid "订单已创建，请扫码付款，到账后自动发货。"
+msgstr "Order created. Scan the QR code to pay; delivery is automatic once payment is confirmed."
 
 msgid "订单已删除。"
 msgstr "Order deleted."
 
 msgid "订单已发布。"
 msgstr "Order published."
+
+msgid "订单已完成付款。"
+msgstr ""
 
 msgid "订单已恢复为草稿。"
 msgstr "Order restored to draft."
@@ -1991,9 +2784,7 @@ msgid "订单已提交，我们会尽快安排发货。"
 msgstr "Your order has been received and will ship as soon as possible."
 
 msgid "订单已提交，请按支付网关提示完成付款。支付成功后系统会自动更新状态。"
-msgstr ""
-"Your order has been received. Complete the payment following your payment "
-"method's instructions; the status updates automatically once paid."
+msgstr "Your order has been received. Complete the payment following your payment method's instructions; the status updates automatically once paid."
 
 msgid "订单已更新。"
 msgstr "Order updated."
@@ -2016,6 +2807,9 @@ msgstr "This coupon requires a minimum order of %s."
 msgid "订单状态"
 msgstr "Order Status"
 
+msgid "订单状态「%1$s」不允许发货（需为待发货/处理中/已发货补录）。"
+msgstr ""
+
 msgid "订单状态不允许从 %s 变更为 %s。"
 msgstr "Order status cannot change from %s to %s."
 
@@ -2037,8 +2831,14 @@ msgstr "Order settings"
 msgid "订单金额"
 msgstr "Order amount"
 
+msgid "订单金额无效，无法退款。"
+msgstr ""
+
 msgid "订单链接"
 msgstr "Order link"
+
+msgid "订单需处于待发货/处理中状态；创建后订单自动转为「已发货」。同一订单可创建多条发货单（多包裹分开发货）。轨迹由自动查询（快递100 Provider）或人工维护。"
+msgstr ""
 
 msgid "设为商品主图"
 msgstr "Set as product main image"
@@ -2057,6 +2857,9 @@ msgstr "Set order cover image"
 
 msgid "设置页导航"
 msgstr "Settings page navigation"
+
+msgid "访客订单"
+msgstr ""
 
 msgid "评价"
 msgstr "Reviews"
@@ -2079,8 +2882,14 @@ msgstr "This content requires no payment."
 msgid "该内容未启用付费。"
 msgstr "Paid access is not enabled for this content."
 
+msgid "该商品暂无卡密批次。"
+msgstr ""
+
 msgid "该商品未开通此项售后服务。"
 msgstr "This product does not offer this after-sales service."
+
+msgid "该批次暂无卡密。"
+msgstr ""
 
 msgid "该支付方式暂未开放。"
 msgstr "This payment method is not available yet."
@@ -2088,8 +2897,29 @@ msgstr "This payment method is not available yet."
 msgid "该等级未设置价格，暂不可购买。"
 msgstr "This level has no price set and cannot be purchased yet."
 
+msgid "该网关无需调用退款接口（原路回补 / 线下处理）。"
+msgstr ""
+
+msgid "该订单不符合自助退款条件。"
+msgstr ""
+
+msgid "该订单已支付。"
+msgstr ""
+
+msgid "该订单已退款，退款金额将按原支付方式退回，如有疑问请联系站长。"
+msgstr ""
+
+msgid "详细地址"
+msgstr ""
+
+msgid "详细地址需为 1-120 个字。"
+msgstr ""
+
 msgid "说明"
 msgstr "Description"
+
+msgid "请使用微信扫描二维码完成付款，支付成功后本页状态会自动更新（异步通知）；也可点击按钮主动复核。"
+msgstr ""
 
 msgid "请先 %s 后再结算。"
 msgstr "Please %s before checking out."
@@ -2100,27 +2930,59 @@ msgstr "Please %s before purchasing this content."
 msgid "请先登录。"
 msgstr "Please log in first."
 
+msgid "请先登录查看优惠券。"
+msgstr ""
+
 msgid "请先登录查看推广中心。"
 msgstr "Log in to view the affiliate center."
 
 msgid "请先登录查看订单。"
 msgstr "Log in to view your orders."
 
-msgid "请在 %d 分钟内完成支付，逾期订单将自动取消。"
+msgid "请先登录管理收货地址。"
 msgstr ""
-"Please complete the payment within %d minutes; unpaid orders are cancelled "
-"automatically afterwards."
+
+msgid "请先确认后再查看卡密明文。"
+msgstr ""
+
+msgid "请在 %d 分钟内完成支付，逾期订单将自动取消。"
+msgstr "Please complete the payment within %d minutes; unpaid orders are cancelled automatically afterwards."
 
 msgid "请在「选择商品」中指定一个商品。"
 msgstr "Please pick a product under \"Select product\"."
 
+msgid "请填写售后原因。"
+msgstr ""
+
+msgid "请填写售后原因（必填）"
+msgstr ""
+
+msgid "请填写提货人姓名与手机号"
+msgstr ""
+
+msgid "请填写提货人姓名与手机号。"
+msgstr ""
+
+msgid "请填写收件人、聯絡電話、省市與收件地址"
+msgstr ""
+
 msgid "请填写收件人、聯絡電話與收件地址"
 msgstr "Please fill in the recipient, phone and shipping address"
 
-msgid "请扫码付款，并在备注中填写订单号。管理员确认到账后自动发货。"
+msgid "请填写有效的电子邮箱，订单确认与虚拟商品将发送到该邮箱。"
 msgstr ""
-"Pay by scanning the QR code and enter the order number in the payment note. "
-"Delivery is automatic once the admin confirms receipt."
+
+msgid "请填写运单号。"
+msgstr ""
+
+msgid "请完整填写收货信息：%s。"
+msgstr ""
+
+msgid "请扫码付款，并在备注中填写订单号。管理员确认到账后自动发货。"
+msgstr "Pay by scanning the QR code and enter the order number in the payment note. Delivery is automatic once the admin confirms receipt."
+
+msgid "请立即复制保存；此明文不再展示（刷新后消失）。"
+msgstr ""
 
 msgid "请输入优惠码"
 msgstr "Enter coupon code"
@@ -2137,6 +2999,15 @@ msgstr "Choose a top-up package"
 msgid "请选择支付方式。"
 msgstr "Please choose a payment method."
 
+msgid "请选择有效商品后再导入。"
+msgstr ""
+
+msgid "请选择有效的省份。"
+msgstr ""
+
+msgid "请选择该省份下有效的城市。"
+msgstr ""
+
 msgid "调整每张商品卡之间的空隙。"
 msgstr "Adjust the spacing between product cards."
 
@@ -2146,13 +3017,23 @@ msgstr "Currency code (ISO 4217)"
 msgid "貨幣符號（顯示用）"
 msgstr "Currency symbol (for display)"
 
+msgid "貼上商户 API 證書私鑰 apiclient_key.pem 內容（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）"
+msgstr ""
+
+msgid "貼上微信支付公鑰（非商戶證書公鑰）"
+msgstr ""
+
+msgid "貼上應用私鑰（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）"
+msgstr ""
+
+msgid "貼上支付寶公鑰（非應用公鑰）"
+msgstr ""
+
 msgid "購物車含實物商品時計算運費"
 msgstr "Charge shipping when the cart contains physical products"
 
 msgid "購買完成後自動向客戶發送訂單與虛擬商品下載連結郵件"
-msgstr ""
-"Automatically email customers order confirmations with download links for "
-"virtual products after purchase"
+msgstr "Automatically email customers order confirmations with download links for virtual products after purchase"
 
 msgid "購買後授予會員等級"
 msgstr "Grant a member level after purchase"
@@ -2165,6 +3046,9 @@ msgstr "Item No."
 
 msgid "购买后 %d%s 内有效，逾期需重新购买"
 msgstr "Valid for %d%s after purchase; repurchase required after expiry"
+
+msgid "购买数量必须大于 0。"
+msgstr ""
 
 msgid "购物车"
 msgstr "Cart"
@@ -2191,10 +3075,10 @@ msgid "赠品（商品 ID）"
 msgstr "Gift (product ID)"
 
 msgid "超过该时长仍未付款的订单将自动取消并回滚库存。0 表示永不自动取消。即使未配置服务器计划任务，用户查看订单时也会惰性过期。"
+msgstr "Orders unpaid after this period are cancelled automatically and stock is rolled back. 0 disables auto-cancel. Even without a server cron, orders expire lazily when viewed."
+
+msgid "跳轉至支付寶完成付款（僅支持人民幣 CNY 計價訂單）。"
 msgstr ""
-"Orders unpaid after this period are cancelled automatically and stock is "
-"rolled back. 0 disables auto-cancel. Even without a server cron, orders "
-"expire lazily when viewed."
 
 msgid "输入框占位"
 msgstr "Input placeholder"
@@ -2202,8 +3086,26 @@ msgstr "Input placeholder"
 msgid "输入积分数"
 msgstr "Enter credits"
 
+msgid "过期天数"
+msgstr ""
+
+msgid "过期批次自动停止售卖；停用批次可随时重新启用。"
+msgstr ""
+
 msgid "过期日期"
 msgstr "Expiry date"
+
+msgid "过期时间"
+msgstr ""
+
+msgid "运单号"
+msgstr ""
+
+msgid "运单号："
+msgstr ""
+
+msgid "运输中"
+msgstr ""
 
 msgid "返佣比例 %s%%，推广折扣 %s%%"
 msgstr "Commission %s%%, affiliate discount %s%%"
@@ -2223,8 +3125,29 @@ msgstr "No favorites yet."
 msgid "退款"
 msgstr "Refund"
 
+msgid "退款原因"
+msgstr ""
+
 msgid "退款合计：%s"
 msgstr "Refund total: %s"
+
+msgid "退款成功。"
+msgstr ""
+
+msgid "退款日志"
+msgstr ""
+
+msgid "退款请求重复，请勿重复提交。"
+msgstr ""
+
+msgid "退款金額不能超過訂單金額。"
+msgstr ""
+
+msgid "退款金额"
+msgstr ""
+
+msgid "退款金额无效。"
+msgstr ""
 
 msgid "退货"
 msgstr "Return"
@@ -2248,22 +3171,31 @@ msgid "透過 Stripe 安全的支付頁面以信用卡、Apple Pay 或 Google Pa
 msgstr "Pay securely via Stripe with a credit card, Apple Pay or Google Pay."
 
 msgid "這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。"
-msgstr ""
-"This is a test email to confirm your mail configuration works. After "
-"purchasing virtual products, download links are emailed to customers "
-"automatically."
+msgstr "This is a test email to confirm your mail configuration works. After purchasing virtual products, download links are emailed to customers automatically."
 
 msgid "運費"
 msgstr "Shipping"
 
+msgid "運費模板"
+msgstr ""
+
+msgid "運費模板（實物商品）"
+msgstr ""
+
 msgid "運費設定"
 msgstr "Shipping settings"
 
-msgid "選項與「用戶中心」設置頁的會員等級同步；用戶購買並付款此商品即自動升級對應等級（含天數/永久）。"
+msgid "選擇城市"
 msgstr ""
-"Options sync with the member levels in the User Center settings; buying and "
-"paying for this product grants that level automatically (with its validity /"
-" lifetime)."
+
+msgid "選擇後自動填充下方表單，下單時以地址簿資料為準。"
+msgstr ""
+
+msgid "選擇省份 / 直轄市"
+msgstr ""
+
+msgid "選項與「用戶中心」設置頁的會員等級同步；用戶購買並付款此商品即自動升級對應等級（含天數/永久）。"
+msgstr "Options sync with the member levels in the User Center settings; buying and paying for this product grants that level automatically (with its validity / lifetime)."
 
 msgid "邮件主题"
 msgstr "Email subject"
@@ -2277,6 +3209,9 @@ msgstr "Email body"
 msgid "邮箱列表"
 msgstr "Email list"
 
+msgid "部分"
+msgstr ""
+
 msgid "郵件主題"
 msgstr "Email subject"
 
@@ -2284,8 +3219,7 @@ msgid "郵件發送失敗。"
 msgstr "Failed to send the email."
 
 msgid "郵件發送失敗，請檢查伺服器郵件配置（wp_mail）。"
-msgstr ""
-"Failed to send the email. Check the server mail configuration (wp_mail)."
+msgstr "Failed to send the email. Check the server mail configuration (wp_mail)."
 
 msgid "郵件設置"
 msgstr "Email settings"
@@ -2311,36 +3245,26 @@ msgstr "Sales trend (monthly)"
 msgid "销量"
 msgstr "Units sold"
 
-msgid "關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。"
+msgid "长期有效"
 msgstr ""
-"When off, the sidebar scrolls normally with the content. Sticky is disabled "
-"automatically on mobile (≤600px)."
+
+msgid "關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。"
+msgstr "When off, the sidebar scrolls normally with the content. Sticky is disabled automatically on mobile (≤600px)."
 
 msgid "關閉後，「评价」標籤頁與評論區不再渲染，標籤欄只保留「商品描述」與「更多信息」。已發表的歷史評論仍保留在資料庫，重新開啟後即恢復顯示。"
-msgstr ""
-"When off, the \"Reviews\" tab and comment area are not rendered; tabs keep "
-"only \"Description\" and \"Additional information\". Past reviews stay in "
-"the database and reappear when re-enabled."
+msgstr "When off, the \"Reviews\" tab and comment area are not rendered; tabs keep only \"Description\" and \"Additional information\". Past reviews stay in the database and reappear when re-enabled."
 
 msgid "關閉後，列表卡片上不再出現類型標籤，只顯示圖片、標題、價格、按鈕。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。"
-msgstr ""
-"When off, type badges disappear from list cards, leaving image, title, price"
-" and button. Override per Elementor grid block in its settings."
+msgstr "When off, type badges disappear from list cards, leaving image, title, price and button. Override per Elementor grid block in its settings."
 
 msgid "關閉後，列表卡片上不再渲染標籤雲，版面更簡潔。如需針對單個 Elementor 網格區塊顯示，可在區塊設定裡覆蓋。"
-msgstr ""
-"When off, the tag cloud is not rendered on list cards for a cleaner layout. "
-"Override per Elementor grid block in its settings."
+msgstr "When off, the tag cloud is not rendered on list cards for a cleaner layout. Override per Elementor grid block in its settings."
 
 msgid "關閉後，商品單頁頂部只保留主圖。"
-msgstr ""
-"When off, only the main image remains at the top of the single product page."
+msgstr "When off, only the main image remains at the top of the single product page."
 
 msgid "關閉後，摘要區只保留標題 / 價格 / 類型標籤 / 描述 / 加購 / 收藏，更簡潔。「更多信息」標籤頁仍會包含完整資訊表。"
-msgstr ""
-"When off, the summary keeps only title / price / type badge / description / "
-"add-to-cart / favorite for a cleaner look. The \"Additional information\" "
-"tab still shows the full info table."
+msgstr "When off, the summary keeps only title / price / type badge / description / add-to-cart / favorite for a cleaner look. The \"Additional information\" tab still shows the full info table."
 
 msgid "限定用户类型"
 msgstr "Limit to user types"
@@ -2357,8 +3281,14 @@ msgstr "Phone"
 msgid "需黄金会员及以上可购买此内容，请先升级会员。"
 msgstr "This content requires Gold membership or above. Please upgrade first."
 
+msgid "面值"
+msgstr ""
+
 msgid "面包屑"
 msgstr "Breadcrumbs"
+
+msgid "韵达快递"
+msgstr ""
 
 msgid "頂部面包屑導航"
 msgstr "Top breadcrumb navigation"
@@ -2370,13 +3300,13 @@ msgid "類型"
 msgstr "Type"
 
 msgid "顯示在郵件底部的補充說明（如客服聯絡方式、社群連結），支持換行。"
-msgstr ""
-"Extra text at the bottom of emails (e.g. support contacts, social links). "
-"Line breaks supported."
+msgstr "Extra text at the bottom of emails (e.g. support contacts, social links). Line breaks supported."
 
 msgid "顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。"
+msgstr "Carrier note shown at checkout, on orders and in emails (e.g. SF Express)."
+
+msgid "顺丰速运"
 msgstr ""
-"Carrier note shown at checkout, on orders and in emails (e.g. SF Express)."
 
 msgid "颜色"
 msgstr "Color"
@@ -2384,14 +3314,20 @@ msgstr "Color"
 msgid "首頁"
 msgstr "Home"
 
+msgid "驗簽模式：微信支付公鑰序列號"
+msgstr ""
+
 msgid "高級會員"
 msgstr "Premium member"
 
-msgid "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
+msgid "默認"
 msgstr ""
-"None selected by default. When empty, the product counts as \"Physical\" for"
-" shipping (conservative fallback to avoid missing shipping); if it needs no "
-"delivery, choose \"Virtual download\" or \"Card-key product\" explicitly."
+
+msgid "默認全局運費（固定運費 + 滿額包郵）"
+msgstr ""
+
+msgid "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
+msgstr "None selected by default. When empty, the product counts as \"Physical\" for shipping (conservative fallback to avoid missing shipping); if it needs no delivery, choose \"Virtual download\" or \"Card-key product\" explicitly."
 
 msgid "點此下載"
 msgstr "Download here"
@@ -2402,8 +3338,20 @@ msgstr "(AOV = sales / paid orders)"
 msgid "（不变）"
 msgstr "(unchanged)"
 
+msgid "（全部已收款状态：已付款→完成）"
+msgstr ""
+
+msgid "（可先到网关后台人工退款，再用「仅标记」完成收尾。）"
+msgstr ""
+
+msgid "（含未付款 / 已取消）"
+msgstr ""
+
 msgid "（含未付款/已取消）"
 msgstr "(including unpaid / cancelled)"
+
+msgid "（售后模块不可用。）"
+msgstr ""
 
 msgid "（实际通道："
 msgstr "(actual channel: "
@@ -2414,6 +3362,27 @@ msgstr "(subtotal)"
 msgid "（已付款 + 处理中 + 完成）"
 msgstr "(paid + processing + completed)"
 
+msgid "（已发布商品）"
+msgstr ""
+
+msgid "（已收款状态口径，与订单统计一致）"
+msgstr ""
+
+msgid "（拥有会员等级的用户）"
+msgstr ""
+
+msgid "（暂无售后申请）"
+msgstr ""
+
+msgid "（暂无待发货）"
+msgstr ""
+
+msgid "（最近 200 单内 status=pending 的售后申请）"
+msgstr ""
+
+msgid "（有实物订单等待发货，请及时处理）"
+msgstr ""
+
 msgid "（未关联用户，可能为访客下单或用户已删除）"
 msgstr "(no linked user; guest order or the user was deleted)"
 
@@ -2423,8 +3392,14 @@ msgstr "(unpaid or payment time not recorded)"
 msgid "（未检测到用户中心插件，无法按会员等级筛选）"
 msgstr "(User Center plugin not detected; cannot filter by member level)"
 
+msgid "（本月 1 日起，已收款状态口径）"
+msgstr ""
+
 msgid "（点击插入）"
 msgstr "(click to insert)"
+
+msgid "（解密失败）"
+msgstr ""
 
 msgid "（该订单无商品记录，可能是充值/升级订单）"
 msgstr "(no items on this order; likely a top-up / upgrade order)"
@@ -2437,3 +3412,7 @@ msgstr "(shipping)"
 
 msgid "（非实物订单，无收货地址）"
 msgstr "(not a physical order; no shipping address)"
+
+msgid "，滿 %s 免郵"
+msgstr ""
+

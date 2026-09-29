@@ -1,3 +1,15 @@
+## [2.2.0] - 2026-09-29
+
+### Free（moonlight-shop）
+- 微信支付 v3 网关（第 6 网关）：Native 扫码 / H5 / auto 场景；WECHATPAY2-SHA256-RSA2048 请求签名；AES-256-GCM resource 解密；验签双模式（微信支付公钥优先 / 平台证书自动下载）；异步通知四重校验（验签→appid/mchid→订单反查→金额分严格比对）；/v3/refund 退款与过期关单；JSAPI 预留
+- moonlight/v1 REST API 第一批（26 条路由）：商品/购物车/结算/订单/下载/卡密/地址/账户；全部显式 permission_callback + 属主校验 + 服务端取价；卡密列表只出掩码，reveal 需 confirm + 属主 + 限流
+- i18n：tools/i18n.php 工具链（makepot / update-po / po→mo），POT 1065 串全量提取，369 条新增源串补入 4 语言 PO，MO 全部重编译（无 gettext 依赖）
+- docs/PAYMENT-TESTING.md：支付宝/微信/Stripe/PayPal 沙箱与上线走单清单
+- 测试：507 项断言（+181）；修复 GCM 篡改测试的偶发失败（篡改字节改为确定性 XOR）
+
+### 兼容性
+- WordPress 6.0+ / PHP 7.4+（OpenSSL 必需）；旧 AJAX 与网关全部保留，REST 为新增通道
+
 # CHANGELOG.md
 
 本文件记录 Moonlight Shop 组合包的面向开发者的变更。用户可读的版本说明见各插件 `readme.txt`。

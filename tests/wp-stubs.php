@@ -27,6 +27,16 @@ if (!defined('HOUR_IN_SECONDS')) {
 if (!defined('DAY_IN_SECONDS')) {
     define('DAY_IN_SECONDS', 86400);
 }
+// Cookie 常量（MLSHOP_Cart::write 的 setcookie 依赖；CLI 下 setcookie 为无副作用空操作）
+if (!defined('COOKIEPATH')) {
+    define('COOKIEPATH', '/');
+}
+if (!defined('COOKIE_DOMAIN')) {
+    define('COOKIE_DOMAIN', '');
+}
+if (!function_exists('is_ssl')) {
+    function is_ssl() { return false; }
+}
 
 class WP_Error
 {
@@ -281,10 +291,19 @@ function get_posts($args = array())
     $number = isset($args['posts_per_page']) ? (int) $args['posts_per_page'] : (isset($args['numberposts']) ? (int) $args['numberposts'] : 5);
     $out = array();
     foreach ($GLOBALS['__test_posts'] as $p) {
-        if ('any' !== $status && $p['post_status'] !== $status) { continue; }
+        // post_status 支持标量或数组（get_user_orders 等传状态数组）
+        if ('any' !== $status) {
+            $wanted = is_array($status) ? $status : array($status);
+            if (!in_array($p['post_status'], $wanted, true)) { continue; }
+        }
         $type_ok = is_array($type) ? in_array($p['post_type'], $type, true) : ($p['post_type'] === $type);
         if (!$type_ok) { continue; }
         if (null !== $parent && (int) $p['post_parent'] !== $parent) { continue; }
+        // meta_key/meta_value 精确过滤（get_user_orders 按属主查询依赖）
+        if (isset($args['meta_key']) && isset($args['meta_value'])) {
+            $rows = find_meta_rows((int) $p['ID'], (string) $args['meta_key']);
+            if (empty($rows) || (string) $rows[0]['meta_value'] !== (string) $args['meta_value']) { continue; }
+        }
         $out[] = $p;
     }
     usort($out, function ($a, $b) { return $a['ID'] <=> $b['ID']; });
@@ -566,10 +585,17 @@ if (!function_exists('esc_url')) {
 function esc_url($url) { return (string) $url; }
 }
 if (!function_exists('add_query_arg')) {
-function add_query_arg($args, $url = '') {
-    if (is_string($args)) { return $url; }
+function add_query_arg(...$args) {
+    // 支持 (array, url) 与 (key, value, url) 两种调用形态（WP 语义：值不二次编码）
+    if (isset($args[2])) {
+        $args[0] = array($args[0] => $args[1]);
+        $url = (string) $args[2];
+    } else {
+        $url = isset($args[1]) ? (string) $args[1] : '';
+        if (!is_array($args[0])) { return $url; }
+    }
     $parts = array();
-    foreach ($args as $k => $v) {
+    foreach ($args[0] as $k => $v) {
         $parts[] = rawurlencode((string) $k) . '=' . (string) $v; // 值不二次编码（WP 语义）
     }
     $sep = (false === strpos($url, '?')) ? '?' : '&';
@@ -629,6 +655,12 @@ if (!class_exists('WP_REST_Request')) {
             $this->params[(string) $key] = $value;
         }
 
+        public function get_param($key)
+        {
+            $key = (string) $key;
+            return isset($this->params[$key]) ? $this->params[$key] : null;
+        }
+
         public function get_params()
         {
             return $this->params;
@@ -672,6 +704,9 @@ function register_rest_route($ns, $route, $args = array()) {
 }
 if (!function_exists('wp_is_mobile')) {
 function wp_is_mobile() { return !empty($GLOBALS['__test_is_mobile']); }
+}
+if (!function_exists('add_shortcode')) {
+function add_shortcode($tag, $cb) { return true; }
 }
 
 // 测试环境 PHP CLI 可能未启用 mbstring（生产网关代码使用 mb_substr 截断）：

@@ -10,7 +10,7 @@ PHP 7.4+（开发机用 8.3；需 openssl 扩展）
 ## 运行测试
 
 ```bash
-php tests/run.php          # 独立测试套件（WP 函数桩 + 断言），当前 313+ 项
+php tests/run.php          # 独立测试套件（WP 函数桩 + 断言），当前 507 项
 php -l <file>              # 提交前对改动文件做语法校验
 ```
 
@@ -74,6 +74,16 @@ docs/                             # 设计文档（Phase 1 产物）
 - 提交信息：`feat(phaseN): 概要` / `fix(审计编号): 概要` / `docs(phaseN): 概要`；一个阶段一个或多个原子 commit；
 - 版本号：插件头 Version + readme.txt Stable Tag 同步；DB_VERSION 独立递增；
 - 发布前清单：`php tests/run.php` 全绿 → 全量 `php -l` → 升级路径冒烟（DB_VERSION 步进幂等）→ 卸载清单核对。
+
+## 国际化工作流
+
+```bash
+php tools/i18n.php makepot moonlight-shop moonlight-shop docs/moonlight-shop.pot   # 提取源串
+php tools/i18n.php update-po docs/moonlight-shop.pot moonlight-shop/languages/*.po  # 补全新增串(msgstr 空=回退源串)
+php tools/i18n.php compile moonlight-shop/languages/moonlight-shop-zh_CN.po ...     # po → mo
+```
+
+纯 PHP 实现（无 gettext 依赖）；新文案翻译后重跑 compile 即可。
 
 ## 已知技术债（欢迎认领）
 
