@@ -129,6 +129,18 @@ class MLSHOP_Admin
             'alipay_app_id'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'alipay_private_key'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
             'alipay_public_key'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            // 微信支付 v3（自实现）：商户凭证 + 私钥 / APIv3 密钥脱敏保存；
+            // 验签公钥（微信支付公钥模式）虽非高敏，仍按 secret 脱敏以防误粘贴覆盖。
+            'wechat_enabled'          => array('type' => 'integer', 'sanitize' => 'absint'),
+            'wechat_mchid'            => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'wechat_appid'            => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'wechat_serial_no'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'wechat_private_key'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'wechat_apiv3_key'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'wechat_pub_serial'       => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'wechat_pub_key'          => array('type' => 'string',  'sanitize' => 'sanitize_text_field', 'secret' => true),
+            'wechat_scene'            => array('type' => 'string',  'sanitize' => 'sanitize_key'),
+            'wechat_description'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'pay_enabled'             => array('type' => 'integer', 'sanitize' => 'absint'),
             'credit_name'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'pay_popup_default_title' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
@@ -195,7 +207,7 @@ class MLSHOP_Admin
         register_setting($group, 'mlshop_enabled_gateways', array(
             'type'              => 'array',
             'sanitize_callback' => array($this, 'sanitize_enabled_gateways'),
-            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay'),
+            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat'),
         ));
 
         // 運費模板（数组存储；表单提交的是逐行文本，由 sanitize 回调解析为结构化数组）
@@ -368,6 +380,10 @@ class MLSHOP_Admin
         $alipay_notify_url = class_exists('MLSHOP_Gateway_Alipay')
             ? MLSHOP_Gateway_Alipay::notify_url()
             : rest_url('mlshop/v1/alipay/notify');
+        // 微信支付异步通知地址（REST，构建下单请求时自动携带 notify_url）。
+        $wechat_notify_url = class_exists('MLSHOP_Gateway_WeChat')
+            ? MLSHOP_Gateway_WeChat::notify_url()
+            : rest_url('mlshop/v1/wechat/notify');
         ?>
         <div class="wrap mlshop-admin-settings mlshop-settings-layout">
             <h1><?php esc_html_e('漫步白月光電子商城 設定', 'moonlight-shop'); ?></h1>
@@ -389,6 +405,7 @@ class MLSHOP_Admin
                     <li><a href="#mlshop-sec-pmethods"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-paypal"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-alipay"><?php esc_html_e('支付寶支付', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-wechat"><?php esc_html_e('微信支付', 'moonlight-shop'); ?></a></li>
                 </ul>
             </nav>
             <form method="post" action="options.php">
@@ -948,7 +965,7 @@ class MLSHOP_Admin
                 $enabled = get_option('mlshop_enabled_gateways', null);
                 if (!is_array($enabled)) {
                     // 第一次进入设置页或尚未保存：默认全部内建网关为启用。
-                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay');
+                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
                 }
                 // 用支付管理器拉出全量候选（含第三方扩展），便于管理员按需开启。
                 $all_gateways = array();
@@ -964,6 +981,7 @@ class MLSHOP_Admin
                             new MLSHOP_Gateway_Stripe(),
                             new MLSHOP_Gateway_PayPal(),
                             new MLSHOP_Gateway_Alipay(),
+                            new MLSHOP_Gateway_WeChat(),
                         )
                     );
                 }
@@ -1080,6 +1098,88 @@ class MLSHOP_Admin
                         <td>
                             <p class="description"><?php esc_html_e('構建支付請求時會自動攜帶 notify_url，無需在支付寶後台另行登記；如需在開放平台除錯可用以下地址：', 'moonlight-shop'); ?></p>
                             <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($alipay_notify_url); ?></code>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2 id="mlshop-sec-wechat" class="mlshop-card-title"><?php esc_html_e('微信支付', 'moonlight-shop'); ?></h2>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('啟用微信支付', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_wechat_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_wechat_enabled" value="1" <?php checked((int) mlshop_get_option('wechat_enabled', 0), 1); ?>> <?php esc_html_e('啟用（商戶號、AppID、證書序列號、私鑰、APIv3 密鑰齊全後前台可用）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('微信支付 API v3（Native 掃碼 / H5），僅支持人民幣（CNY）計價：商城貨幣代碼非 CNY 時，微信支付在前台不會出現。需伺服器啟用 PHP OpenSSL 擴展（RSA-SHA256 簽名 + AES-256-GCM 解密）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_mchid"><?php esc_html_e('商戶號（mchid）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_wechat_mchid" name="mlshop_wechat_mchid" value="<?php echo esc_attr(mlshop_get_option('wechat_mchid', '')); ?>" class="regular-text" placeholder="16xxxxxxxx">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_appid"><?php esc_html_e('AppID（mch 綁定的公眾號 / 小程序 / APP）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_wechat_appid" name="mlshop_wechat_appid" value="<?php echo esc_attr(mlshop_get_option('wechat_appid', '')); ?>" class="regular-text" placeholder="wxXXXXXXXXXXXXXXXX">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_serial_no"><?php esc_html_e('商戶證書序列號', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_wechat_serial_no" name="mlshop_wechat_serial_no" value="<?php echo esc_attr(mlshop_get_option('wechat_serial_no', '')); ?>" class="large-text" placeholder="<?php esc_attr_e('商戶 API 證書序列號（商戶平台 → API 安全）', 'moonlight-shop'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_private_key"><?php esc_html_e('應用私鑰', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_wechat_private_key" name="mlshop_wechat_private_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上商户 API 證書私鑰 apiclient_key.pem 內容（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）', 'moonlight-shop'); ?>"></textarea>
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_private_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_apiv3_key"><?php esc_html_e('APIv3 密鑰（32 位）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="password" id="mlshop_wechat_apiv3_key" name="mlshop_wechat_apiv3_key" value="" class="large-text" autocomplete="new-password" placeholder="<?php esc_attr_e('商戶平台設置的 APIv3 密鑰（32 位）', 'moonlight-shop'); ?>">
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；用於回調 resource（AES-256-GCM）與平台證書解密。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_apiv3_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_pub_serial"><?php esc_html_e('驗簽模式：微信支付公鑰序列號', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_wechat_pub_serial" name="mlshop_wechat_pub_serial" value="<?php echo esc_attr(mlshop_get_option('wechat_pub_serial', '')); ?>" class="large-text" placeholder="PUB_KEY_ID_XXXXXXXX（留空 = 平台證書模式自動下載）">
+                            <p class="description"><?php esc_html_e('新商戶推薦「微信支付公鑰模式」：同時填寫下方公鑰內容。兩項均留空時回退平台證書模式（自動 GET /v3/certificates 下載並緩存 12 小時）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_pub_key"><?php esc_html_e('微信支付公鑰', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <textarea id="mlshop_wechat_pub_key" name="mlshop_wechat_pub_key" rows="5" class="large-text code" placeholder="<?php esc_attr_e('貼上微信支付公鑰（非商戶證書公鑰）', 'moonlight-shop'); ?>"></textarea>
+                            <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_pub_key', '')))); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_scene"><?php esc_html_e('支付場景', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <?php $wechat_scene = mlshop_get_option('wechat_scene', 'auto'); ?>
+                            <select id="mlshop_wechat_scene" name="mlshop_wechat_scene">
+                                <option value="auto" <?php selected($wechat_scene, 'auto'); ?>><?php esc_html_e('自動（移動端 H5 / 桌面 Native 掃碼）', 'moonlight-shop'); ?></option>
+                                <option value="native" <?php selected($wechat_scene, 'native'); ?>><?php esc_html_e('Native（PC 掃碼）', 'moonlight-shop'); ?></option>
+                                <option value="h5" <?php selected($wechat_scene, 'h5'); ?>><?php esc_html_e('H5（手機瀏覽器跳轉）', 'moonlight-shop'); ?></option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="mlshop_wechat_description"><?php esc_html_e('前台展示名（可選）', 'moonlight-shop'); ?></label></th>
+                        <td>
+                            <input type="text" id="mlshop_wechat_description" name="mlshop_wechat_description" value="<?php echo esc_attr(mlshop_get_option('wechat_description', '')); ?>" class="regular-text" placeholder="<?php esc_attr_e('留空時取訂單首件商品標題', 'moonlight-shop'); ?>">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('異步通知 URL', 'moonlight-shop'); ?></th>
+                        <td>
+                            <p class="description"><?php esc_html_e('構建支付請求時會自動攜帶 notify_url，無需在商戶平台另行登記；如需在商戶平台除錯可用以下地址：', 'moonlight-shop'); ?></p>
+                            <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($wechat_notify_url); ?></code>
                         </td>
                     </tr>
                 </table>

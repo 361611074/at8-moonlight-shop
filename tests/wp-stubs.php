@@ -589,3 +589,96 @@ function remove_filter($tag, $cb, $pri = 10) { return true; }
 if (!function_exists('wp_html_split')) {
 function wp_html_split($s) { return array((string) $s); }
 }
+
+/* ---------------- REST（微信支付 notify 测试桩） ----------------
+ * 最小 WP_REST_Request / WP_REST_Response：header 不区分大小写、
+ * get_body / get_body_params / get_params / get_header 与生产语义对齐。
+ * 仅在测试环境定义（真实 WP 中使用核心类）。
+ */
+
+if (!class_exists('WP_REST_Request')) {
+    class WP_REST_Request
+    {
+        protected $headers = array();
+        protected $body = '';
+        protected $params = array();
+
+        public function set_header($key, $value)
+        {
+            $this->headers[strtolower((string) $key)] = (string) $value;
+        }
+
+        public function get_header($key)
+        {
+            $k = strtolower((string) $key);
+            return isset($this->headers[$k]) ? $this->headers[$k] : null;
+        }
+
+        public function set_body($body)
+        {
+            $this->body = (string) $body;
+        }
+
+        public function get_body()
+        {
+            return $this->body;
+        }
+
+        public function set_param($key, $value)
+        {
+            $this->params[(string) $key] = $value;
+        }
+
+        public function get_params()
+        {
+            return $this->params;
+        }
+
+        public function get_body_params()
+        {
+            return array();
+        }
+    }
+}
+
+if (!class_exists('WP_REST_Response')) {
+    class WP_REST_Response
+    {
+        public $data;
+        public $status;
+        public function __construct($data = null, $status = 200)
+        {
+            $this->data = $data;
+            $this->status = (int) $status;
+        }
+        public function get_status()
+        {
+            return $this->status;
+        }
+        public function get_data()
+        {
+            return $this->data;
+        }
+    }
+}
+
+if (!function_exists('rest_url')) {
+function rest_url($path = '') { return home_url('/wp-json/' . ltrim((string) $path, '/')); }
+}
+if (!function_exists('register_rest_route')) {
+function register_rest_route($ns, $route, $args = array()) {
+    $GLOBALS['__test_rest_routes']["{$ns}{$route}"] = $args;
+}
+}
+if (!function_exists('wp_is_mobile')) {
+function wp_is_mobile() { return !empty($GLOBALS['__test_is_mobile']); }
+}
+
+// 测试环境 PHP CLI 可能未启用 mbstring（生产网关代码使用 mb_substr 截断）：
+// 字节级截断足够测试语义，guarded 以免与真实扩展冲突。
+if (!function_exists('mb_substr')) {
+    function mb_substr($str, $start, $length = null, $encoding = null)
+    {
+        return null === $length ? substr((string) $str, $start) : substr((string) $str, $start, $length);
+    }
+}

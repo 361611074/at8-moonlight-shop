@@ -869,4 +869,39 @@
             window.alert(res && res.message ? res.message : mlshop_i18n.network_error);
         });
     });
+    /**
+     * 微信支付（Native 扫码）：订单页「我已完成支付」按钮。
+     * 触发服务端 query() 复核（登录 + nonce + 属主/游客令牌），
+     * 复核 SUCCESS 且金额一致才 mark_paid，成功后刷新页面展示状态。
+     */
+    $(document).on('click', '.mlshop-wechat-check', function (e) {
+        e.preventDefault();
+        var $btn = $(this);
+        if ($btn.prop('disabled')) {
+            return;
+        }
+        $btn.prop('disabled', true);
+        var $msg = $btn.closest('.mlshop-qr-placeholder').find('.mlshop-wechat-check-msg');
+        $msg.removeClass('mlshop-ok mlshop-error').hide();
+        // 游客订单：订单页 URL 自带访问令牌（token=），一并提交供属主校验
+        var m = window.location.search.match(/[?&]token=([^&]+)/);
+        var payload = { order_id: $btn.data('order') };
+        if (m && m[1]) {
+            payload.token = decodeURIComponent(m[1]);
+        }
+        post('mlshop_wechat_query', payload, function (res) {
+            if (res && res.success) {
+                if (res.data && res.data.status === 'paid') {
+                    location.reload();
+                    return;
+                }
+                $btn.prop('disabled', false);
+                $msg.addClass(res.data && res.data.status === 'pending' ? 'mlshop-ok' : 'mlshop-error')
+                    .text(res.message).show();
+                return;
+            }
+            $btn.prop('disabled', false);
+            $msg.addClass('mlshop-error').text(res && res.message ? res.message : mlshop_i18n.network_error).show();
+        });
+    });
 })(jQuery);

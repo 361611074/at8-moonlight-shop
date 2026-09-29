@@ -43,6 +43,9 @@ class MLSHOP_Ajax
         add_action('wp_ajax_mlshop_confirm_delivery', array($this, 'confirm_delivery'));
         // 售后退款：用户申请售后（订单详情页「申请售后」按钮）
         add_action('wp_ajax_mlshop_apply_refund', array($this, 'apply_refund'));
+        // 微信支付：订单页「我已完成支付」主动复核（Native 扫码无同步回跳的兜底）
+        add_action('wp_ajax_mlshop_wechat_query', array($this, 'wechat_query'));
+        add_action('wp_ajax_nopriv_mlshop_wechat_query', array($this, 'wechat_query'));
     }
 
     public function add_to_cart()
@@ -326,5 +329,59 @@ class MLSHOP_Ajax
             mlshop_send_json(false, $res->get_error_message());
         }
         mlshop_send_json(true, __('售后申请已提交，管理员会尽快处理。', 'moonlight-shop'));
+    }
+
+    /* ===================== 微信支付：主动复核 ===================== */
+
+    /**
+     * 微信支付「我已完成支付」复核（nonce + 属主/游客令牌）。
+     *
+     * Native 扫码无同步回跳：用户付款后回到订单页，异步 notify 是完单主通道；
+     * 本按钮触发服务端 query() 复核兜底——trade_state SUCCESS 且金额（分）与
+     * 本地严格相等才 mark_paid，绝不因用户点击而直接完单。
+     *
+     * 归属校验：登录用户仅订单所有者 / 管理员；游客订单凭订单页 URL 中的
+     * 访问令牌（与回跳 can_confirm_return 同一口径）。
+     */
+    public function wechat_query()
+    {
+        check_ajax_referer('mlshop_nonce', 'nonce');
+        if (!class_exists('MLSHOP_Gateway_WeChat') || !class_exists('MLSHOP_Order')) {
+            mlshop_send_json(false, __('支付模块不可用。', 'moonlight-shop'));
+        }
+        $order_id = isset($_POST['order_id']) ? (int) $_POST['order_id'] : 0;
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order'
+            || 'wechat' !== (string) get_post_meta($order_id, '_mlshop_gateway', true)) {
+            mlshop_send_json(false, __('订单不存在。', 'moonlight-shop'));
+        }
+        // 归属校验：订单所有者 / 管理员；游客订单（user_id=0）凭访问令牌。
+        $owner = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        if ($owner > 0) {
+            if (!current_user_can('manage_options') && $owner !== get_current_user_id()) {
+                mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
+            }
+        } else {
+            $token = isset($_POST['token']) ? sanitize_text_field(wp_unslash($_POST['token'])) : '';
+            if (!mlshop_verify_guest_token($order_id, $token)) {
+                mlshop_send_json(false, __('无权操作该订单。', 'moonlight-shop'));
+            }
+        }
+        // 已完单直接短路（幂等，不重复打微信查单 API）。
+        if (in_array(MLSHOP_Order::get_status($order_id), array('paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed'), true)) {
+            mlshop_send_json(true, __('该订单已支付。', 'moonlight-shop'), array('status' => 'paid'));
+        }
+        $gateway = new MLSHOP_Gateway_WeChat();
+        $q = $gateway->query($order_id);
+        if (is_wp_error($q)) {
+            mlshop_send_json(false, $q->get_error_message());
+        }
+        if ('paid' === $q['status']) {
+            MLSHOP_Order::mark_paid($order_id, 'wechat', (string) $q['transaction_id']);
+            mlshop_send_json(true, __('支付已确认，订单即将更新。', 'moonlight-shop'), array('status' => 'paid'));
+        }
+        if ('mismatch' === $q['status']) {
+            mlshop_send_json(false, __('支付金额与订单不符，已记录待人工核对。', 'moonlight-shop'), array('status' => 'mismatch'));
+        }
+        mlshop_send_json(true, __('暂未查询到支付结果，请稍后再试。', 'moonlight-shop'), array('status' => 'pending'));
     }
 }

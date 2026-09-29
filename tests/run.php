@@ -28,6 +28,7 @@ require __DIR__ . '/../moonlight-shop/includes/core/class-refund-service.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-stripe.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-paypal.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-wechat.php';
 // Pro（moonlight-shop-pro）：可独立测的静态逻辑（class-analytics 依赖 WP_Query，不在此单测）
 require __DIR__ . '/../moonlight-shop-pro/includes/class-license-client.php';
 require __DIR__ . '/../moonlight-shop-pro/includes/class-webhooks.php';
@@ -1166,6 +1167,425 @@ update_post_meta($u_order, '_mlshop_items', array(array('title' => 'T', 'qty' =>
 mlshop_email_test_send($u_order);
 $sent2 = $GLOBALS['__test_wp_mail'];
 check('登录用户订单邮件不含注册推荐', !empty($sent2) && false === strpos($sent2[0]['body'], 'action=register'));
+
+/* ==========================================================================
+ * 微信支付 v3（MLSHOP_Gateway_WeChat，自实现 API v3）
+ * 签名串 / RSA 签名验签回环 / AES-256-GCM / notify 四重校验 / 金额分转换 /
+ * 状态映射 / 查单复核 / 退款与关单参数构造。HTTP 由 wp-stubs 桩捕获。
+ * ========================================================================== */
+
+/**
+ * 测试用 RSA 密钥对（openssl_pkey_new 在 Windows 需要显式 config 文件）。
+ *
+ * @return array|false array{priv: string, pub: string}
+ */
+function __test_wechat_rsa_keypair()
+{
+    $cnf = tempnam(sys_get_temp_dir(), 'mlshop_openssl_');
+    file_put_contents($cnf, "[req]\ndistinguished_name=dn\n[dn]\n");
+    $args = array('config' => $cnf, 'private_key_bits' => 2048, 'private_key_type' => OPENSSL_KEYTYPE_RSA);
+    $res = openssl_pkey_new($args);
+    if (!$res) {
+        return false;
+    }
+    $priv = '';
+    if (!openssl_pkey_export($res, $priv, null, $args)) {
+        return false;
+    }
+    $details = openssl_pkey_get_details($res);
+    return array('priv' => $priv, 'pub' => $details['key']);
+}
+
+/** 测试用网关子类：注入订单反查桩（生产走 $wpdb）。 */
+class MLSHOP_Gateway_WeChat_Test extends MLSHOP_Gateway_WeChat
+{
+    public static $order_map = array();
+    protected static function find_order_by_order_no($order_no)
+    {
+        return isset(self::$order_map[(string) $order_no]) ? (int) self::$order_map[(string) $order_no] : 0;
+    }
+}
+
+/** 设置微信网关完整测试配置。 */
+function __test_wechat_set_options($wkey)
+{
+    __test_set_option('wechat_enabled', 1);
+    __test_set_option('wechat_mchid', '1900000001');
+    __test_set_option('wechat_appid', 'wxTESTAPP');
+    __test_set_option('wechat_serial_no', 'MCHSERIAL01');
+    __test_set_option('wechat_private_key', $wkey['priv']);
+    __test_set_option('wechat_apiv3_key', '0123456789abcdef0123456789abcdef');
+    __test_set_option('wechat_pub_serial', 'PUBSERIAL01');
+    __test_set_option('wechat_pub_key', $wkey['pub']);
+    __test_set_option('wechat_scene', 'auto');
+    __test_set_option('currency', 'CNY');
+}
+
+/**
+ * 构造一条「合法签名 + APIv3 加密 resource」的 notify 请求。
+ * $opts：timestamp（覆盖）、serial（覆盖）、mchid / appid（覆盖 resource 商户字段）。
+ */
+function __test_wechat_build_notify($wkey, $order_no, $trade_state, $total_fen, $opts = array())
+{
+    $apiv3 = '0123456789abcdef0123456789abcdef';
+    $resource = array(
+        'appid'        => isset($opts['appid']) ? $opts['appid'] : 'wxTESTAPP',
+        'mchid'        => isset($opts['mchid']) ? $opts['mchid'] : '1900000001',
+        'out_trade_no' => (string) $order_no,
+        'trade_state'  => (string) $trade_state,
+        'transaction_id' => 'wx_txn_' . substr(md5((string) $order_no . $trade_state), 0, 10),
+        'amount'       => array('total' => (int) $total_fen, 'payer_total' => (int) $total_fen, 'currency' => 'CNY'),
+    );
+    $plain = wp_json_encode($resource);
+    $nonce_res = bin2hex(random_bytes(6)); // 生产语义：resource.nonce 即 AES-GCM IV（12 字节）
+    $tag = '';
+    $ct = openssl_encrypt($plain, 'aes-256-gcm', $apiv3, OPENSSL_RAW_DATA, $nonce_res, $tag, 'transaction');
+    $payload = array(
+        'id'         => 'EV-TEST-' . substr(md5($plain), 0, 10),
+        'event_type' => 'TRANSACTION.SUCCESS',
+        'resource'   => array(
+            'algorithm'       => 'AEAD_AES_256_GCM',
+            'nonce'           => $nonce_res,
+            'associated_data' => 'transaction',
+            'ciphertext'      => base64_encode($ct . $tag),
+        ),
+    );
+    $body = wp_json_encode($payload);
+    $ts = isset($opts['timestamp']) ? (string) $opts['timestamp'] : (string) time();
+    $nonce = bin2hex(random_bytes(8));
+    $message = $ts . "\n" . $nonce . "\n" . $body . "\n";
+    openssl_sign($message, $sig, $wkey['priv'], OPENSSL_ALGO_SHA256);
+    $req = new WP_REST_Request();
+    $req->set_body($body);
+    $req->set_header('Wechatpay-Timestamp', $ts);
+    $req->set_header('Wechatpay-Nonce', $nonce);
+    $req->set_header('Wechatpay-Signature', base64_encode($sig));
+    $req->set_header('Wechatpay-Serial', isset($opts['serial']) ? $opts['serial'] : 'PUBSERIAL01');
+    return $req;
+}
+
+echo "== 微信支付 v3：签名串构造 / RSA 签名验签 ==\n";
+$wkey = __test_wechat_rsa_keypair();
+check('OpenSSL RSA 密钥对可用（notify 验签依赖）', is_array($wkey) && false !== strpos($wkey['priv'], 'PRIVATE KEY'));
+$wm = MLSHOP_Gateway_WeChat::sign_message('POST', '/v3/pay/transactions/native', '1700000000', 'NONCE123', '{"a":1}');
+check('签名串五段拼接（METHOD\\nPATH\\nts\\nnonce\\nbody\\n）', $wm === "POST\n/v3/pay/transactions/native\n1700000000\nNONCE123\n{\"a\":1}\n");
+check('GET 空体签名串为空行', MLSHOP_Gateway_WeChat::sign_message('GET', '/v3/certificates', '1700000000', 'N', '') === "GET\n/v3/certificates\n1700000000\nN\n\n");
+check('方法小写归一为大写', strpos(MLSHOP_Gateway_WeChat::sign_message('get', '/p', '1', 'n', 'b'), 'GET') === 0);
+openssl_sign($wm, $wm_sig, $wkey['priv'], OPENSSL_ALGO_SHA256);
+check('RSA-SHA256 签名 → 验签回环', MLSHOP_Gateway_WeChat::verify_signature($wm, base64_encode($wm_sig), $wkey['pub']));
+check('验签拒绝篡改原文', !MLSHOP_Gateway_WeChat::verify_signature($wm . 'X', base64_encode($wm_sig), $wkey['pub']));
+check('验签拒绝另一密钥的签名', !MLSHOP_Gateway_WeChat::verify_signature($wm, base64_encode($wm_sig . 'junk'), $wkey['pub']));
+check('验签拒绝空签名', !MLSHOP_Gateway_WeChat::verify_signature($wm, '', $wkey['pub']));
+check('验签拒绝无效公钥', !MLSHOP_Gateway_WeChat::verify_signature($wm, base64_encode($wm_sig), 'not-a-pem'));
+
+echo "== 微信支付 v3：AES-256-GCM 解密 ==\n";
+$wplain = wp_json_encode(array('out_trade_no' => 'ML20260101AAAAAAAA', 'trade_state' => 'SUCCESS'));
+$wiv = random_bytes(12);
+$wtag = '';
+$wct = openssl_encrypt($wplain, 'aes-256-gcm', '0123456789abcdef0123456789abcdef', OPENSSL_RAW_DATA, $wiv, $wtag, 'transaction');
+check('GCM 加密 → 解密回环（tag 末 16 字节拼接）', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === $wplain);
+check('GCM 篡改密文解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode(substr($wct, 0, 5) . 'X' . substr($wct, 6) . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === '');
+check('GCM 篡改 nonce 解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', str_repeat('z', 12), 'transaction') === '');
+check('GCM 篡改 AAD 解密失败', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), '0123456789abcdef0123456789abcdef', $wiv, 'other') === '');
+check('GCM 非 32 位密钥拒绝', MLSHOP_Gateway_WeChat::aes_gcm_decrypt(base64_encode($wct . $wtag), 'short-key', $wiv, 'transaction') === '');
+check('GCM 坏 base64 拒绝', MLSHOP_Gateway_WeChat::aes_gcm_decrypt('!!!not-base64!!!', '0123456789abcdef0123456789abcdef', $wiv, 'transaction') === '');
+
+echo "== 微信支付 v3：金额分转换 / trade_state 映射 ==\n";
+check('to_fen 19.99 → 1999', MLSHOP_Gateway_WeChat::to_fen(19.99) === 1999);
+check('to_fen 0.1 → 10（浮点边界 round）', MLSHOP_Gateway_WeChat::to_fen(0.1) === 10);
+check('to_fen 100 → 10000', MLSHOP_Gateway_WeChat::to_fen(100.0) === 10000);
+check('to_fen 0.3-0.1 残差 → 20（round 兜住浮点误差）', MLSHOP_Gateway_WeChat::to_fen(0.3 - 0.1) === 20);
+check('SUCCESS → paid', MLSHOP_Gateway_WeChat::map_trade_state('SUCCESS') === 'paid');
+check('success 小写 → paid', MLSHOP_Gateway_WeChat::map_trade_state('success') === 'paid');
+check('NOTPAY → pending', MLSHOP_Gateway_WeChat::map_trade_state('NOTPAY') === 'pending');
+check('USERPAYING → pending', MLSHOP_Gateway_WeChat::map_trade_state('USERPAYING') === 'pending');
+check('CLOSED → failed', MLSHOP_Gateway_WeChat::map_trade_state('CLOSED') === 'failed');
+check('REVOKED → failed', MLSHOP_Gateway_WeChat::map_trade_state('REVOKED') === 'failed');
+check('PAYERROR → failed', MLSHOP_Gateway_WeChat::map_trade_state('PAYERROR') === 'failed');
+check('未知状态 → pending（fail-safe）', MLSHOP_Gateway_WeChat::map_trade_state('WHATEVER') === 'pending');
+
+echo "== 微信支付 v3：is_available 门控（配置 + OpenSSL + CNY） ==\n";
+__test_reset_card_env();
+check('未配置 → is_available false', !(new MLSHOP_Gateway_WeChat())->is_available());
+check('未配置 → enabled false', !MLSHOP_Gateway_WeChat::enabled());
+__test_wechat_set_options($wkey);
+check('配置齐全 + CNY → is_available true', (new MLSHOP_Gateway_WeChat())->is_available());
+__test_set_option('currency', 'HKD');
+check('非 CNY → is_available false（对齐支付宝币种门控）', !(new MLSHOP_Gateway_WeChat())->is_available());
+__test_set_option('currency', 'CNY');
+
+echo "== 微信支付 v3：process_payment（native 扫码） ==\n";
+__test_reset_card_env();
+__test_wechat_set_options($wkey);
+$GLOBALS['__test_is_mobile'] = false;
+$wpo = __test_make_order('pending', array('_mlshop_total' => 88.0, '_mlshop_gateway' => 'wechat'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('POST' === $method && false !== strpos($url, '/v3/pay/transactions/native')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array('code_url' => 'weixin://wxpay/bizpayurl?pr=test123')));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wgw = new MLSHOP_Gateway_WeChat();
+$wres = $wgw->process_payment($wpo);
+check('native 下单成功且 qr 标记', !empty($wres['success']) && !empty($wres['qr']));
+check('code_url 落订单 meta（订单页渲染二维码）', get_post_meta($wpo, '_mlshop_wechat_code_url', true) === 'weixin://wxpay/bizpayurl?pr=test123');
+$wnative_call = $GLOBALS['__test_http_calls'][0];
+$wnative_body = json_decode((string) $wnative_call['args']['body'], true);
+check('下单 POST /v3/pay/transactions/native', 'POST' === $wnative_call['method'] && false !== strpos($wnative_call['url'], '/v3/pay/transactions/native'));
+check('下单体 out_trade_no = 本地订单号', isset($wnative_body['out_trade_no']) && '' !== (string) get_post_meta($wpo, '_mlshop_order_no', true) && $wnative_body['out_trade_no'] === (string) get_post_meta($wpo, '_mlshop_order_no', true));
+check('下单体金额 8800 分 / CNY', isset($wnative_body['amount']['total'], $wnative_body['amount']['currency']) && 8800 === $wnative_body['amount']['total'] && 'CNY' === $wnative_body['amount']['currency']);
+check('下单体 notify_url 指向 REST 端点', isset($wnative_body['notify_url']) && false !== strpos($wnative_body['notify_url'], 'mlshop/v1/wechat/notify'));
+check('redirect 引导回订单页', false !== strpos((string) $wres['redirect'], 'order=' . $wpo));
+
+echo "== 微信支付 v3：process_payment（h5 场景 / 货币门控） ==\n";
+$GLOBALS['__test_is_mobile'] = true; // auto → 移动端 h5
+$wh5_order = __test_make_order('pending', array('_mlshop_total' => 50.0, '_mlshop_gateway' => 'wechat'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('POST' === $method && false !== strpos($url, '/v3/pay/transactions/h5')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array('h5_url' => 'https://wx.tenpay.com/cgi-bin/mmpayweb-bin/checkmweb?prepay_id=wx1')));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wh5 = $wgw->process_payment($wh5_order);
+check('auto 场景移动端解析为 h5', MLSHOP_Gateway_WeChat::resolve_scene() === 'h5');
+check('h5 下单成功 redirect = h5_url', !empty($wh5['success']) && false !== strpos((string) $wh5['redirect'], 'https://wx.tenpay.com/'));
+$wh5_call = null;
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v3/pay/transactions/h5')) {
+        $wh5_call = $c;
+    }
+}
+$wh5_body = json_decode((string) $wh5_call['args']['body'], true);
+check('h5 下单体带 scene_info.payer_client_ip', isset($wh5_body['scene_info']['payer_client_ip']) && '' !== $wh5_body['scene_info']['payer_client_ip']);
+__test_set_option('currency', 'HKD');
+$whk = $wgw->process_payment($wh5_order);
+check('非 CNY 货币拒绝发起（信息透传，不暴露密钥）', empty($whk['success']) && false === strpos((string) $whk['message'], 'key'));
+__test_set_option('currency', 'CNY');
+
+echo "== 微信支付 v3：query 查单复核 ==\n";
+$wq = __test_make_order('paid', array('_mlshop_total' => 19.99, '_mlshop_gateway' => 'wechat', '_mlshop_order_no' => 'MLQ1'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('GET' === $method && false !== strpos($url, '/v3/pay/transactions/out-trade-no/MLQ1')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array(
+            'trade_state'    => 'SUCCESS',
+            'transaction_id' => 'wx_txn_q1',
+            'out_trade_no'   => 'MLQ1',
+            'amount'         => array('total' => 1999, 'currency' => 'CNY'),
+        )));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wq_res = $wgw->query($wq);
+check('query SUCCESS + 金额一致 → paid', is_array($wq_res) && 'paid' === $wq_res['status'] && 'wx_txn_q1' === $wq_res['transaction_id']);
+$wq_call = $GLOBALS['__test_http_calls'][count($GLOBALS['__test_http_calls']) - 1];
+check('query 为 GET 且带 mchid 查询串', 'GET' === $wq_call['method'] && false !== strpos($wq_call['url'], 'mchid=1900000001'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('GET' === $method && false !== strpos($url, '/v3/pay/transactions/out-trade-no/MLQ1')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array(
+            'trade_state' => 'SUCCESS', 'transaction_id' => 'wx_txn_q1', 'amount' => array('total' => 100, 'currency' => 'CNY'),
+        )));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wq_bad = $wgw->query($wq);
+check('query SUCCESS 但金额不符 → mismatch（不完单）', is_array($wq_bad) && 'mismatch' === $wq_bad['status']);
+
+echo "== 微信支付 v3：notify 四重校验（验签/解密/商户/金额/状态） ==\n";
+__test_reset_card_env();
+__test_wechat_set_options($wkey);
+$wno = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY1',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map = array('MLNOTIFY1' => $wno);
+$wnotify = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY1', 'SUCCESS', 1999));
+check('合法 notify → HTTP 200 + code SUCCESS', 200 === $wnotify->get_status() && 'SUCCESS' === $wnotify->get_data()['code']);
+check('合法 notify → mark_paid 被调（pending → paid）', 'paid' === MLSHOP_Order::get_status($wno));
+check('微信交易号写入 _mlshop_payment_id', '' !== (string) get_post_meta($wno, '_mlshop_payment_id', true));
+$wnotify2 = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY1', 'SUCCESS', 1999));
+check('重复 notify 幂等（仍 paid，状态机短路）', 200 === $wnotify2->get_status() && 'paid' === MLSHOP_Order::get_status($wno));
+
+// 金额不符 → 拒绝完单（HTTP 400 + 审计 meta）
+$wamt = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY2',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY2'] = $wamt;
+$wnotify_amt = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY2', 'SUCCESS', 100));
+check('金额不符（100 分 ≠ 1999 分）→ HTTP 400 FAIL', 400 === $wnotify_amt->get_status() && 'FAIL' === $wnotify_amt->get_data()['code']);
+check('金额不符 → 不完单 + 留审计 meta', 'pending' === MLSHOP_Order::get_status($wamt) && 'wechat:100' === (string) get_post_meta($wamt, '_mlshop_pay_amount_mismatch', true));
+
+// 非 SUCCESS 状态 → 不完单，但回 SUCCESS 停止微信重试
+$wcls = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY3',
+    '_mlshop_total'    => 10.0,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY3'] = $wcls;
+$wnotify_cls = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY3', 'CLOSED', 1000));
+check('trade_state CLOSED → 不完单', 'pending' === MLSHOP_Order::get_status($wcls));
+check('CLOSED 回 SUCCESS 停止重试', 200 === $wnotify_cls->get_status() && 'SUCCESS' === $wnotify_cls->get_data()['code']);
+
+// 签名错误 → FAIL（订单不动）
+$wsig_order = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY4',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY4'] = $wsig_order;
+$wreq_bad = __test_wechat_build_notify($wkey, 'MLNOTIFY4', 'SUCCESS', 1999);
+$wreq_bad->set_header('Wechatpay-Signature', base64_encode('forged-signature-bytes'));
+$wnotify_sig = MLSHOP_Gateway_WeChat_Test::handle_notify($wreq_bad);
+check('签名伪造 → HTTP 401 FAIL', 401 === $wnotify_sig->get_status() && 'FAIL' === $wnotify_sig->get_data()['code']);
+check('签名伪造 → 不完单', 'pending' === MLSHOP_Order::get_status($wsig_order));
+
+// 商户 / appid 不符 → FAIL
+$wmch = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY5',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY5'] = $wmch;
+$wnotify_mch = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY5', 'SUCCESS', 1999, array('mchid' => '9999999999')));
+check('商户号不符 → FAIL（防跨商户伪造）', 400 === $wnotify_mch->get_status() && 'pending' === MLSHOP_Order::get_status($wmch));
+$wnotify_app = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY5', 'SUCCESS', 1999, array('appid' => 'wxOTHER')));
+check('appid 不符 → FAIL', 400 === $wnotify_app->get_status() && 'pending' === MLSHOP_Order::get_status($wmch));
+
+// 时间戳超容差 → FAIL（重放防护 ±300s）
+$wold = __test_wechat_build_notify($wkey, 'MLNOTIFY5', 'SUCCESS', 1999, array('timestamp' => (string) (time() - 400)));
+$wnotify_old = MLSHOP_Gateway_WeChat_Test::handle_notify($wold);
+check('时间戳超 ±300 秒 → FAIL（重放防护）', 400 === $wnotify_old->get_status());
+
+// 缺失验签头 → FAIL
+$wnoh = new WP_REST_Request();
+$wnoh->set_body('{}');
+$wnotify_noh = MLSHOP_Gateway_WeChat_Test::handle_notify($wnoh);
+check('缺失验签头 → FAIL', 400 === $wnotify_noh->get_status());
+
+// 订单号反查失败 / 网关不符 → FAIL
+$wnotify_404 = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTFOUND', 'SUCCESS', 1999));
+check('未知订单号 → HTTP 404', 404 === $wnotify_404->get_status());
+$wgw_wrong = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY6',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'alipay',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY6'] = $wgw_wrong;
+$wnotify_gw = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY6', 'SUCCESS', 1999));
+check('订单网关非 wechat → FAIL', 400 === $wnotify_gw->get_status() && 'pending' === MLSHOP_Order::get_status($wgw_wrong));
+
+echo "== 微信支付 v3：平台证书模式验签（公钥未匹配 → 下载/缓存） ==\n";
+__test_reset_card_env();
+__test_wechat_set_options($wkey);
+__test_set_option('wechat_pub_serial', ''); // 关闭公钥模式 → 走平台证书
+$wpc = __test_make_order('pending', array(
+    '_mlshop_order_no' => 'MLNOTIFY7',
+    '_mlshop_total'    => 19.99,
+    '_mlshop_gateway'  => 'wechat',
+));
+MLSHOP_Gateway_WeChat_Test::$order_map['MLNOTIFY7'] = $wpc;
+$certs_hit = 0;
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) use (&$certs_hit, $wkey) {
+    if ('GET' === $method && false !== strpos($url, '/v3/certificates')) {
+        $certs_hit++;
+        // 平台证书下载响应：encrypt_certificate 用 APIv3 密钥 AES-256-GCM 加密
+        $nonce_c = bin2hex(random_bytes(6));
+        $tag_c = '';
+        $ct_c = openssl_encrypt($wkey['pub'], 'aes-256-gcm', '0123456789abcdef0123456789abcdef', OPENSSL_RAW_DATA, $nonce_c, $tag_c, 'certificate');
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array(
+            'data' => array(array(
+                'serial_no'           => 'PLATCERT01',
+                'encrypt_certificate' => array(
+                    'algorithm'       => 'AEAD_AES_256_GCM',
+                    'nonce'           => $nonce_c,
+                    'associated_data' => 'certificate',
+                    'ciphertext'      => base64_encode($ct_c . $tag_c),
+                ),
+            )),
+        )));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wnotify_pc = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY7', 'SUCCESS', 1999, array('serial' => 'PLATCERT01')));
+check('平台证书模式（/v3/certificates 下载解密）→ 验签完单', 200 === $wnotify_pc->get_status() && 'paid' === MLSHOP_Order::get_status($wpc));
+check('平台证书 transient 缓存 12h', is_array(get_transient('mlshop_wechat_platform_certs')) && isset(get_transient('mlshop_wechat_platform_certs')['PLATCERT01']));
+$wnotify_pc2 = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY7', 'SUCCESS', 1999, array('serial' => 'PLATCERT01')));
+check('二次 notify 命中缓存不再下载（且幂等）', 1 === $certs_hit && 200 === $wnotify_pc2->get_status());
+$wnotify_unk = MLSHOP_Gateway_WeChat_Test::handle_notify(__test_wechat_build_notify($wkey, 'MLNOTIFY7', 'SUCCESS', 1999, array('serial' => 'UNKNOWN-SERIAL')));
+check('serial 未知且刷新失败 → FAIL（fail-closed）', 500 === $wnotify_unk->get_status() && 'FAIL' === $wnotify_unk->get_data()['code']);
+
+echo "== 微信支付 v3：refund 参数构造 ==\n";
+__test_reset_card_env();
+__test_wechat_set_options($wkey);
+$wro = __test_make_order('paid', array('_mlshop_total' => 100.0, '_mlshop_gateway' => 'wechat', '_mlshop_order_no' => 'MLREF1', '_mlshop_payment_id' => 'wx_txn_r1'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('POST' === $method && false !== strpos($url, '/v3/refund/domestic/refunds')) {
+        return array('response' => array('code' => 200), 'body' => wp_json_encode(array('refund_id' => 'wx_ref_1', 'out_refund_no' => 'RF', 'status' => 'PROCESSING')));
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+$wref = $wgw->refund($wro, 30, '部分退款');
+check('部分退款成功并返回 refund_id', !empty($wref['success']) && 'wx_ref_1' === $wref['refund_id']);
+$wref_call = null;
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v3/refund/domestic/refunds')) {
+        $wref_call = $c;
+    }
+}
+$wref_body = json_decode((string) $wref_call['args']['body'], true);
+check('退款 POST /v3/refund/domestic/refunds（商户单号 = 本地订单号）', is_array($wref_body) && 'MLREF1' === $wref_body['out_trade_no']);
+check('商户退款单号 RF 前缀 + 唯一后缀', isset($wref_body['out_refund_no']) && 0 === strpos($wref_body['out_refund_no'], 'RFMLREF1'));
+check('部分退款 amount.refund=3000 / total=10000 / CNY', 3000 === $wref_body['amount']['refund'] && 10000 === $wref_body['amount']['total'] && 'CNY' === $wref_body['amount']['currency']);
+check('退款原因透传（reason）', isset($wref_body['reason']) && '部分退款' === $wref_body['reason']);
+$wref_full = $wgw->refund($wro, 0);
+$wref_call2 = null;
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/v3/refund/domestic/refunds')) {
+        $wref_call2 = $c;
+    }
+}
+$wref_body2 = json_decode((string) $wref_call2['args']['body'], true);
+check('全额退款（amount=0）→ refund = total 分', !empty($wref_full['success']) && 10000 === $wref_body2['amount']['refund']);
+$wref_over = $wgw->refund($wro, 200);
+check('退款超额拒绝', empty($wref_over['success']));
+$wref_nono = $wgw->refund(__test_make_order('paid', array('_mlshop_total' => 10.0)), 0);
+check('缺少商户单号拒绝退款', empty($wref_nono['success']));
+
+echo "== 微信支付 v3：close 关单（取消钩子挂载点） ==\n";
+$wcl = __test_make_order('pending', array('_mlshop_total' => 50.0, '_mlshop_gateway' => 'wechat', '_mlshop_order_no' => 'MLCLOSE1'));
+$GLOBALS['__test_http_handler'] = function ($method, $url, $args) {
+    if ('POST' === $method && false !== strpos($url, '/v3/pay/transactions/out-trade-no/MLCLOSE1/close')) {
+        return array('response' => array('code' => 204), 'body' => '');
+    }
+    return array('response' => array('code' => 404), 'body' => '{}');
+};
+MLSHOP_Gateway_WeChat::maybe_close_order($wcl);
+$wclose_call = null;
+foreach ($GLOBALS['__test_http_calls'] as $c) {
+    if (false !== strpos($c['url'], '/close')) {
+        $wclose_call = $c;
+    }
+}
+check('pending 取消 → 关单 POST（close 端点）', is_array($wclose_call));
+$wclose_body = json_decode((string) $wclose_call['args']['body'], true);
+check('关单体带 mchid', is_array($wclose_body) && '1900000001' === $wclose_body['mchid']);
+$GLOBALS['__test_http_calls'] = array();
+$wcl_paid = __test_make_order('paid', array('_mlshop_total' => 50.0, '_mlshop_gateway' => 'wechat', '_mlshop_order_no' => 'MLCLOSE2', '_mlshop_payment_id' => 'wx_txn_c2'));
+MLSHOP_Gateway_WeChat::maybe_close_order($wcl_paid);
+check('已付款订单取消不关单', empty($GLOBALS['__test_http_calls']));
+$GLOBALS['__test_http_calls'] = array();
+$wcl_other = __test_make_order('pending', array('_mlshop_total' => 50.0, '_mlshop_gateway' => 'alipay', '_mlshop_order_no' => 'MLCLOSE3'));
+MLSHOP_Gateway_WeChat::maybe_close_order($wcl_other);
+check('非微信订单不关单', empty($GLOBALS['__test_http_calls']));
+
+echo "== 微信支付 v3：REST notify 路由注册 ==\n";
+$GLOBALS['__test_rest_routes'] = array();
+MLSHOP_Gateway_WeChat::register_notify();
+check('注册 mlshop/v1/wechat/notify（POST，permission 恒真）', isset($GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify'])
+    && 'POST' === $GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify']['methods']
+    && '__return_true' === $GLOBALS['__test_rest_routes']['mlshop/v1/wechat/notify']['permission_callback']);
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

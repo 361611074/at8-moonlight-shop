@@ -35,6 +35,19 @@ class MLSHOP_Payment
             if (class_exists('MLSHOP_Gateway_Alipay')) {
                 MLSHOP_Gateway_Alipay::register_notify();
             }
+            // 微信支付 v3 异步 notify（同上：网关类懒加载，必须由常驻管理器挂载）。
+            // permission_callback 恒真，安全由 MLSHOP_Gateway_WeChat::handle_notify 的
+            // 平台公钥验签 + APIv3 解密 + 商户 / 订单号 / 金额（分）/ 状态多重校验保证。
+            if (class_exists('MLSHOP_Gateway_WeChat')) {
+                MLSHOP_Gateway_WeChat::register_notify();
+            }
+        });
+        // 微信支付：pending 订单被取消（超时过期 / 管理员取消）时关闭微信侧订单
+        // （best-effort；已付款订单绝不关单）。网关类懒加载，钩子由常驻管理器转发。
+        add_action('mlshop_order_cancelled', function ($order_id) {
+            if (class_exists('MLSHOP_Gateway_WeChat')) {
+                MLSHOP_Gateway_WeChat::maybe_close_order($order_id);
+            }
         });
     }
 
@@ -55,6 +68,7 @@ class MLSHOP_Payment
             new MLSHOP_Gateway_Stripe(),
             new MLSHOP_Gateway_PayPal(),
             new MLSHOP_Gateway_Alipay(),
+            new MLSHOP_Gateway_WeChat(),
         );
         $gateways = apply_filters('mlshop_payment_gateways', $gateways);
         $stored   = get_option('mlshop_enabled_gateways', null);
@@ -82,7 +96,7 @@ class MLSHOP_Payment
     public function get_enabled_gateway_ids()
     {
         $stored = get_option('mlshop_enabled_gateways', null);
-        $builtin = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay');
+        $builtin = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
         if (null === $stored) {
             return $builtin;
         }

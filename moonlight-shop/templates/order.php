@@ -17,6 +17,8 @@ $gateway_id = get_post_meta($order_id, '_mlshop_gateway', true);
 $txn_id    = get_post_meta($order_id, '_mlshop_payment_id', true);
 $created   = get_post_meta($order_id, '_mlshop_created', true);
 $is_manual = in_array($gateway_id, array('cod', 'manual'), true);
+// 微信 Native 扫码：下单时服务端写入的 code_url（订单页渲染二维码）
+$wechat_code_url = ('wechat' === $gateway_id) ? (string) get_post_meta($order_id, '_mlshop_wechat_code_url', true) : '';
 $coupon_code = get_post_meta($order_id, '_mlshop_coupon_code', true);
 $coupon_discount = (float) get_post_meta($order_id, '_mlshop_coupon_discount', true);
 $subtotal = (float) get_post_meta($order_id, '_mlshop_subtotal', true);
@@ -153,6 +155,21 @@ if ($status === 'pending' && $expire_min > 0 && $created) {
                 <p><?php esc_html_e('请扫码付款，并在备注中填写订单号。管理员确认到账后自动发货。', 'moonlight-shop'); ?></p>
                 <div class="mlshop-qr-box"><span><?php esc_html_e('付款二维码占位', 'moonlight-shop'); ?></span></div>
                 <p class="mlshop-order-no"><?php esc_html_e('订单号：', 'moonlight-shop'); ?><?php echo esc_html(get_the_title($order_id)); ?></p>
+            <?php elseif ('wechat' === $gateway_id && '' !== $wechat_code_url) : ?>
+                <p><?php esc_html_e('请使用微信扫描二维码完成付款，支付成功后本页状态会自动更新（异步通知）；也可点击按钮主动复核。', 'moonlight-shop'); ?></p>
+                <div class="mlshop-qr-box">
+                    <img class="mlshop-wechat-qr"
+                        src="<?php echo esc_url(apply_filters('mlshop_wechat_qr_img_url', 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . rawurlencode($wechat_code_url), $order_id, $wechat_code_url)); ?>"
+                        width="200" height="200"
+                        alt="<?php esc_attr_e('微信支付二维码', 'moonlight-shop'); ?>">
+                </div>
+                <p class="mlshop-order-no"><?php esc_html_e('订单号：', 'moonlight-shop'); ?><?php echo esc_html(get_the_title($order_id)); ?></p>
+                <button type="button" class="mlshop-btn mlshop-wechat-check" data-order="<?php echo (int) $order_id; ?>">
+                    <?php esc_html_e('我已完成支付', 'moonlight-shop'); ?>
+                </button>
+                <p class="mlshop-wechat-check-msg mlshop-message" style="display:none;"></p>
+            <?php elseif ('wechat' === $gateway_id) : ?>
+                <p><?php esc_html_e('订单已提交，请按支付网关提示完成付款。支付成功后系统会自动更新状态。', 'moonlight-shop'); ?></p>
             <?php else : ?>
                 <p><?php esc_html_e('订单已提交，请按支付网关提示完成付款。支付成功后系统会自动更新状态。', 'moonlight-shop'); ?></p>
             <?php endif; ?>

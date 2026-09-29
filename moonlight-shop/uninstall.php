@@ -33,6 +33,9 @@ $single_keys = array(
     'stripe_publishable', 'stripe_secret', 'stripe_webhook_secret',
     'paypal_sandbox', 'paypal_client_id', 'paypal_secret', 'paypal_webhook_id',
     'alipay_enabled', 'alipay_mode', 'alipay_app_id', 'alipay_private_key', 'alipay_public_key',
+    'wechat_enabled', 'wechat_mchid', 'wechat_appid', 'wechat_serial_no',
+    'wechat_private_key', 'wechat_apiv3_key', 'wechat_pub_serial', 'wechat_pub_key',
+    'wechat_scene', 'wechat_description',
 );
 foreach ($single_keys as $k) {
     delete_option('mlshop_' . $k);
@@ -135,5 +138,7 @@ $wpdb->query(
         OR option_name = '_transient_mlshop_price_bounds_v1'
         OR option_name = '_transient_timeout_mlshop_price_bounds_v1'
         OR option_name LIKE '\\_transient\\_mlshop\\_paypal\\_token%'
-        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_paypal\\_token%'"
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_paypal\\_token%'
+        OR option_name LIKE '\\_transient\\_mlshop\\_wechat\\_%'
+        OR option_name LIKE '\\_transient\\_timeout\\_mlshop\\_wechat\\_%'"
 );
