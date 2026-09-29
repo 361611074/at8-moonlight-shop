@@ -34,24 +34,31 @@ class MLSHOP_Account_Tab
 
     public function add_tab($tabs)
     {
-        $tabs['orders'] = array(
-            'title'    => __('我的订单', 'moonlight-shop'),
-            'icon'     => 'dashicons-cart',
-            'callback' => array($this, 'render_tab'),
-        );
-        $tabs['addresses'] = array(
-            'title'    => __('收货地址', 'moonlight-shop'),
-            'icon'     => 'dashicons-location',
-            'callback' => array($this, 'render_addresses'),
-        );
-        if (class_exists('MLSHOP_Download')) {
+        // Phase B 去重：mluc_account_tabs 过滤器可能被多处挂载（如旧用户中心插件共存时，
+        // 其 MLUC_Account_Orders / MLUC_Purchases 已注册 orders / purchases Tab）。
+        // 已存在的同 key Tab 不覆盖——先挂载者胜出，避免同一 Tab 被两处重复注册。
+        if (!isset($tabs['orders'])) {
+            $tabs['orders'] = array(
+                'title'    => __('我的订单', 'moonlight-shop'),
+                'icon'     => 'dashicons-cart',
+                'callback' => array($this, 'render_tab'),
+            );
+        }
+        if (!isset($tabs['addresses'])) {
+            $tabs['addresses'] = array(
+                'title'    => __('收货地址', 'moonlight-shop'),
+                'icon'     => 'dashicons-location',
+                'callback' => array($this, 'render_addresses'),
+            );
+        }
+        if (!isset($tabs['downloads']) && class_exists('MLSHOP_Download')) {
             $tabs['downloads'] = array(
                 'title'    => __('我的下载', 'moonlight-shop'),
                 'icon'     => 'dashicons-download',
                 'callback' => array($this, 'render_downloads'),
             );
         }
-        if (class_exists('MLSHOP_Coupon')) {
+        if (!isset($tabs['coupons']) && class_exists('MLSHOP_Coupon')) {
             $tabs['coupons'] = array(
                 'title'    => __('我的优惠券', 'moonlight-shop'),
                 'icon'     => 'dashicons-tickets-alt',

@@ -35,8 +35,13 @@ class MLUC_License_Admin
 
     public function register_menu()
     {
+        // Phase B：跟随设置页挂载模式——仅装商城时与「会员与账户」同组（商城菜单下），
+        // 旧插件共存 / top 模式挂回「用户中心」顶级菜单。
+        $parent = method_exists('MLUC_Settings', 'submenu_parent_slug')
+            ? MLUC_Settings::submenu_parent_slug()
+            : 'mluc-settings';
         add_submenu_page(
-            'mluc-settings',
+            $parent,
             __('License 管理', 'moonlight-user-center'),
             __('License 管理', 'moonlight-user-center'),
             'manage_options',

@@ -45,6 +45,11 @@ class MLSHOP_Activator
 
         update_option('mlshop_options', $options);
 
+        // 会员中心并入（Phase B）：创建用户中心 4 页（账户中心 / 登录 / 注册 / 找回）。
+        // 旧「漫步白月光用户中心」插件激活时（其文件头定义 MLUC_LEGACY_ACTIVE）整体让位，
+        // 不创建这 4 页（旧插件的 MLUC_Activator 已有页面时亦不会重复创建）。
+        self::create_user_pages();
+
         // 注册 CPT 后刷新规则
         MLSHOP_Product::register_post_type();
         MLSHOP_Order::register_post_type();
@@ -63,6 +68,65 @@ class MLSHOP_Activator
         if (!wp_next_scheduled('moonlight_shipping_sync')) {
             wp_schedule_event(time(), 'mlshop_15min', 'moonlight_shipping_sync');
         }
+    }
+
+    /**
+     * 会员中心并入（Phase B）：创建用户中心页面，页面 ID 写入 mluc_options。
+     *
+     * 自 MLUC_Activator::activate() 并入（moonlight-user-center 原激活逻辑）：
+     * 账户中心 / 登录 / 注册 / 找回密码 4 页，post_content 为对应 [mluc_*] 短代码。
+     * 已有页面（option 记录且文章仍存在）时跳过，幂等可重复执行；
+     * 停用逻辑不动页面（不删除任何内容）。
+     *
+     * @return array 本次新建的 post ID 列表
+     */
+    public static function create_user_pages()
+    {
+        // 旧插件激活期间让位：不创建页面、不写 mluc_options。
+        if (defined('MLUC_LEGACY_ACTIVE')) {
+            return array();
+        }
+
+        $options = get_option('mluc_options', array());
+        if (!is_array($options)) {
+            $options = array();
+        }
+
+        $pages = array(
+            'account_page_id'      => array('账户中心', 'account', '[mluc_account]'),
+            'login_page_id'        => array('登录', 'login', '[mluc_login]'),
+            'register_page_id'     => array('注册', 'register', '[mluc_register]'),
+            'lostpassword_page_id' => array('找回密码', 'lost-password', '[mluc_lostpassword]'),
+        );
+
+        $created = array();
+        foreach ($pages as $opt_key => $cfg) {
+            if (!empty($options[$opt_key]) && get_post($options[$opt_key])) {
+                continue; // 已存在页面：跳过
+            }
+            $page_id = wp_insert_post(array(
+                'post_title'   => $cfg[0],
+                'post_name'    => $cfg[1],
+                'post_content' => $cfg[2],
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+            ));
+            if ($page_id && !is_wp_error($page_id)) {
+                $options[$opt_key] = $page_id;
+                $created[]         = (int) $page_id;
+            }
+        }
+
+        // 与原 MLUC_Activator 一致的默认值
+        if (!isset($options['enable_avatar'])) {
+            $options['enable_avatar'] = 1;
+        }
+        if (!isset($options['redirect_after_login'])) {
+            $options['redirect_after_login'] = '';
+        }
+
+        update_option('mluc_options', $options);
+        return $created;
     }
 
     /**

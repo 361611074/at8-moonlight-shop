@@ -33,11 +33,29 @@ class MLUC_Settings
     }
 
     /**
-     * 顶级菜单「用户中心」。position=31 让它落在 Comments(25) 之后、Appearance(60) 之前，
-     * 避免被滚出侧栏视野。
+     * 后台菜单注册（Phase B 挂载模式）：
+     *
+     * - 'top'     ：顶级菜单「用户中心」（原 moonlight-user-center 行为，position=31）；
+     * - 'submenu' ：归组为商城菜单下子菜单「会员与账户」（仅装商城的并入态默认）。
+     *
+     * 默认模式：旧插件激活期间（MLUC_LEGACY_ACTIVE）保持 'top' 不动；
+     * 仅装商城（并入模块由 mlshop_boot_user_modules() 启动）时归组 'submenu'。
+     * 可通过 mluc_settings_menu_mode 过滤器强制指定（'top' / 'submenu'）。
      */
     public function register_admin_menu()
     {
+        if ('submenu' === self::resolve_menu_mode()) {
+            add_submenu_page(
+                self::submenu_parent_slug(),
+                __('会员与账户', 'moonlight-user-center'),
+                __('会员与账户', 'moonlight-user-center'),
+                'manage_options',
+                'mluc-settings',
+                array($this, 'render_settings_page')
+            );
+            return;
+        }
+
         add_menu_page(
             __('用户中心', 'moonlight-user-center'),
             __('用户中心', 'moonlight-user-center'),
@@ -58,6 +76,31 @@ class MLUC_Settings
             'mluc-settings',
             array($this, 'render_settings_page')
         );
+    }
+
+    /**
+     * 解析设置菜单挂载模式（'top' | 'submenu'）。
+     *
+     * @return string
+     */
+    public static function resolve_menu_mode()
+    {
+        $default = defined('MLUC_LEGACY_ACTIVE') ? 'top' : 'submenu';
+        return ('top' === apply_filters('mluc_settings_menu_mode', $default)) ? 'top' : 'submenu';
+    }
+
+    /**
+     * 子页（License 管理 / 系统状态）应挂载的父菜单 slug：
+     * submenu 模式挂到商城菜单（同一子菜单组）；top 模式挂回 mluc-settings 顶级菜单。
+     *
+     * @return string
+     */
+    public static function submenu_parent_slug()
+    {
+        if ('top' === self::resolve_menu_mode()) {
+            return 'mluc-settings';
+        }
+        return apply_filters('mluc_settings_menu_parent', 'edit.php?post_type=mlshop_product');
     }
 
     /**

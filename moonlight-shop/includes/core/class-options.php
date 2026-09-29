@@ -2,7 +2,8 @@
 /**
  * 统一 option 访问器（收敛商城「独立 option × N + mlshop_options 数组」双路径）。
  *
- * 读取顺序：新结构数组键 → 旧独立 option（mlshop_$key）→ 旧数组（mlshop_options[$key]）。
+ * 读取顺序：新结构数组键 → 旧独立 option（mlshop_$key）→ 旧数组（mlshop_options[$key]）
+ *           → 会员中心 mluc_options[$key]（Phase B 并入，最低优先级）。
  * 写入：过渡期双写（新结构 + 旧独立键），保证旧代码/旧设置页继续工作；
  *       Phase 9 新设置页上线后切为只写新结构。
  *
@@ -39,6 +40,12 @@ class Moonlight_Options
         $legacy_array = get_option('mlshop_options', array());
         if (is_array($legacy_array) && array_key_exists($key, $legacy_array)) {
             return $legacy_array[$key];
+        }
+        // 会员中心并入（Phase B）：mluc_options 数组最低优先级回退（同键直读，不迁移数据）。
+        // 仅影响 Moonlight_Options 的调用方；MLUC_Settings 等用户模块仍走 mluc_get_option('mluc_options')，互不干扰。
+        $mluc = get_option('mluc_options', array());
+        if (is_array($mluc) && array_key_exists($key, $mluc)) {
+            return $mluc[$key];
         }
         return $default;
     }

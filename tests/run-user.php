@@ -85,6 +85,98 @@ foreach (array(
     check("启动后短代码已注册：{$__tag}", isset($GLOBALS['__test_shortcodes'][$__tag]));
 }
 check('mluc_loaded 动作触发 1 次', 1 === count($GLOBALS['__test_actions']['mluc_loaded'] ?? array()));
+
+/* ==========================================================================
+ * Phase B（设置与页面接管）——非让位分支用例。
+ * 注意：必须位于 define('MLUC_LEGACY_ACTIVE', true) 之前；
+ * 让位（LEGACY）分支用例在文件末尾（该常量已定义处）。
+ * __test_reset_card_env 会清空 __test_actions，先快照，段末恢复，
+ * 保证后续既有用例（mluc_loaded 触发计数）不受影响。
+ * ========================================================================== */
+
+$__pb_actions_saved = $GLOBALS['__test_actions'];
+
+echo "== Phase B：页面创建并入（MLSHOP_Activator::create_user_pages） ==\n";
+__test_reset_card_env();
+check('首次激活创建 4 页（账户中心/登录/注册/找回）', 4 === count(MLSHOP_Activator::create_user_pages()));
+$__pb_opt = get_option('mluc_options');
+check('mluc_options 记录 4 个页面 ID', isset($__pb_opt['account_page_id'], $__pb_opt['login_page_id'], $__pb_opt['register_page_id'], $__pb_opt['lostpassword_page_id'])
+    && 4 === count(array_filter(array($__pb_opt['account_page_id'], $__pb_opt['login_page_id'], $__pb_opt['register_page_id'], $__pb_opt['lostpassword_page_id']))));
+check('账户中心页内容 = [mluc_account] 短代码', '[mluc_account]' === get_post($__pb_opt['account_page_id'])->post_content);
+check('登录页内容 = [mluc_login] 短代码', '[mluc_login]' === get_post($__pb_opt['login_page_id'])->post_content);
+check('注册页内容 = [mluc_register] 短代码', '[mluc_register]' === get_post($__pb_opt['register_page_id'])->post_content);
+check('找回密码页内容 = [mluc_lostpassword] 短代码', '[mluc_lostpassword]' === get_post($__pb_opt['lostpassword_page_id'])->post_content);
+check('账户中心页标题 = 账户中心', '账户中心' === get_post($__pb_opt['account_page_id'])->post_title);
+check('页面类型为 page 且已发布', 'page' === get_post($__pb_opt['account_page_id'])->post_type && 'publish' === get_post($__pb_opt['account_page_id'])->post_status);
+check('默认值 enable_avatar=1 / redirect_after_login 空', 1 === (int) $__pb_opt['enable_avatar'] && '' === $__pb_opt['redirect_after_login']);
+check('已存在页面：重复激活跳过（不新建）', array() === MLSHOP_Activator::create_user_pages());
+// option 记录存在但文章已丢失 → 该页重建，其余仍跳过
+$__pb_opt['account_page_id'] = 999999; // 未创建过的文章 ID
+update_option('mluc_options', $__pb_opt);
+$__pb_re = MLSHOP_Activator::create_user_pages();
+check('页面丢失时仅重建账户中心页（其余跳过）', 1 === count($__pb_re)
+    && '[mluc_account]' === get_post(get_option('mluc_options')['account_page_id'])->post_content);
+unset($GLOBALS['__test_options']['mluc_options']);
+__test_reset_card_env();
+
+echo "== Phase B：Moonlight_Options 读取链（mluc_options 最低优先级回退） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_options']['mluc_options'] = array('membership_levels' => array('gold' => array('label' => 'Gold', 'price' => 99)));
+check('新结构/独立键/mlshop_options 均无键 → 从 mluc_options 读到 membership_levels', array('gold' => array('label' => 'Gold', 'price' => 99)) === Moonlight_Options::get('membership_levels'));
+$GLOBALS['__test_options']['mlshop_options'] = array('membership_levels' => 'from-legacy-array');
+check('mlshop_options（旧数组）优先于 mluc_options', 'from-legacy-array' === Moonlight_Options::get('membership_levels'));
+unset($GLOBALS['__test_options']['mlshop_options']);
+$GLOBALS['__test_options']['mlshop_membership_levels'] = 'from-legacy-single';
+check('mlshop_ 独立键优先于 mluc_options', 'from-legacy-single' === Moonlight_Options::get('membership_levels'));
+unset($GLOBALS['__test_options']['mlshop_membership_levels']);
+$GLOBALS['__test_options']['moonlight_shop_options'] = array('membership_levels' => 'from-new-store');
+check('新结构（moonlight_shop_options）优先于 mluc_options', 'from-new-store' === Moonlight_Options::get('membership_levels'));
+unset($GLOBALS['__test_options']['moonlight_shop_options']);
+check('mluc_get_option 读写路径不受影响（仍直读 mluc_options）', array('gold' => array('label' => 'Gold', 'price' => 99)) === mluc_get_option('membership_levels', array()));
+unset($GLOBALS['__test_options']['mluc_options']);
+check('全链无键 → 返回默认值', 'dft' === Moonlight_Options::get('membership_levels', 'dft'));
+__test_reset_card_env();
+
+echo "== Phase B：设置菜单归组（submenu 默认模式，旧插件未激活） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
+check('旧插件未激活 → 默认 submenu 模式', 'submenu' === MLUC_Settings::resolve_menu_mode());
+MLUC_Settings::get_instance()->register_admin_menu();
+check('不再注册「用户中心」顶级菜单', 0 === count($GLOBALS['__test_admin_menu']['top']));
+$__pb_sub = $GLOBALS['__test_admin_menu']['sub'];
+check('设置页挂到商城菜单下「会员与账户」', 1 === count($__pb_sub)
+    && 'edit.php?post_type=mlshop_product' === $__pb_sub[0]['parent']
+    && 'mluc-settings' === $__pb_sub[0]['slug']
+    && '会员与账户' === $__pb_sub[0]['title']);
+MLUC_License_Admin::get_instance()->register_menu();
+MLUC_System_Status::get_instance()->register_menu();
+$__pb_sub = $GLOBALS['__test_admin_menu']['sub'];
+check('License 管理与设置页同组（商城菜单下）', 3 === count($__pb_sub)
+    && 'edit.php?post_type=mlshop_product' === $__pb_sub[1]['parent'] && 'mluc-licenses' === $__pb_sub[1]['slug']);
+check('系统状态与设置页同组（商城菜单下）', 'edit.php?post_type=mlshop_product' === $__pb_sub[2]['parent'] && 'mluc-status' === $__pb_sub[2]['slug']);
+__test_reset_card_env();
+
+echo "== Phase B：mluc_account_tabs 过滤器 Tab 去重 ==\n";
+__test_reset_card_env();
+$__pb_at = MLSHOP_Account_Tab::get_instance();
+$__pb_pre = array(
+    'orders'    => array('title' => '已有订单', 'callback' => function () {}),
+    'downloads' => array('title' => '已有下载', 'callback' => function () {}),
+    'addresses' => array('title' => '已有地址', 'callback' => function () {}),
+);
+$__pb_out = $__pb_at->add_tab($__pb_pre);
+check('已有 orders Tab 不被商城侧覆盖', '已有订单' === $__pb_out['orders']['title']);
+check('已有 downloads Tab 不被商城侧覆盖', '已有下载' === $__pb_out['downloads']['title']);
+check('已有 addresses Tab 不被商城侧覆盖', '已有地址' === $__pb_out['addresses']['title']);
+$__pb_fresh = $__pb_at->add_tab(array());
+check('空白时商城侧仍注册 orders/addresses/downloads/coupons', isset($__pb_fresh['orders'], $__pb_fresh['addresses'], $__pb_fresh['downloads'], $__pb_fresh['coupons']));
+// 收集器语义：并入版 Account 基础 Tab + 商城 Account_Tab 挂载合并后 key 唯一
+$__pb_merged = $__pb_at->add_tab(MLUC_Account::get_instance()->get_tabs());
+check('两处挂载合并后每个 Tab key 只出现一次', count($__pb_merged) === count(array_unique(array_keys($__pb_merged)))
+    && isset($__pb_merged['overview'], $__pb_merged['profile'], $__pb_merged['membership'], $__pb_merged['orders']));
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pb_actions_saved; // 恢复段前动作记录（mluc_loaded 计数用例依赖）
+
 define('MLUC_LEGACY_ACTIVE', true);
 check('定义 MLUC_LEGACY_ACTIVE → 商城侧让位', false === mlshop_user_modules_should_boot());
 $__sc_count = count($GLOBALS['__test_shortcodes']);
@@ -383,6 +475,26 @@ foreach (array(
     check("{$__cls} 来自 moonlight-shop/includes/user/{$__file}", false !== strpos($__path, '/moonlight-shop/includes/user/' . $__file));
 }
 check('不并入的 MLUC_Payments 不在商城 includes/user/', !file_exists(dirname(__DIR__) . '/moonlight-shop/includes/user/class-payments.php'));
+
+/* ==========================================================================
+ * Phase B：旧插件激活让位分支（MLUC_LEGACY_ACTIVE 已在上文定义）
+ * ========================================================================== */
+
+echo "== Phase B：旧插件激活让位（页面创建 / 菜单模式） ==\n";
+__test_reset_card_env();
+check('LEGACY：create_user_pages 不创建任何页面', array() === MLSHOP_Activator::create_user_pages());
+$__pb_leg_opt = get_option('mluc_options', array());
+check('LEGACY：不写入 mluc_options 页面 ID', !is_array($__pb_leg_opt) || !isset($__pb_leg_opt['account_page_id']));
+$GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
+check('LEGACY：默认恢复 top 模式', 'top' === MLUC_Settings::resolve_menu_mode());
+MLUC_Settings::get_instance()->register_admin_menu();
+check('LEGACY：仍注册「用户中心」顶级菜单（mluc-settings，position 31）', 1 === count($GLOBALS['__test_admin_menu']['top'])
+    && 'mluc-settings' === $GLOBALS['__test_admin_menu']['top'][0]['slug']
+    && 31 === $GLOBALS['__test_admin_menu']['top'][0]['position']);
+MLUC_License_Admin::get_instance()->register_menu();
+check('LEGACY：License 管理仍挂「用户中心」顶级菜单下', 2 === count($GLOBALS['__test_admin_menu']['sub'])
+    && 'mluc-settings' === $GLOBALS['__test_admin_menu']['sub'][1]['parent'] && 'mluc-licenses' === $GLOBALS['__test_admin_menu']['sub'][1]['slug']);
+__test_reset_card_env();
 
 echo "\n{$pass} passed, {$fail} failed\n";
 exit($fail > 0 ? 1 : 0);

@@ -447,7 +447,8 @@ $GLOBALS['__test_posts_next_id'] = 1;
 $GLOBALS['__test_mails'] = array();
 $GLOBALS['__test_actions'] = array();
 $GLOBALS['__test_transients'] = array();
-$GLOBALS['__test_post_types'] = array();
+    $GLOBALS['__test_post_types'] = array();
+    $GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
 
 /** 测试专用：重置卡密相关测试环境（选项 / 行 / 文章 / 邮件 / 动作 / transient）。 */
 function __test_reset_card_env()
@@ -743,6 +744,34 @@ function add_shortcode($tag, $cb) { $GLOBALS['__test_shortcodes'][(string) $tag]
 }
 if (!function_exists('shortcode_exists')) {
 function shortcode_exists($tag) { return isset($GLOBALS['__test_shortcodes'][(string) $tag]); }
+}
+
+/* ---------------- Phase B（设置与页面接管）测试补充 ----------------
+ * 后台菜单注册桩：记录 add_menu_page / add_submenu_page 调用，
+ * 供 run-user.php 断言 MLUC_Settings 挂载模式（top|submenu）与 License/系统状态同组。 */
+
+if (!isset($GLOBALS['__test_admin_menu'])) {
+    $GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
+}
+if (!function_exists('add_menu_page')) {
+function add_menu_page($page_title, $menu_title, $capability, $menu_slug, $callback = '', $icon_url = '', $position = null) {
+    $GLOBALS['__test_admin_menu']['top'][] = array(
+        'slug'     => (string) $menu_slug,
+        'title'    => (string) $menu_title,
+        'position' => $position,
+    );
+    return '';
+}
+}
+if (!function_exists('add_submenu_page')) {
+function add_submenu_page($parent_slug, $page_title, $menu_title, $capability, $menu_slug, $callback = '') {
+    $GLOBALS['__test_admin_menu']['sub'][] = array(
+        'parent' => (string) $parent_slug,
+        'slug'   => (string) $menu_slug,
+        'title'  => (string) $menu_title,
+    );
+    return '';
+}
 }
 
 /* ---------------- Phase A（会员中心并入）测试补充 ----------------
