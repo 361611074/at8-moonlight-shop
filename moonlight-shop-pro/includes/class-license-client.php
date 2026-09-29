@@ -3,11 +3,18 @@
  * Pro License 客户端：is_active() 门禁统一入口 + 后台「Moonlight Pro → Pro 授权」页。
  *
  * - 引擎优先：class_exists('MLUC_License_Manager') 时直调
- *   MLUC_License_Manager::get_instance()->is_product_active('moonlight-shop-pro')
+ *   MLUC_License_Manager::get_instance()->is_product_active($product)
  *   （站点 hash 绑定 / 12h 验证缓存 / 7 天宽限全部由引擎负责，Pro 零授权逻辑）；
- * - 引擎缺席（会员中心未安装）：回退本地开关 option `mlpro_local_active`（默认 1）。
- *   会员中心并线后无需改代码，自动切换到 License 引擎；
- * - 结果静态缓存每请求一次；授权状态可能变化的入口（保存设置）调用 clear_cache()。
+ * - 双产品语义（MERGE-USER-CENTER.md Phase D）：依次检查新产品
+ *   moonlight-shop-pro 与存量产品 moonlight-user-center-pro（Phase C 起商城
+ *   订单签发的 License 沿用该标识，旧 Pro 存量授权亦为该标识）——任一激活
+ *   即视为 Pro 激活，存量旧授权继续可用；旧 MLUCP Pro 仍激活时跳过双检查，
+ *   仅查新产品（授权门禁由旧 Pro 负责，见 moonlight-shop-pro.php）；
+ * - 引擎缺席（License 引擎未并入）：回退本地开关 option `mlpro_local_active`
+ *   （默认 1）；
+ * - 结果静态缓存：整体结果每请求一次，引擎模式下两个产品的检查结果分别
+ *   缓存（product_cache 按产品标识分键）；授权状态可能变化的入口
+ *   （保存设置）调用 clear_cache()。
  *
  * @package Moonlight_Shop_Pro
  */
@@ -21,6 +28,12 @@ class MLPRO_License_Client
     /** 本地模式开关 option 键（引擎缺席时生效，默认 1 = 激活）。 */
     const OPT_LOCAL_ACTIVE = 'mlpro_local_active';
 
+    /** 新产品标识（引擎 is_product_active() 的产品参数）。 */
+    const PRODUCT_NEW = 'moonlight-shop-pro';
+
+    /** 存量产品标识（旧 MLUCP Pro 授权 + Phase C 起商城订单签发的 License）。 */
+    const PRODUCT_LEGACY = 'moonlight-user-center-pro';
+
     private static $instance = null;
 
     /** @var bool|null 请求内缓存（null = 未计算） */
@@ -28,6 +41,9 @@ class MLPRO_License_Client
 
     /** @var string|null 'engine' | 'local'（随最近一次 is_active() 计算写入） */
     private static $mode_cache = null;
+
+    /** @var array<string,bool> 引擎模式下按产品分别缓存（两产品互不串键） */
+    private static $product_cache = array();
 
     public static function get_instance()
     {
@@ -46,6 +62,9 @@ class MLPRO_License_Client
 
     /**
      * Pro 是否处于有效授权（所有 Pro 模块启动前统一检查）。
+     *
+     * 引擎模式：新产品 / 存量产品任一激活即激活（存量旧授权继续可用）；
+     * 旧 MLUCP Pro 激活时跳过双检查，仅查新产品。
      */
     public static function is_active()
     {
@@ -54,14 +73,67 @@ class MLPRO_License_Client
         }
         if (class_exists('MLUC_License_Manager')) {
             // 引擎模式：签发 / 激活 / 站点绑定 / 宽限期 / 撤销全部由 MLUC 负责。
-            self::$active_cache = (bool) MLUC_License_Manager::get_instance()->is_product_active(MLPRO_PRODUCT);
-            self::$mode_cache   = 'engine';
+            self::$mode_cache = 'engine';
+            if (self::legacy_pro_active()) {
+                // 旧 MLUCP Pro 激活：保持单产品语义（旧 Pro 自身门禁查存量产品，
+                // 本插件仅查新产品，互不纠缠）。
+                self::$active_cache = self::engine_product_active(self::PRODUCT_NEW);
+            } else {
+                // 双产品语义：两产品都检查（不短路），结果按产品分别缓存。
+                $active_new    = self::engine_product_active(self::PRODUCT_NEW);
+                $active_legacy = self::engine_product_active(self::PRODUCT_LEGACY);
+                self::$active_cache = $active_new || $active_legacy;
+            }
         } else {
-            // 本地模式：option 开关（默认 1），会员中心并线后自动切换到引擎。
+            // 本地模式：option 开关（默认 1）。
             self::$active_cache = ((int) get_option(self::OPT_LOCAL_ACTIVE, 1) === 1);
             self::$mode_cache   = 'local';
         }
         return self::$active_cache;
+    }
+
+    /**
+     * 旧 MLUCP Pro（moonlight-user-center-pro）是否仍处于激活状态。
+     *
+     * MLUCP_VERSION 由旧 Pro 主文件顶层 define（先于 plugins_loaded 可见），
+     * 是最可靠的激活标记；class_exists(..., false) 兜底非标准加载场景。
+     */
+    public static function legacy_pro_active()
+    {
+        return defined('MLUCP_VERSION') || class_exists('MLUCP_License_Client', false);
+    }
+
+    /**
+     * 引擎模式下单产品授权检查（按产品分别缓存，两产品互不串键）。
+     *
+     * @param string $product 产品标识。
+     * @return bool
+     */
+    private static function engine_product_active($product)
+    {
+        if (!array_key_exists($product, self::$product_cache)) {
+            self::$product_cache[$product] = (bool) MLUC_License_Manager::get_instance()->is_product_active($product);
+        }
+        return self::$product_cache[$product];
+    }
+
+    /**
+     * 两产品各自的引擎检查结果（设置页授权状态展示用）。
+     *
+     * 仅引擎模式且旧 MLUCP Pro 未激活时返回两产品明细；其余场景返回空数组
+     * （本地模式无产品概念，旧 Pro 激活时不重复展示）。
+     *
+     * @return array<string,bool> 产品标识 => 是否激活
+     */
+    public static function product_status()
+    {
+        if (!class_exists('MLUC_License_Manager') || self::legacy_pro_active()) {
+            return array();
+        }
+        return array(
+            self::PRODUCT_NEW    => self::engine_product_active(self::PRODUCT_NEW),
+            self::PRODUCT_LEGACY => self::engine_product_active(self::PRODUCT_LEGACY),
+        );
     }
 
     /**
@@ -80,8 +152,9 @@ class MLPRO_License_Client
      */
     public static function clear_cache()
     {
-        self::$active_cache = null;
-        self::$mode_cache   = null;
+        self::$active_cache  = null;
+        self::$mode_cache    = null;
+        self::$product_cache = array();
     }
 
     /* ---------------- 后台：Pro 授权页 ---------------- */
@@ -138,6 +211,7 @@ class MLPRO_License_Client
         $active      = self::is_active();
         $mode        = self::get_mode();
         $has_engine  = class_exists('MLUC_License_Manager');
+        $legacy_pro  = self::legacy_pro_active();
         $local_on    = ((int) get_option(self::OPT_LOCAL_ACTIVE, 1) === 1);
         $action_url  = admin_url('admin-post.php');
         ?>
@@ -172,6 +246,26 @@ class MLPRO_License_Client
                             <?php endif; ?>
                         </td>
                     </tr>
+                    <?php if ($has_engine && !$legacy_pro) : ?>
+                        <?php foreach (self::product_status() as $__product => $__product_active) : ?>
+                            <tr>
+                                <th><?php echo esc_html(sprintf(/* translators: %s: 产品标识 */ __('产品检查：%s', 'moonlight-shop-pro'), $__product)); ?></th>
+                                <td>
+                                    <?php if ($__product_active) : ?>
+                                        <span style="color:#00a32a;"><?php esc_html_e('有有效 License', 'moonlight-shop-pro'); ?></span>
+                                    <?php else : ?>
+                                        <span style="color:#d63638;"><?php esc_html_e('无有效 License', 'moonlight-shop-pro'); ?></span>
+                                    <?php endif; ?>
+                                    <span class="description"><?php esc_html_e('任一产品有有效 License 即视为 Pro 激活（存量授权兼容）。', 'moonlight-shop-pro'); ?></span>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php elseif ($legacy_pro) : ?>
+                        <tr>
+                            <th><?php esc_html_e('旧版 Pro', 'moonlight-shop-pro'); ?></th>
+                            <td><span class="description"><?php esc_html_e('检测到旧版「用户中心 Pro」仍处于激活状态：Elementor 会员卡与 License 检查由旧版负责，本插件不重复接管。', 'moonlight-shop-pro'); ?></span></td>
+                        </tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
 

@@ -7,7 +7,8 @@
  * 物流第二批：状态机扩展（待发货/已发货/已签收）、标签单一来源、
  *             发货单/轨迹、Provider 注册表、cron 同步与自动完成、Express100 解析器。
  * Pro（moonlight-shop-pro）：MLPRO Webhook 签名/退避/事件过滤、
- *             CSV 公式注入防护、日期白名单、License 客户端本地回退。
+ *             CSV 公式注入防护、日期白名单、License 客户端本地回退；
+ *             Phase D：License 双产品语义、Elementor 会员卡门禁、旧 MLUCP Pro 共存让位。
  */
 
 require __DIR__ . '/wp-stubs.php';
@@ -1123,6 +1124,85 @@ check('日期合法（格式 + 回读一致）', MLPRO_Order_Export::parse_date(
 check('日期非法格式回退默认', MLPRO_Order_Export::parse_date('09/27/2026', '2026-01-01') === '2026-01-01');
 check('不存在日期（2月30日）回退默认', MLPRO_Order_Export::parse_date('2026-02-30', '2026-01-01') === '2026-01-01');
 check('日期为空回退默认', MLPRO_Order_Export::parse_date('', '2026-01-01') === '2026-01-01');
+
+/* ==========================================================================
+ * Phase D（Pro 收编，MERGE-USER-CENTER.md）：License 双产品语义 +
+ * Elementor 会员卡组件门禁 + 旧 MLUCP Pro 共存让位。
+ * 引擎桩在本段定义（此前已断言引擎不存在，真实引擎仅在 run-user.php 子进程）。
+ * ========================================================================== */
+
+echo "== Phase D：MLPRO_License_Client 双产品语义（引擎模式） ==\n";
+$GLOBALS['__test_mluc_products'] = array();
+// 引擎桩：条件声明（运行期绑定）。无条件顶层 class 会被 PHP 编译期提前绑定，
+// 导致上方「引擎不存在」用例与本段之前的所有 class_exists 探测失效。
+if (!class_exists('MLUC_License_Manager')) {
+    class MLUC_License_Manager {
+        public static function get_instance() { return new MLUC_License_Manager(); }
+        public function is_product_active($product) {
+            return !empty($GLOBALS['__test_mluc_products'][(string) $product]);
+        }
+    }
+}
+MLPRO_License_Client::clear_cache();
+$GLOBALS['__test_mluc_products'] = array('moonlight-shop-pro' => false, 'moonlight-user-center-pro' => true);
+check('新产品未激活 + 存量旧产品激活 → 激活（存量授权兼容）', MLPRO_License_Client::is_active() === true);
+check('模式识别为 engine', MLPRO_License_Client::get_mode() === 'engine');
+check('整体缓存生效（引擎结果翻转后未清缓存仍 true）', (function () {
+    $GLOBALS['__test_mluc_products'] = array('moonlight-shop-pro' => false, 'moonlight-user-center-pro' => false);
+    return MLPRO_License_Client::is_active() === true;
+})());
+MLPRO_License_Client::clear_cache();
+check('两产品都未激活（引擎存在）→ 未激活', MLPRO_License_Client::is_active() === false);
+$GLOBALS['__test_mluc_products'] = array('moonlight-shop-pro' => true, 'moonlight-user-center-pro' => false);
+MLPRO_License_Client::clear_cache();
+check('新产品激活 + 存量产品未激活 → 激活', MLPRO_License_Client::is_active() === true);
+$__mlpc_ref = new ReflectionProperty('MLPRO_License_Client', 'product_cache');
+$__mlpc_ref->setAccessible(true);
+check('两产品结果按标识分别缓存（互不串键）', $__mlpc_ref->getValue(null) === array('moonlight-shop-pro' => true, 'moonlight-user-center-pro' => false));
+check('product_status 返回两产品各自检查结果', MLPRO_License_Client::product_status() === array('moonlight-shop-pro' => true, 'moonlight-user-center-pro' => false));
+
+echo "== Phase D：MLUCP_Elementor_Integration（自 MLUCP 收编） ==\n";
+require __DIR__ . '/../moonlight-shop-pro/includes/class-elementor-integration.php';
+check('Elementor 未加载 → 集成不启用', MLUCP_Elementor_Integration::enabled() === false);
+eval('namespace Elementor;
+class Plugin {}
+class Widget_Base {
+    protected $settings = array();
+    public function get_settings_for_display() { return $this->settings; }
+}');
+check('Elementor 已加载（桩）且旧 Pro 未激活 → 集成启用', MLUCP_Elementor_Integration::enabled() === true);
+check('收编组件类可加载且组件名保留 mlucp_membership_card', (function () {
+    require __DIR__ . '/../moonlight-shop-pro/includes/elementor-membership-card.php';
+    return class_exists('MLUCP_Membership_Card', false)
+        && 'mlucp_membership_card' === (new MLUCP_Membership_Card())->get_name()
+        && array('moonlight') === (new MLUCP_Membership_Card())->get_categories();
+})());
+check('组件渲染（未登录）输出登录提示卡', (function () {
+    $render = new ReflectionMethod('MLUCP_Membership_Card', 'render');
+    $render->setAccessible(true); // render 为 protected（Elementor Widget_Base 约定）
+    ob_start();
+    $render->invoke(new MLUCP_Membership_Card());
+    $html = (string) ob_get_clean();
+    return false !== strpos($html, 'mlucp-membership-card') && false !== strpos($html, '请先登录后查看会员状态');
+})());
+
+echo "== Phase D：旧 MLUCP Pro 共存让位 ==\n";
+define('MLUCP_VERSION', '2.0.0-test'); // 模拟旧 Pro 激活（其主文件顶层 define，先于 plugins_loaded 可见）
+check('旧 Pro 激活 → Elementor 集成让位（不启用）', MLUCP_Elementor_Integration::enabled() === false);
+$GLOBALS['__test_mluc_products'] = array('moonlight-shop-pro' => false, 'moonlight-user-center-pro' => true);
+MLPRO_License_Client::clear_cache();
+check('旧 Pro 激活 → 双检查跳过（仅新产品语义：旧产品激活不计入）', MLPRO_License_Client::is_active() === false);
+$GLOBALS['__test_mluc_products'] = array('moonlight-shop-pro' => true, 'moonlight-user-center-pro' => false);
+MLPRO_License_Client::clear_cache();
+check('旧 Pro 激活 → 新产品激活仍判定激活', MLPRO_License_Client::is_active() === true);
+check('旧 Pro 激活 → product_status 返回空（授权页不展示双产品行）', MLPRO_License_Client::product_status() === array());
+
+echo "== Phase D：Pro 主文件门禁与共存检测（源级断言） ==\n";
+$__mlpro_main = (string) file_get_contents(__DIR__ . '/../moonlight-shop-pro/moonlight-shop-pro.php');
+check('主文件门禁不变（缺 MLSHOP_VERSION / MLSHOP_Order 不启动）', false !== strpos($__mlpro_main, "!defined('MLSHOP_VERSION') || !class_exists('MLSHOP_Order')"));
+check('主文件含旧 Pro 共存检测（MLUCP_VERSION / MLUCP_License_Client）', false !== strpos($__mlpro_main, "defined('MLUCP_VERSION')") && false !== strpos($__mlpro_main, "class_exists('MLUCP_License_Client', false)"));
+check('主文件在旧 Pro 激活时不引入收编组件（让位分支）', false !== strpos($__mlpro_main, 'if (!$mlpro_legacy_pro)'));
+check('收编文件含类名守卫（旧 Pro 副本冲突防护）', false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop-pro/includes/class-elementor-integration.php'), "class_exists('MLUCP_Elementor_Integration', false)"));
 
 
 echo "== Guest checkout 游客购买（邮箱下单 / 访问令牌 / 注册推荐） ==\n";

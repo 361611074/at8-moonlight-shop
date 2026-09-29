@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:      Moonlight Shop Pro
- * Description:      漫步白月光电子商城（moonlight-shop）的 Pro 扩展：License 授权门禁、出站 Webhook（HMAC 签名 + 重试退避）、Pro 统计（趋势 / Top10 / 渠道占比）与订单 CSV 导出。必须先安装并启用「漫步白月光电子商城」。
- * Version:          2.1.0
+ * Description:      漫步白月光电子商城（moonlight-shop）的 Pro 扩展：License 授权门禁（双产品语义，存量授权兼容）、Elementor 会员状态卡、出站 Webhook（HMAC 签名 + 重试退避）、Pro 统计（趋势 / Top10 / 渠道占比）与订单 CSV 导出。必须先安装并启用「漫步白月光电子商城」。
+ * Version:          2.2.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:           漫步白月光
@@ -13,8 +13,10 @@
  * Domain Path:      /languages
  *
  * 依赖（Requires）：moonlight-shop（漫步白月光电子商城）Free 2.0+。
- * 授权引擎（可选）：moonlight-user-center 的 MLUC_License_Manager；引擎缺席时
- * 回退本地开关（mlpro_local_active），会员中心并线后自动切换到 License 引擎。
+ * 授权引擎：moonlight-shop 并入的 MLUC_License_Manager（引擎缺席时回退本地
+ * 开关 mlpro_local_active）；License 双产品语义：moonlight-shop-pro 与存量
+ * moonlight-user-center-pro 任一激活即激活。旧 MLUCP Pro 仍激活时本插件的
+ * Elementor 会员卡与 License 双检查让位（共存保护）。
  *
  * 依赖方向 Pro → Free 单向；零复制 Free 业务代码，仅调用其公开 API / 钩子。
  *
@@ -25,12 +27,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLPRO_VERSION', '2.1.0');
+define('MLPRO_VERSION', '2.2.0');
 define('MLPRO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLPRO_PLUGIN_FILE', __FILE__);
 /** Pro 产品标识（与 License 引擎 is_product_active() 的产品参数一致）。 */
 define('MLPRO_PRODUCT', 'moonlight-shop-pro');
-
 /**
  * 自动加载 Pro 内部类（MLPRO_ 前缀 → includes/class-*.php，与 Free 的 MLSHOP_ 隔离）。
  */
@@ -79,6 +80,20 @@ add_action('plugins_loaded', function () {
     // License 客户端始终注册：授权状态页是（重新）激活 Pro 的唯一入口，
     // 不能被门禁自身挡住（对齐 MLUCP 模式）。
     MLPRO_License_Client::get_instance();
+
+    // 旧 MLUCP Pro（moonlight-user-center-pro）共存保护（MERGE-USER-CENTER.md Phase D）：
+    // MLUCP_VERSION 由旧 Pro 主文件顶层 define（此处所有插件已加载，必然可见）。
+    // 旧 Pro 激活时：收编的 Elementor 会员卡与 License 双产品检查由旧 Pro 负责
+    // （License 客户端内部自动切回单产品语义）；Webhook / 统计 / 订单导出为
+    // MLPro 独有（旧 Pro 无此能力），照常工作。
+    $mlpro_legacy_pro = defined('MLUCP_VERSION') || class_exists('MLUCP_License_Client', false);
+
+    if (!$mlpro_legacy_pro) {
+        // Elementor 会员卡（自 MLUCP 收编）：MLPRO_ 自动加载器不覆盖 MLUCP_ 前缀，
+        // 文件在此显式引入（文件内另有 class_exists 守卫双保险）。
+        require_once MLPRO_PLUGIN_DIR . 'includes/class-elementor-integration.php';
+        MLUCP_Elementor_Integration::get_instance();
+    }
 
     if (MLPRO_License_Client::is_active()) {
         // 出站 Webhook：前台 / AJAX / cron 都要挂（订单事件不只发生在后台）。
