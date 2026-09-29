@@ -2,7 +2,7 @@
 /**
  * Plugin Name:      Moonlight Shop Pro
  * Description:      漫步白月光电子商城（moonlight-shop）的 Pro 扩展：License 授权门禁（双产品语义，存量授权兼容）、Elementor 会员状态卡、出站 Webhook（HMAC 签名 + 重试退避）、Pro 统计（趋势 / Top10 / 渠道占比）与订单 CSV 导出。必须先安装并启用「漫步白月光电子商城」。
- * Version:          2.2.0
+ * Version:          3.0.0
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:           漫步白月光
@@ -27,7 +27,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLPRO_VERSION', '2.2.0');
+define('MLPRO_VERSION', '3.0.0');
 define('MLPRO_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLPRO_PLUGIN_FILE', __FILE__);
 /** Pro 产品标识（与 License 引擎 is_product_active() 的产品参数一致）。 */

@@ -20,11 +20,18 @@ php -l <file>              # 提交前对改动文件做语法校验
 
 ## 架构约定
 
-### 双命名空间
-- `MLSHOP_*`：存量业务类，`includes/class-*.php`（SPL 自动加载映射）；
+### 命名空间（v3.0 并入版）
+- `MLSHOP_*`：商城存量业务类，`includes/class-*.php`（SPL 自动加载映射）；
 - `Moonlight_*`：新核心层，`includes/core/class-*.php`（自动加载已注册）；
+- `MLUC_*`：会员中心并入模块，`includes/user/class-*.php`（v3.0 Phase A-E 并入；类名保留原前缀）；
 - `MLPRO_*`：Pro 插件 `moonlight-shop-pro/includes/class-*.php`；
 - **依赖方向**：Pro → Free 单向；Free 永不探测 Pro；`Moonlight_*` 可调用 `MLSHOP_*`，反向引用需 `class_exists` 防护。
+- **旧插件共存**：`moonlight-user-center` 激活时 define `MLUC_LEGACY_ACTIVE`，商城侧用户模块与合并函数整体让位（双插件同启行为与 2.x 一致）；仅装商城时并入模块由 `mlshop_boot_user_modules()` 接管。旧插件已发布退役提示（Phase E），建议核对后台「迁移状态」页后停用。
+
+### 会员中心并入遗留点（Phase A-E 记录）
+- `MLUC_Payments/Paywall/PayPal/Stripe/Account_Orders` 未并入：会员购买走商城 `[mlshop_membership]`，付费墙走 `MLSHOP_Pay_Access`（兼容旧 `_mluc_pw_*` meta 与 `mluc_pay_unlocks` 账本）；
+- 旧动态等级价仅映射 gold/diamond 档（其余档位回退执行价，可经 `moonlight_tier_price` 过滤器补）；
+- at8-license-server 适配器未实现（REST 侦察见 docs/AT8-LICENSE-SERVER-RECON.md，适配落点为引擎 `remote_verify_ok()`）。
 
 ### 铁律（计划书 + 审计沉淀）
 1. **价格**：任何取价走 `Moonlight_Price_Calculator`（tier_price/quote），禁止就地计算；

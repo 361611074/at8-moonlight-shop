@@ -164,17 +164,17 @@ class Moonlight_Migrations
             self::log('m3_migrate_mluc_orders', 'skipped (no consent)');
             return true;
         }
-        if (!post_type_exists('mluc_order')) {
-            self::log('m3_migrate_mluc_orders', 'skipped (mluc_order not registered)');
-            return true;
-        }
+        // 注：不再要求 mluc_order CPT 已注册——仅装商城（旧插件已停用）时该 CPT
+        // 不存在，但 posts 表里的旧数据仍在，显式状态数组直查即可完成迁移（Phase E）。
         $copied = 0;
         // 分页循环到没有未迁移订单为止（审计 F12：>200 条站点只迁一半的缺陷）。
+        // 显式状态数组：仅装商城时 mluc_* 状态未注册，post_status='any' 会漏掉它们。
+        $statuses = array('mluc_pending', 'mluc_paid', 'mluc_cancelled', 'publish', 'private', 'draft');
         do {
             $orders = get_posts(array(
                 'post_type'      => 'mluc_order',
                 'posts_per_page' => 200,
-                'post_status'    => 'any',
+                'post_status'    => $statuses,
                 'fields'         => 'ids',
                 'orderby'        => 'date',
                 'order'          => 'ASC',

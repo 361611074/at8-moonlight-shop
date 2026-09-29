@@ -467,6 +467,10 @@ function __test_reset_card_env()
     $GLOBALS['__test_is_singular'] = false;
     $GLOBALS['__test_queried_id'] = 0;
     $GLOBALS['__test_http_calls'] = array();
+    $GLOBALS['__test_nonce_ok'] = false;
+    $GLOBALS['__test_redirects'] = array();
+    $GLOBALS['__test_referer'] = '';
+    $GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
     unset($GLOBALS['__test_http_handler']);
     unset($GLOBALS['__test_http_response']);
 }
@@ -971,5 +975,43 @@ if (!function_exists('mb_substr')) {
     function mb_substr($str, $start, $length = null, $encoding = null)
     {
         return null === $length ? substr((string) $str, $start) : substr((string) $str, $start, $length);
+    }
+}
+
+// ---- Phase E 桩：迁移状态页 / 退役提示 ----
+if (!defined('ARRAY_A')) {
+    define('ARRAY_A', 'ARRAY_A');
+}
+if (!defined('ARRAY_N')) {
+    define('ARRAY_N', 'ARRAY_N');
+}
+if (!function_exists('check_admin_referer')) {
+    function check_admin_referer($action = -1, $query_arg = false)
+    {
+        return !empty($GLOBALS['__test_nonce_ok']);
+    }
+}
+if (!function_exists('admin_url')) {
+    function admin_url($path = '')
+    {
+        return 'http://example.test/wp-admin/' . ltrim((string) $path, '/');
+    }
+}
+if (!function_exists('wp_die')) {
+    function wp_die($message = '', $title = '', $args = array())
+    {
+        throw new RuntimeException('wp_die: ' . (is_string($message) ? $message : ''));
+    }
+}
+if (!function_exists('wp_nonce_field')) {
+    function wp_nonce_field($action = -1, $name = '_wpnonce', $referer = true, $echo = true)
+    {
+        return '';
+    }
+}
+if (!function_exists('wp_get_referer')) {
+    function wp_get_referer()
+    {
+        return $GLOBALS['__test_referer'] ?? '';
     }
 }

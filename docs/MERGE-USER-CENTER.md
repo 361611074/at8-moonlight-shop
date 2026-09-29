@@ -2,6 +2,9 @@
 
 > 2026-09-29 · 目标：`moonlight-shop` v3.0 成为「商城 + 会员中心」一体化产品；
 > `moonlight-user-center` 转为兼容退役态，`moonlight-shop-pro` 吸收 MLUCP Pro 能力。
+>
+> **状态：Phase A-E 全部完成（v3.0.0 已发布），兼容层冻结只修 bug。**
+>
 > 依据：ARCHITECTURE.md 第一节、MIGRATION_PLAN.md M3/M8/M9、Phase 0 审计结论（重复热点：付费墙整模块、双网关体系、双会员授予）。
 
 ## 总原则（沿用计划书执行规则）

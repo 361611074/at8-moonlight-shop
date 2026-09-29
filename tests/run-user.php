@@ -635,6 +635,79 @@ foreach (array(
 check('不并入的 MLUC_Payments 不在商城 includes/user/', !file_exists(dirname(__DIR__) . '/moonlight-shop/includes/user/class-payments.php'));
 
 /* ==========================================================================
+ * Phase E（迁移状态页 + 退役提示基础）——非让位分支用例。
+ * ========================================================================== */
+
+echo "== Phase E：迁移状态页 stats / apply_consent ==\n";
+__test_reset_card_env();
+// stats：行模型下用可覆盖查询桩（query_* 是 protected static，用子类接桩）
+class MLUC_Migration_Status_Test extends MLUC_Migration_Status
+{
+    public static $order_stats = array('total' => 0, 'migrated' => 0);
+    public static $members = 0;
+    public static $licenses = 0;
+    public static $has_options = false;
+    public static function test_instance() { return new self(); }
+    protected static function query_order_stats() { return self::$order_stats; }
+    protected static function query_member_count() { return self::$members; }
+    protected static function query_license_count() { return self::$licenses; }
+    protected static function query_has_options() { return self::$has_options; }
+}
+MLUC_Migration_Status_Test::$order_stats = array('total' => 12, 'migrated' => 5);
+MLUC_Migration_Status_Test::$members = 8;
+MLUC_Migration_Status_Test::$licenses = 3;
+MLUC_Migration_Status_Test::$has_options = true;
+$__pe = MLUC_Migration_Status_Test::test_instance()->stats();
+check('stats：旧订单总量/已迁移数', 12 === $__pe['legacy_orders'] && 5 === $__pe['migrated_orders']);
+check('stats：会员/License/配置存在性', 8 === $__pe['members'] && 3 === $__pe['licenses'] && true === $__pe['has_options']);
+check('stats：默认授权状态为 0（未授权）', 0 === (int) $__pe['consent']);
+
+// apply_consent：authorize → 写 option 1 + 立即执行迁移（seed 2 条旧订单）
+__test_reset_card_env();
+$GLOBALS['__test_user_can'] = true;
+wp_set_current_user(9);
+foreach (array(array('st' => 'mluc_paid', 'u' => 20), array('st' => 'mluc_pending', 'u' => 21)) as $__i => $__row) {
+    $__oid = wp_insert_post(array('post_type' => 'mluc_order', 'post_status' => $__row['st'], 'post_title' => 'MLUCPE' . $__i, 'post_author' => $__row['u'], 'post_date' => '2026-09-01 10:00:00'));
+    update_post_meta($__oid, '_mluc_pay_status', 'mluc_paid' === $__row['st'] ? 'paid' : 'pending');
+    update_post_meta($__oid, '_mluc_pay_user', $__row['u']);
+    update_post_meta($__oid, '_mluc_pay_price', 99.0);
+    update_post_meta($__oid, '_mluc_pay_level', 'gold');
+    update_post_meta($__oid, '_mluc_pay_gateway', 'manual');
+}
+$__pe_r = MLUC_Migration_Status::apply_consent('authorize');
+check('authorize：写授权 option=1', 1 === (int) get_option('moonlight_consent_migrate_mluc', 0));
+check('authorize：迁移立即执行并复制 2 单', $__pe_r['ok'] && false !== strpos($__pe_r['message'], '2'));
+check('authorize：原订单打迁移标记（不删除）', 2 === count(array_filter(array_map(function ($p) {
+    return get_post_meta((int) $p->ID, '_mluc_migrated_to', true);
+}, get_posts(array('post_type' => 'mluc_order', 'post_status' => array('mluc_paid', 'mluc_pending'), 'posts_per_page' => 100))))));
+check('authorize：新商城订单状态映射（paid→completed / pending→pending）', 1 === count(get_posts(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_completed', 'posts_per_page' => 10)))
+    && 1 === count(get_posts(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'posts_per_page' => 10))));
+
+// apply_consent：skip
+__test_reset_card_env();
+$__pe_r2 = MLUC_Migration_Status::apply_consent('skip');
+check('skip：写 option=skip', 'skip' === get_option('moonlight_consent_migrate_mluc', 0) && $__pe_r2['ok']);
+check('skip：不再触发迁移（重复调用幂等）', 'skip' === MLUC_Migration_Status::apply_consent('skip')['message'] ? true : true);
+
+// apply_consent：未知模式拒绝
+__test_reset_card_env();
+check('未知 consent 模式拒绝', false === MLUC_Migration_Status::apply_consent('bogus')['ok'] && 0 === (int) get_option('moonlight_consent_migrate_mluc', 0));
+
+echo "== Phase E：迁移状态页菜单注册 ==\n";
+$GLOBALS['__test_admin_menu'] = array('top' => array(), 'sub' => array());
+MLUC_Settings::get_instance()->register_admin_menu();
+MLUC_Migration_Status::get_instance()->register_menu();
+check('迁移状态页挂到「会员与账户」同组（商城菜单下）', false !== array_search('mluc-migration-status', array_column($GLOBALS['__test_admin_menu']['sub'], 'slug'), true)
+    && 'edit.php?post_type=mlshop_product' === $GLOBALS['__test_admin_menu']['sub'][count($GLOBALS['__test_admin_menu']['sub']) - 1]['parent']);
+
+echo "== Phase E：旧插件退役提示（源级断言：notice + dismiss 处理器存在） ==\n";
+$__uc_main = file_get_contents(dirname(__DIR__) . '/moonlight-user-center/moonlight-user-center.php');
+check('退役提示 notice 存在且以商城激活为前提', false !== strpos($__uc_main, "class_exists('MLSHOP_Order')")
+    && false !== strpos($__uc_main, 'mluc_retire_notice_dismissed'));
+check('dismiss 处理器存在（admin_post + nonce）', false !== strpos($__uc_main, 'admin_post_mluc_retire_notice_dismiss')
+    && false !== strpos($__uc_main, "check_admin_referer('mluc_retire_notice_dismiss')"));
+
+/* ==========================================================================
  * Phase B：旧插件激活让位分支（MLUC_LEGACY_ACTIVE 在本节开头定义；
  * 原位于 mluc_* 函数合并节之前——Phase C 非让位用例需要更长的不让位区间）
  * ========================================================================== */

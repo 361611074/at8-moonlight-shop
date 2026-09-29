@@ -1,3 +1,23 @@
+## [3.0.0] - 2026-09-30（会员中心并入版）
+
+「用户中心」正式并入 Moonlight Shop：**单插件提供 商城 + 会员中心 + License 全部能力**。旧 `moonlight-user-center` 转为退役态（激活时显示退役提示，数据全保留，停用后商城自动接管）。
+
+### 会员中心并入（六阶段，docs/MERGE-USER-CENTER.md）
+- **Phase A**：19 个用户模块并入 `includes/user/`（Auth/Account/Membership/License 引擎/OAuth/Settings/Material/Video/Hidecontent 等），`MLUC_` 类名保留；共存守卫（旧插件 define `MLUC_LEGACY_ACTIVE` 时新侧整体让位，双插件同启行为不变）
+- **Phase B**：账户/登录/注册/找回 4 页由商城激活器创建；`mluc_options` 直读（零迁移）；后台「用户中心」归组为商城菜单下「会员与账户」；账户 Tab 按 key 去重
+- **Phase C**：付费墙双实现合并——`Pay_Access` 兼容读取旧 `_mluc_pw_*` 配置（同名直映）与 `mluc_pay_unlocks` 旧解锁账本（任一未过期即解锁，零迁移兼容）；hidecontent 探测单点化；License 自动颁发链切至 `mlshop_order_paid`（product 语义沿用 `moonlight-user-center-pro`，存量授权不失效）
+- **Phase D**：moonlight-shop-pro 收编 MLUCP Elementor 会员卡；License **双产品语义**（`moonlight-shop-pro` ∨ `moonlight-user-center-pro` 任一激活即 Pro）；旧 Pro 共存保护；at8-license-server REST 侦察文档
+- **Phase E**：旧插件退役提示（可关闭）+ 后台「迁移状态」页（旧数据核对 + M3 授权迁移 UI 出口）+ 修复独立运行时迁移的两大盲区（未注册 CPT 状态数组直查、`post_type_exists` 门控放宽）
+
+### 修复
+- M3 迁移在仅装商城时静默迁移 0 条的盲区（显式状态数组 + 门控放宽）
+
+### 测试
+- 755 + 187 项断言全绿（并入五阶段累计新增约 250 项）
+
+### 兼容性
+- WordPress 6.0+ / PHP 7.4+；旧插件可继续共存（行为不变），建议核对迁移状态页后停用
+
 ## [2.2.0] - 2026-09-29
 
 ### Free（moonlight-shop）

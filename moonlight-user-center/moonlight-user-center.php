@@ -94,3 +94,34 @@ add_action('plugins_loaded', function () {
      */
     do_action('mluc_loaded');
 });
+
+/* -----------------------------------------------------------------
+ * 退役提示（Phase E）：功能已并入 Moonlight Shop 2.2+。
+ * 仅当商城插件已激活时提示；数据全部保留，停用本插件后商城自动接管。
+ * ----------------------------------------------------------------- */
+add_action('admin_notices', function () {
+    if (!class_exists('MLSHOP_Order') || !current_user_can('manage_options')) {
+        return;
+    }
+    if (get_user_meta(get_current_user_id(), 'mluc_retire_notice_dismissed', true)) {
+        return;
+    }
+    $dismiss = wp_nonce_url(admin_url('admin-post.php?action=mluc_retire_notice_dismiss'), 'mluc_retire_notice_dismiss');
+    ?>
+    <div class="notice notice-info is-dismissible">
+        <p>
+            <?php esc_html_e('「用户中心」功能已并入 Moonlight Shop 2.2+：账户、会员、License 等由商城插件直接提供。建议在「迁移状态」页核对数据后停用本插件——停用不会删除任何数据。', 'moonlight-user-center'); ?>
+            <a class="button button-small" style="margin-left:8px;" href="<?php echo esc_url($dismiss); ?>"><?php esc_html_e('不再提示', 'moonlight-user-center'); ?></a>
+        </p>
+    </div>
+    <?php
+});
+
+add_action('admin_post_mluc_retire_notice_dismiss', function () {
+    if (!current_user_can('manage_options') || !check_admin_referer('mluc_retire_notice_dismiss')) {
+        wp_die(__('权限不足。', 'moonlight-user-center'), '', array('response' => 403));
+    }
+    update_user_meta(get_current_user_id(), 'mluc_retire_notice_dismissed', 1);
+    wp_safe_redirect(wp_get_referer() ?: admin_url('plugins.php'));
+    exit;
+});
