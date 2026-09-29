@@ -3,7 +3,7 @@
  * Plugin Name:      漫步白月光用户中心
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的 WordPress 用户中心，兼容 Astra 主题与 Elementor 页面构建器。提供前端登录、注册、找回密码、账户仪表盘、资料编辑、头像上传等功能。
- * Version:          2.0.0
+ * Version:          2.0.1
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -23,7 +23,7 @@ if (!defined('ABSPATH')) {
 // （includes/user/ 的 MLUC_ 单例）据此整体让位，两插件共存时行为与现状完全一致。
 define('MLUC_LEGACY_ACTIVE', true);
 
-define('MLUC_VERSION', '2.0.0');
+define('MLUC_VERSION', '2.0.1');
 define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLUC_PLUGIN_FILE', __FILE__);
