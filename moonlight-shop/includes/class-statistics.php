@@ -116,23 +116,6 @@ class MLSHOP_Statistics
         $from_ts = strtotime($range['from'] . ' 00:00:00');
         $to_ts   = strtotime($range['to']   . ' 23:59:59');
 
-        // WP_Query 拉订单 ID 列表（不在循环里 COUNT，无 LIMIT）
-        $order_post_stati = array_map(function ($k) { return 'mlshop_' . $k; }, array_keys(MLSHOP_Order::get_status_labels()));
-        $ids = get_posts(array(
-            'post_type'      => 'mlshop_order',
-            'post_status'    => $order_post_stati,
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'date_query'     => array(
-                array(
-                    'after'     => date('Y-m-d H:i:s', $from_ts),
-                    'before'    => date('Y-m-d H:i:s', $to_ts),
-                    'inclusive' => true,
-                ),
-            ),
-            'no_found_rows'  => true,
-        ));
-
         // 桶：天/状态/商品（状态桶 = 全部注册状态，键序即分布图展示顺序）
         $daily    = array();
         $statuses = array_fill_keys(array_keys(MLSHOP_Order::get_status_labels()), 0);
@@ -144,15 +127,19 @@ class MLSHOP_Statistics
         $refund_total = 0.0;
 
         $revenue_statuses = MLSHOP_Order::get_revenue_statuses();
+        $order_count = 0;
 
-        foreach ($ids as $oid) {
-            $oid = (int) $oid;
-            $st  = (string) get_post_meta($oid, '_mlshop_status', true);
-            if (!$st) { $st = 'pending'; }
-            $total = (float) get_post_meta($oid, '_mlshop_total', true);
-            $raw_date = get_post_field('post_date', $oid);
-            $day = $raw_date ? mysql2date('Y-m-d', $raw_date) : '';
-            $uid = (int) get_post_meta($oid, '_mlshop_user_id', true);
+        // R3 性能修复（Phase 12 实测 649ms/4216 查询 @1 万订单）：
+        // 原实现逐单 6 次元数据查询（O(6N)），现改为两条批量 SQL，
+        // 聚合逻辑（口径/桶/映射）与原逐单版本完全一致。
+        foreach (static::query_order_rows($from_ts, $to_ts) as $row) {
+            $order_count++;
+            $oid  = (int) $row['ID'];
+            $st   = (string) $row['status'];
+            if ('' === $st) { $st = 'pending'; }
+            $total = (float) $row['total'];
+            $day = $row['post_date'] ? mysql2date('Y-m-d', $row['post_date']) : '';
+            $uid = (int) $row['user_id'];
 
             $statuses[$st] = (isset($statuses[$st]) ? $statuses[$st] : 0) + 1;
 
@@ -172,15 +159,18 @@ class MLSHOP_Statistics
             if ($uid) {
                 $user_set[$uid] = true;
             }
+        }
 
-            $items = get_post_meta($oid, '_mlshop_items', true);
-            if (is_array($items)) {
-                foreach ($items as $it) {
-                    $pid = isset($it['id'])  ? (int) $it['id']  : 0;
-                    $qty = isset($it['qty']) ? (int) $it['qty'] : 0;
-                    if ($pid && $qty > 0) {
-                        $products[$pid] = (isset($products[$pid]) ? $products[$pid] : 0) + $qty;
-                    }
+        // 行项目（商品销量 Top）：单列批量取（分块防大结果集内存峰值）
+        foreach (static::query_item_rows($from_ts, $to_ts) as $items) {
+            if (!is_array($items)) {
+                continue;
+            }
+            foreach ($items as $it) {
+                $pid = isset($it['id'])  ? (int) $it['id']  : 0;
+                $qty = isset($it['qty']) ? (int) $it['qty'] : 0;
+                if ($pid && $qty > 0) {
+                    $products[$pid] = (isset($products[$pid]) ? $products[$pid] : 0) + $qty;
                 }
             }
         }
@@ -213,7 +203,7 @@ class MLSHOP_Statistics
 
         return array(
             'range'         => $range,
-            'order_count'   => count($ids),
+            'order_count'   => $order_count,
             'paid_count'    => $paid_count,
             'revenue'       => $revenue,
             'refund_total'  => $refund_total,
@@ -224,6 +214,82 @@ class MLSHOP_Statistics
             'trend'         => $trend,
             'granularity'   => $granularity,
         );
+    }
+
+    /**
+     * R3：区间订单主数据（状态/金额/用户/日期）单条 SQL 批量取。
+     * 口径与原 WP_Query 版一致：post_type=mlshop_order + 全部注册 mlshop_* 状态 + 日期窗口。
+     *
+     * @return array[] 每行 {ID, status, total, user_id, post_date}
+     */
+    protected static function query_order_rows($from_ts, $to_ts)
+    {
+        global $wpdb;
+        $stati = array_map(function ($k) { return 'mlshop_' . $k; }, array_keys(MLSHOP_Order::get_status_labels()));
+        $in = "'" . implode("','", array_map('esc_sql', $stati)) . "'";
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT p.ID, p.post_date,
+                        COALESCE(ms.meta_value, '') AS status,
+                        COALESCE(tot.meta_value, 0) AS total,
+                        COALESCE(uid.meta_value, 0) AS user_id
+                 FROM {$wpdb->posts} p
+                 LEFT JOIN {$wpdb->postmeta} ms  ON ms.post_id  = p.ID AND ms.meta_key  = '_mlshop_status'
+                 LEFT JOIN {$wpdb->postmeta} tot ON tot.post_id = p.ID AND tot.meta_key = '_mlshop_total'
+                 LEFT JOIN {$wpdb->postmeta} uid ON uid.post_id = p.ID AND uid.meta_key = '_mlshop_user_id'
+                 WHERE p.post_type = 'mlshop_order'
+                   AND p.post_status IN ($in)
+                   AND p.post_date >= %s AND p.post_date <= %s",
+                date('Y-m-d H:i:s', $from_ts),
+                date('Y-m-d H:i:s', $to_ts)
+            ),
+            ARRAY_A
+        );
+        return is_array($rows) ? $rows : array();
+    }
+
+    /**
+     * R3：区间订单行项目（_mlshop_items）批量取，分块 2000 行防内存峰值。
+     *
+     * @return array[] 逐单的 items 数组（已 json_decode）
+     */
+    protected static function query_item_rows($from_ts, $to_ts)
+    {
+        global $wpdb;
+        $out = array();
+        $chunk = 2000;
+        $offset = 0;
+        while (true) {
+            $rows = $wpdb->get_col(
+                $wpdb->prepare(
+                    "SELECT pm.meta_value
+                     FROM {$wpdb->postmeta} pm
+                     INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+                     WHERE pm.meta_key = '_mlshop_items'
+                       AND p.post_type = 'mlshop_order'
+                       AND p.post_date >= %s AND p.post_date <= %s
+                     LIMIT %d OFFSET %d",
+                    date('Y-m-d H:i:s', $from_ts),
+                    date('Y-m-d H:i:s', $to_ts),
+                    $chunk,
+                    $offset
+                )
+            );
+            if (!is_array($rows) || !$rows) {
+                break;
+            }
+            foreach ($rows as $json) {
+                $items = json_decode((string) $json, true);
+                if (is_array($items)) {
+                    $out[] = $items;
+                }
+            }
+            if (count($rows) < $chunk) {
+                break;
+            }
+            $offset += $chunk;
+        }
+        return $out;
     }
 
     /**
