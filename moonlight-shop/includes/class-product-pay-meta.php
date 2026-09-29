@@ -293,6 +293,10 @@ class MLSHOP_Product_Pay_Meta
 
     /**
      * 对外 helper：读一个字段（含默认）。
+     *
+     * Phase C（双付费墙合并）：新 meta（_mlshop_*）缺席时兼容读取旧「用户中心」
+     * 付费墙 meta（_mluc_pw_*，映射见 get_legacy_value）——仅商城独立运行
+     * （旧插件未激活，未定义 MLUC_LEGACY_ACTIVE）时生效；新 meta 优先，写路径不变。
      */
     public static function get($post_id, $name, $default = '')
     {
@@ -300,6 +304,49 @@ class MLSHOP_Product_Pay_Meta
             return $default;
         }
         $val = get_post_meta($post_id, '_mlshop_' . $name, true);
-        return ($val === '' || $val === false) ? self::default_for($name) : $val;
+        if ($val === '' || $val === false) {
+            if (!defined('MLUC_LEGACY_ACTIVE')) {
+                $legacy = self::get_legacy_value($post_id, $name);
+                if (null !== $legacy) {
+                    return $legacy;
+                }
+            }
+            return self::default_for($name);
+        }
+        return $val;
+    }
+
+    /**
+     * 旧「用户中心」付费墙 meta 只读兼容（Phase C）。
+     *
+     * 真实映射（MLUC_Paywall::get_fields() 与本类 get_fields() 逐键比对后确定）：
+     * 两版付费墙字段名几乎同名直映（meta 前缀 _mluc_pw_ → _mlshop_），包括
+     * pay_mode / pay_auth / price_sell / price_original / sales_offset /
+     * order_expire_* / pay_popup_* / download_* / demo_url / image_* / video_items；
+     * 动态等级价 _mluc_pw_price_{level} → price_{level}（商城等级价体系只消费
+     * gold / diamond 两档）。旧版独有字段（无对应）不映射：pay_type（旧版仅金钱
+     * 支付，商城默认 money 已等价）、credit_price* / allow_coupon / aff_discount /
+     * free_downloads（用户中心无积分/优惠码体系）。
+     *
+     * @return mixed|null 旧值；未映射或旧值不存在返回 null（调用方回退默认值）。
+     */
+    private static function get_legacy_value($post_id, $name)
+    {
+        static $map = array(
+            'pay_mode', 'pay_auth', 'price_sell', 'price_original', 'sales_offset',
+            'order_expire_enabled', 'order_expire_value', 'order_expire_unit',
+            'pay_popup_title', 'pay_popup_desc',
+            'download_items', 'download_note', 'download_btn_icon', 'download_btn_color',
+            'download_attrs', 'demo_url',
+            'image_gallery', 'image_free_count', 'image_urls',
+            'video_items',
+            // 动态等级价（_mluc_pw_price_gold / _mluc_pw_price_diamond）
+            'price_gold', 'price_diamond',
+        );
+        if (!in_array($name, $map, true)) {
+            return null;
+        }
+        $val = get_post_meta($post_id, '_mluc_pw_' . $name, true);
+        return ('' === $val || false === $val) ? null : $val;
     }
 }

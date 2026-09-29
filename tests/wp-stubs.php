@@ -464,6 +464,8 @@ function __test_reset_card_env()
     $GLOBALS['__test_user_meta'] = array();
     $GLOBALS['__test_user_can'] = false;
     $GLOBALS['__test_user_id'] = 0;
+    $GLOBALS['__test_is_singular'] = false;
+    $GLOBALS['__test_queried_id'] = 0;
     $GLOBALS['__test_http_calls'] = array();
     unset($GLOBALS['__test_http_handler']);
     unset($GLOBALS['__test_http_response']);
@@ -521,6 +523,12 @@ class MLUC_Membership
 
 } // end MLUC_Membership stub guard
 
+// MLSHOP_Product_Pay_Meta 桩守卫化（Phase C）：run-user.php 子进程先加载
+// moonlight-shop.php（注册商城自动加载器），本桩声明前的 class_exists 会触发
+// 自动加载器加载真实类（含 _mluc_pw_* 兼容读取），桩自动让位；
+// run.php 进程无商城自动加载器，仍用本桩（paywall_price 用例依赖 $data）。
+if (!class_exists('MLSHOP_Product_Pay_Meta')) {
+
 class MLSHOP_Product_Pay_Meta
 {
     public static array $data = array();
@@ -529,6 +537,8 @@ class MLSHOP_Product_Pay_Meta
         return self::$data[(int) $post_id][$key] ?? $default;
     }
 }
+
+} // end MLSHOP_Product_Pay_Meta stub guard
 
 /* ---------------- usermeta（单值模型，地址簿等用） ---------------- */
 
@@ -608,6 +618,33 @@ function wp_login_url($redirect = '') { return 'http://example.test/wp-login.php
 }
 if (!function_exists('is_user_logged_in')) {
 function is_user_logged_in() { return 0 !== get_current_user_id(); }
+}
+// ---- 单文章上下文桩（Phase C：hidecontent payshow 单点探测用例）----
+// __test_is_singular / __test_queried_id 由用例注入，__test_reset_card_env 归零。
+if (!function_exists('is_singular')) {
+function is_singular($types = array()) { return !empty($GLOBALS['__test_is_singular']); }
+}
+if (!function_exists('get_queried_object_id')) {
+function get_queried_object_id() { return (int) ($GLOBALS['__test_queried_id'] ?? 0); }
+}
+if (!function_exists('get_permalink')) {
+function get_permalink($post = 0) {
+    $post = (int) $post ?: (int) ($GLOBALS['__test_queried_id'] ?? 0);
+    return 'http://example.test/?p=' . $post;
+}
+}
+if (!function_exists('shortcode_atts')) {
+function shortcode_atts($defaults, $args, $handler = '') {
+    $args = (array) $args;
+    $out = array();
+    foreach ((array) $defaults as $name => $default) {
+        $out[$name] = isset($args[$name]) ? $args[$name] : $default;
+    }
+    return $out;
+}
+}
+if (!function_exists('do_shortcode')) {
+function do_shortcode($content) { return $content; } // 用例内容不含短代码，恒等返回即可
 }
 if (!function_exists('wp_specialchars_decode')) {
 function wp_specialchars_decode($s, $q = ENT_QUOTES) { return htmlspecialchars_decode((string) $s, $q); }

@@ -177,13 +177,6 @@ check('两处挂载合并后每个 Tab key 只出现一次', count($__pb_merged)
 __test_reset_card_env();
 $GLOBALS['__test_actions'] = $__pb_actions_saved; // 恢复段前动作记录（mluc_loaded 计数用例依赖）
 
-define('MLUC_LEGACY_ACTIVE', true);
-check('定义 MLUC_LEGACY_ACTIVE → 商城侧让位', false === mlshop_user_modules_should_boot());
-$__sc_count = count($GLOBALS['__test_shortcodes']);
-mlshop_boot_user_modules();
-check('让位后重复启动不重复注册短代码', count($GLOBALS['__test_shortcodes']) === $__sc_count);
-check('让位后 mluc_loaded 不再触发', 1 === count($GLOBALS['__test_actions']['mluc_loaded']));
-
 /* ==========================================================================
  * mluc_* 函数合并（shop functions.php merged helpers 区块）
  * ========================================================================== */
@@ -255,6 +248,171 @@ check('free 内容恒公开（未登录）', true === MLUC_Membership::user_can_
 check('diamond 用户可访问 gold 内容', true === MLUC_Membership::user_can_access('gold', 5));
 check('gold 用户不可访问 diamond 内容', false === MLUC_Membership::user_can_access('diamond', 6));
 check('mluc_user_can_access / mluc_user_is_expired helper', true === mluc_user_can_access('gold', 5) && false === mluc_user_is_expired(5));
+
+/* ==========================================================================
+ * Phase C（支付并线）：付费墙兼容读取 / hidecontent 单点探测 / License 商城链
+ * 行为仅在非 LEGACY（商城独立运行）时生效；LEGACY 回归用例在文末。
+ * ========================================================================== */
+
+echo "== Phase C：MLSHOP_Pay_Access::is_unlocked 双账本（mlshop + mluc 解锁账本） ==\n";
+$__pc_actions = $GLOBALS['__test_actions']; // 段内 reset 会清动作，段末恢复
+__test_reset_card_env();
+wp_set_current_user(31);
+$__pc_p101 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'legacy-lock-101'));
+// 仅旧账本 mluc_pay_unlocks 有未过期记录 → 已解锁
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() + 3600));
+check('仅旧账本未过期 → 已解锁', true === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+// 旧账本过期 → 未解锁
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() - 10));
+check('仅旧账本已过期 → 未解锁', false === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+// 两边都有：任一未过期即解锁（取未过期）
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() + 3600));
+update_user_meta(31, 'mlshop_pay_unlocks', array($__pc_p101 => time() - 10));
+check('新账本过期 + 旧账本未过期 → 已解锁', true === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() - 10));
+update_user_meta(31, 'mlshop_pay_unlocks', array($__pc_p101 => time() + 7200));
+check('旧账本过期 + 新账本未过期 → 已解锁', true === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() + 3600));
+update_user_meta(31, 'mlshop_pay_unlocks', array($__pc_p101 => time() + 7200));
+check('双账本均未过期 → 已解锁', true === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+update_user_meta(31, 'mluc_pay_unlocks', array($__pc_p101 => time() - 10));
+update_user_meta(31, 'mlshop_pay_unlocks', array($__pc_p101 => time() - 10));
+check('双账本均过期 → 未解锁', false === MLSHOP_Pay_Access::is_unlocked($__pc_p101));
+check('过期清理仅作用于新账本（旧账本只读）', !isset(get_user_meta(31, 'mlshop_pay_unlocks', true)[$__pc_p101]) && isset(get_user_meta(31, 'mluc_pay_unlocks', true)[$__pc_p101]));
+// 写路径不变：grant_unlock 只写 mlshop_pay_unlocks
+$__pc_p102 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'new-lock-102'));
+MLSHOP_Pay_Access::grant_unlock($__pc_p102, 31, 0);
+check('grant_unlock 写入新账本（永久）', isset(get_user_meta(31, 'mlshop_pay_unlocks', true)[$__pc_p102]) && 0 === (int) get_user_meta(31, 'mlshop_pay_unlocks', true)[$__pc_p102]);
+check('grant_unlock 不写旧账本', !isset(get_user_meta(31, 'mluc_pay_unlocks', true)[$__pc_p102]));
+check('新账本解锁可读', true === MLSHOP_Pay_Access::is_unlocked($__pc_p102));
+wp_set_current_user(0);
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+
+echo "== Phase C：付费墙配置兼容（仅 _mluc_pw_* meta 的文章） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_options']['mluc_options'] = array(); // get_levels 已按上文等级定义缓存（gold validity=30）
+wp_set_current_user(0);
+$GLOBALS['__test_users'][42] = (object) array('ID' => 42, 'user_login' => 'u42', 'user_email' => 'u42@test.local', 'display_name' => 'U42');
+$GLOBALS['__test_users'][43] = (object) array('ID' => 43, 'user_login' => 'u43', 'user_email' => 'u43@test.local', 'display_name' => 'U43');
+MLUC_Membership::set_user_level(42, 'gold', 0);
+MLUC_Membership::set_user_level(43, 'free', 0);
+$__pc_p201 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'legacy-pw-201'));
+update_post_meta($__pc_p201, '_mluc_pw_pay_mode', 'read');
+update_post_meta($__pc_p201, '_mluc_pw_pay_auth', 'gold');
+update_post_meta($__pc_p201, '_mluc_pw_price_sell', 88.0);
+update_post_meta($__pc_p201, '_mluc_pw_price_gold', 66.0);
+update_post_meta($__pc_p201, '_mluc_pw_price_diamond', 55.0);
+update_post_meta($__pc_p201, '_mluc_pw_order_expire_enabled', '1');
+update_post_meta($__pc_p201, '_mluc_pw_order_expire_value', 7);
+check('仅旧 meta：is_paywalled=true（_mluc_pw_pay_mode→pay_mode）', true === MLSHOP_Pay_Access::is_paywalled($__pc_p201));
+check('仅旧 meta：执行价映射（_mluc_pw_price_sell→price_sell）', 88.0 === (float) MLSHOP_Product_Pay_Meta::get($__pc_p201, 'price_sell', 0));
+check('仅旧 meta：gold 等级价映射（_mluc_pw_price_gold→price_gold）', 66.0 === (float) MLSHOP_Product_Pay_Meta::get($__pc_p201, 'price_gold', 0));
+check('仅旧 meta：gold 用户取价走映射', 66.0 === Moonlight_Price_Calculator::paywall_price($__pc_p201, 42));
+check('仅旧 meta：free 用户取执行价', 88.0 === Moonlight_Price_Calculator::paywall_price($__pc_p201, 43));
+MLUC_Membership::set_user_level(45, 'diamond', 0);
+check('仅旧 meta：diamond 用户取 diamond 档价', 55.0 === Moonlight_Price_Calculator::paywall_price($__pc_p201, 45));
+check('仅旧 meta：会员门槛映射（_mluc_pw_pay_auth→pay_auth）', 'gold' === MLSHOP_Product_Pay_Meta::get($__pc_p201, 'pay_auth', 'all'));
+check('仅旧 meta：free 用户无购买权', false === MLSHOP_Pay_Access::user_can_purchase($__pc_p201, 43));
+check('仅旧 meta：gold 用户可购买', true === MLSHOP_Pay_Access::user_can_purchase($__pc_p201, 42));
+check('仅旧 meta：订单时效映射', '1' === (string) MLSHOP_Product_Pay_Meta::get($__pc_p201, 'order_expire_enabled', '0') && 7 === (int) MLSHOP_Product_Pay_Meta::get($__pc_p201, 'order_expire_value', 0));
+check('仅旧 meta：get_unlock_expire 按映射时效计算', abs(MLSHOP_Pay_Access::get_unlock_expire($__pc_p201) - (time() + 7 * 86400)) < 60);
+// 新 meta 优先
+update_post_meta($__pc_p201, '_mlshop_price_sell', 123.0);
+update_post_meta($__pc_p201, '_mlshop_pay_mode', 'video');
+check('新旧并存：新 meta 优先（价格）', 123.0 === (float) MLSHOP_Product_Pay_Meta::get($__pc_p201, 'price_sell', 0));
+check('新旧并存：新 meta 优先（模式）', 'video' === MLSHOP_Product_Pay_Meta::get($__pc_p201, 'pay_mode', 'off'));
+// 无任何付费 meta 的文章不受影响
+$__pc_p202 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'free-post-202'));
+check('无付费 meta：不视为付费墙', false === MLSHOP_Pay_Access::is_paywalled($__pc_p202));
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+
+echo "== Phase C：hidecontent payshow 单点探测（仅 MLSHOP_Pay_Access） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+$GLOBALS['__test_users'][44] = (object) array('ID' => 44, 'user_login' => 'u44', 'user_email' => 'u44@test.local', 'display_name' => 'U44');
+wp_set_current_user(44);
+$GLOBALS['__test_is_singular'] = true;
+$__pc_p203 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'pw-single-203'));
+$GLOBALS['__test_queried_id'] = $__pc_p203;
+// 仅旧 meta 的付费墙（经 Pay_Access 兼容读取判定），未解锁 → 锁定
+update_post_meta($__pc_p203, '_mluc_pw_pay_mode', 'read');
+check('payshow：付费墙未解锁 → 不可见', false === MLUC_Hidecontent::user_can_view('payshow'));
+check('payshow：MLUC_Paywall 类不存在（探测单点化）', !class_exists('MLUC_Paywall', false));
+// 旧账本 mluc_pay_unlocks 解锁 → 经单点探测放行（存量解锁零迁移兼容）
+update_user_meta(44, 'mluc_pay_unlocks', array($__pc_p203 => time() + 3600));
+check('payshow：旧账本解锁后 → 可见', true === MLUC_Hidecontent::user_can_view('payshow'));
+check('payshow：解锁后渲染出隐藏内容', false !== strpos((string) MLUC_Hidecontent::get_instance()->render(array('type' => 'payshow'), 'secret-inner'), 'secret-inner'));
+// 未解锁 → 渲染 CTA 卡（目标指向文章本身触发解锁）
+update_user_meta(44, 'mluc_pay_unlocks', array($__pc_p203 => time() - 10));
+$__pc_cta = (string) MLUC_Hidecontent::get_instance()->render(array('type' => 'payshow'), 'secret-inner');
+check('payshow：未解锁渲染锁定卡且不泄露内容', false === strpos($__pc_cta, 'secret-inner') && false !== strpos($__pc_cta, 'mluc-hc-payshow'));
+check('payshow：CTA 指向付费文章本身（商城单引擎判定）', false !== strpos($__pc_cta, 'http://example.test/?p=' . $__pc_p203));
+// 未开付费墙的文章：退化为会员闸
+$__pc_p204 = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'no-pw-204'));
+$GLOBALS['__test_queried_id'] = $__pc_p204;
+check('payshow：未开付费墙 → free 用户不可见', false === MLUC_Hidecontent::user_can_view('payshow'));
+$GLOBALS['__test_is_singular'] = false;
+$GLOBALS['__test_queried_id'] = 0;
+wp_set_current_user(0);
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+
+echo "== Phase C：License 自动颁发链切换（mlshop_order_paid） ==\n";
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+$GLOBALS['__test_users'][51] = (object) array('ID' => 51, 'user_login' => 'u51', 'user_email' => 'u51@test.local', 'display_name' => 'U51');
+$GLOBALS['__test_options']['mluc_options'] = array('license_auto_levels' => array('gold'));
+$__pc_o1 = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-MB-T1'));
+update_post_meta($__pc_o1, '_mlshop_type', 'membership');
+update_post_meta($__pc_o1, '_mlshop_membership_target', 'gold');
+update_post_meta($__pc_o1, '_mlshop_user_id', 51);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__pc_o1);
+$__pc_lics = get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10));
+check('白名单等级会员订单付款 → 签发 1 个 License', 1 === count($__pc_lics));
+check('product 语义与旧链一致（moonlight-user-center-pro）', 'moonlight-user-center-pro' === get_post_meta((int) $__pc_lics[0]->ID, '_mluc_license_product', true));
+check('有效期取等级 validity（gold=30 天）', abs((int) get_post_meta((int) $__pc_lics[0]->ID, '_mluc_license_expires', true) - (time() + 30 * DAY_IN_SECONDS)) < 60);
+check('License 关联商城订单', (int) $__pc_o1 === (int) get_post_meta((int) $__pc_lics[0]->ID, '_mluc_license_order', true));
+check('License 归属下单用户（email 解析）', 'u51@test.local' === get_post_meta((int) $__pc_lics[0]->ID, '_mluc_license_email', true));
+// 幂等复用：同用户再次购买 → 续期不新建
+$__pc_o2 = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-MB-T2'));
+update_post_meta($__pc_o2, '_mlshop_type', 'membership');
+update_post_meta($__pc_o2, '_mlshop_membership_target', 'gold');
+update_post_meta($__pc_o2, '_mlshop_user_id', 51);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__pc_o2);
+check('同 user+product 复用续期（不新建）', 1 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+check('续期后有效期 ≈ 60 天（30 天上叠加）', abs((int) get_post_meta((int) $__pc_lics[0]->ID, '_mluc_license_expires', true) - (time() + 60 * DAY_IN_SECONDS)) < 60);
+// 非白名单等级 → 不签发
+$__pc_o3 = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-MB-T3'));
+update_post_meta($__pc_o3, '_mlshop_type', 'membership');
+update_post_meta($__pc_o3, '_mlshop_membership_target', 'diamond');
+update_post_meta($__pc_o3, '_mlshop_user_id', 51);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__pc_o3);
+check('非白名单等级 → 不签发', 1 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+// 付费墙订单 / 访客订单 → 不签发
+$__pc_o4 = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-PW-T4'));
+update_post_meta($__pc_o4, '_mlshop_type', 'paywall');
+update_post_meta($__pc_o4, '_mlshop_paywall_post', 9);
+update_post_meta($__pc_o4, '_mlshop_user_id', 51);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__pc_o4);
+$__pc_o5 = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-MB-T5'));
+update_post_meta($__pc_o5, '_mlshop_type', 'membership');
+update_post_meta($__pc_o5, '_mlshop_membership_target', 'gold');
+update_post_meta($__pc_o5, '_mlshop_user_id', 0);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__pc_o5);
+check('付费墙订单 / 访客订单 → 不签发', 1 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+// 旧链入口保持原语义（回归）：mluc_payment_completed 参数形态
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+$GLOBALS['__test_options']['mluc_options'] = array('license_auto_levels' => array('gold'));
+MLUC_License_Manager::get_instance()->maybe_issue_for_order(88, 51, 'gold');
+check('旧链 maybe_issue_for_order 仍按白名单签发', 1 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+MLUC_License_Manager::get_instance()->maybe_issue_for_order(89, 51, 'paywall:9');
+check('旧链 paywall: 前缀等级不签发', 1 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+__test_reset_card_env();
+$GLOBALS['__test_actions'] = $__pc_actions;
+check('Phase C 段后 mluc_loaded 动作计数不受影响', 1 === count($GLOBALS['__test_actions']['mluc_loaded'] ?? array()));
 
 /* ==========================================================================
  * License Manager：签发格式 / 激活停用 / 宽限期 / 续期 / 撤销
@@ -477,8 +635,17 @@ foreach (array(
 check('不并入的 MLUC_Payments 不在商城 includes/user/', !file_exists(dirname(__DIR__) . '/moonlight-shop/includes/user/class-payments.php'));
 
 /* ==========================================================================
- * Phase B：旧插件激活让位分支（MLUC_LEGACY_ACTIVE 已在上文定义）
+ * Phase B：旧插件激活让位分支（MLUC_LEGACY_ACTIVE 在本节开头定义；
+ * 原位于 mluc_* 函数合并节之前——Phase C 非让位用例需要更长的不让位区间）
  * ========================================================================== */
+
+define('MLUC_LEGACY_ACTIVE', true);
+check('定义 MLUC_LEGACY_ACTIVE → 商城侧让位', false === mlshop_user_modules_should_boot());
+$__sc_count = count($GLOBALS['__test_shortcodes']);
+$__mluc_loaded_before = count($GLOBALS['__test_actions']['mluc_loaded'] ?? array());
+mlshop_boot_user_modules();
+check('让位后重复启动不重复注册短代码', count($GLOBALS['__test_shortcodes']) === $__sc_count);
+check('让位后 mluc_loaded 不再触发', count($GLOBALS['__test_actions']['mluc_loaded'] ?? array()) === $__mluc_loaded_before);
 
 echo "== Phase B：旧插件激活让位（页面创建 / 菜单模式） ==\n";
 __test_reset_card_env();
@@ -494,6 +661,32 @@ check('LEGACY：仍注册「用户中心」顶级菜单（mluc-settings，positi
 MLUC_License_Admin::get_instance()->register_menu();
 check('LEGACY：License 管理仍挂「用户中心」顶级菜单下', 2 === count($GLOBALS['__test_admin_menu']['sub'])
     && 'mluc-settings' === $GLOBALS['__test_admin_menu']['sub'][1]['parent'] && 'mluc-licenses' === $GLOBALS['__test_admin_menu']['sub'][1]['slug']);
+__test_reset_card_env();
+
+echo "== Phase C：LEGACY 回归（旧插件激活时商城侧 Phase C 新行为全部不生效） ==\n";
+__test_reset_card_env();
+wp_set_current_user(0);
+$__lg_p = wp_insert_post(array('post_type' => 'post', 'post_status' => 'publish', 'post_title' => 'lg-pw'));
+update_post_meta($__lg_p, '_mluc_pw_pay_mode', 'read');
+update_post_meta($__lg_p, '_mluc_pw_price_sell', 88.0);
+update_post_meta($__lg_p, '_mluc_pw_price_gold', 66.0);
+check('LEGACY：旧 _mluc_pw_* meta 不被兼容读取（pay_mode 回退默认 off）', 'off' === MLSHOP_Product_Pay_Meta::get($__lg_p, 'pay_mode', 'off'));
+check('LEGACY：旧 meta 价格不映射（回退默认 0）', 0.0 === (float) MLSHOP_Product_Pay_Meta::get($__lg_p, 'price_gold', 0));
+check('LEGACY：is_paywalled=false', false === MLSHOP_Pay_Access::is_paywalled($__lg_p));
+// 双账本读取关闭：旧账本解锁不再被商城侧识别（旧插件 MLUC_Paywall 自行负责）
+wp_set_current_user(61);
+update_user_meta(61, 'mluc_pay_unlocks', array($__lg_p => time() + 3600));
+check('LEGACY：旧账本 mluc_pay_unlocks 不被 is_unlocked 读取', false === MLSHOP_Pay_Access::is_unlocked($__lg_p));
+// License 商城链关闭：白名单会员订单不经商城链签发（旧链 mluc_payment_completed 负责）
+$GLOBALS['__test_users'][61] = (object) array('ID' => 61, 'user_login' => 'u61', 'user_email' => 'u61@test.local', 'display_name' => 'U61');
+$GLOBALS['__test_options']['mluc_options'] = array('license_auto_levels' => array('gold'));
+$__lg_o = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_title' => 'MLS-MB-LG'));
+update_post_meta($__lg_o, '_mlshop_type', 'membership');
+update_post_meta($__lg_o, '_mlshop_membership_target', 'gold');
+update_post_meta($__lg_o, '_mlshop_user_id', 61);
+MLUC_License_Manager::get_instance()->maybe_issue_for_shop_order($__lg_o);
+check('LEGACY：maybe_issue_for_shop_order 不签发 License', 0 === count(get_posts(array('post_type' => 'mluc_license', 'post_status' => 'publish', 'posts_per_page' => 10))));
+wp_set_current_user(0);
 __test_reset_card_env();
 
 echo "\n{$pass} passed, {$fail} failed\n";

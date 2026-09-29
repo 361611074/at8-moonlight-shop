@@ -189,7 +189,13 @@ class MLUC_Hidecontent
         return ((int) $q->get_found_posts()) > 0;
     }
 
-    /** 当前文章（若有）商城付费墙是否已为当前用户解锁。 */
+    /**
+     * 当前文章（若有）付费墙是否已为当前用户解锁。
+     *
+     * Phase C（双付费墙合并）：单点探测商城付费墙 MLSHOP_Pay_Access——
+     * 旧用户中心付费墙（MLUC_Paywall）已退役，其 _mluc_pw_* meta 与
+     * mluc_pay_unlocks 解锁账本均由 MLSHOP_Pay_Access 兼容读取。
+     */
     private static function is_post_paywall_unlocked()
     {
         if (!is_singular() || !is_user_logged_in()) {
@@ -200,11 +206,7 @@ class MLUC_Hidecontent
             return false;
         }
         if (!MLSHOP_Pay_Access::is_paywalled($post_id)) {
-            // 文章本身没开商城付费墙：再看用户中心 Pro 付费墙（MLUC_Paywall）
-            if (class_exists('MLUC_Paywall') && MLUC_Paywall::is_paywalled($post_id)) {
-                return MLUC_Paywall::is_unlocked($post_id);
-            }
-            // 两套付费墙都没开，"payshow" 通用语义下退化为会员闸
+            // 文章没开付费墙：payshow 通用语义下退化为会员闸
             return false;
         }
         return (bool) MLSHOP_Pay_Access::is_unlocked($post_id, get_current_user_id());
@@ -257,11 +259,9 @@ class MLUC_Hidecontent
                 $tip = esc_html__('This content is for Monthly members and above.', 'moonlight-user-center');
                 break;
             case 'payshow':
-                // 若当前文章启用了付费墙（商城或用户中心 Pro），跳到该文章触发解锁；否则跳会员购买
+                // 若当前文章启用了付费墙（商城单引擎，含旧 _mluc_pw_* 兼容读取），跳到该文章触发解锁；否则跳会员购买
                 $target = home_url('/account/?tab=membership');
-                if (is_singular() && class_exists('MLUC_Paywall') && MLUC_Paywall::is_paywalled((int) get_queried_object_id())) {
-                    $target = get_permalink((int) get_queried_object_id());
-                } elseif (is_singular() && class_exists('MLSHOP_Pay_Access') && MLSHOP_Pay_Access::is_paywalled((int) get_queried_object_id())) {
+                if (is_singular() && class_exists('MLSHOP_Pay_Access') && MLSHOP_Pay_Access::is_paywalled((int) get_queried_object_id())) {
                     $target = get_permalink((int) get_queried_object_id());
                 } elseif (!is_user_logged_in()) {
                     $target = $login_url;

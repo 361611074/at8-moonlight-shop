@@ -62,6 +62,12 @@ class MLSHOP_Pay_Access
 
     /**
      * 当前用户是否已解锁（管理员永远可见）。
+     *
+     * Phase C（双付费墙合并）：解锁账本双读——商城 `mlshop_pay_unlocks` 与
+     * 旧用户中心 `mluc_pay_unlocks` 同 post_id 任一未过期即视为已解锁
+     * （存量解锁零迁移兼容）。写路径保持只写 `mlshop_pay_unlocks`；
+     * 过期清理仅针对本商城账本（旧账本只读）。旧插件激活（LEGACY）时
+     * 行为与并入前一致，只读本商城账本。
      */
     public static function is_unlocked($post_id, $user_id = 0)
     {
@@ -72,18 +78,28 @@ class MLSHOP_Pay_Access
         if (!$user_id) {
             return false;
         }
-        $unlocks = get_user_meta($user_id, 'mlshop_pay_unlocks', true);
-        if (!is_array($unlocks) || !isset($unlocks[$post_id])) {
-            return false;
+        $ledgers = defined('MLUC_LEGACY_ACTIVE')
+            ? array('mlshop_pay_unlocks')
+            : array('mlshop_pay_unlocks', 'mluc_pay_unlocks');
+        $expired_shop = null;
+        foreach ($ledgers as $key) {
+            $unlocks = get_user_meta($user_id, $key, true);
+            if (!is_array($unlocks) || !isset($unlocks[$post_id])) {
+                continue;
+            }
+            $expire = (int) $unlocks[$post_id];
+            if (!$expire || $expire >= time()) {
+                return true;
+            }
+            if ('mlshop_pay_unlocks' === $key) {
+                $expired_shop = $unlocks; // 已过期：沿用原「清理后视为未解锁」行为
+            }
         }
-        $expire = (int) $unlocks[$post_id];
-        if ($expire && $expire < time()) {
-            // 已过期：清理后视为未解锁
-            unset($unlocks[$post_id]);
-            update_user_meta($user_id, 'mlshop_pay_unlocks', $unlocks);
-            return false;
+        if (is_array($expired_shop)) {
+            unset($expired_shop[$post_id]);
+            update_user_meta($user_id, 'mlshop_pay_unlocks', $expired_shop);
         }
-        return true;
+        return false;
     }
 
     /**

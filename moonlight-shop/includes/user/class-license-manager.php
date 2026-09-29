@@ -54,6 +54,12 @@ class MLUC_License_Manager
         add_action('init', array($this, 'register_cpt'));
         // 支付完成 → 按后台配置自动颁发 / 续期 License（支付 → 订单 → License → Pro 链路）。
         add_action('mluc_payment_completed', array($this, 'maybe_issue_for_order'), 10, 3);
+        // Phase C（支付并线）：商城订单付款 → License 自动颁发，替换 mluc_payment_completed 链
+        // （会员购买统一下单到 mlshop_order 后旧链不再触发）。仅商城独立运行时启用；
+        // 旧插件激活（LEGACY）时该链仍由旧插件按原逻辑负责。
+        if (!defined('MLUC_LEGACY_ACTIVE')) {
+            add_action('mlshop_order_paid', array($this, 'maybe_issue_for_shop_order'), 18);
+        }
         // 退款 → 撤销该订单颁发的 License（§44）。
         add_action('mluc_order_refunded', array($this, 'revoke_for_order'));
         // 账户中心「我的 License」Tab。
@@ -164,14 +170,67 @@ class MLUC_License_Manager
      */
     public function maybe_issue_for_order($order_id, $user_id, $level)
     {
-        $auto_levels = (array) mluc_get_option('license_auto_levels', array());
-        if (empty($auto_levels) || !in_array((string) $level, array_map('strval', $auto_levels), true)) {
+        if (!self::is_auto_level($level)) {
             return;
         }
         // 只统计已完单的会员购买（付费墙订单的 level 参数为 paywall:xx，天然不匹配）。
         if (0 === strpos((string) $level, 'paywall:')) {
             return;
         }
+        self::issue_for_level($order_id, $user_id, $level);
+    }
+
+    /**
+     * 商城订单付款后的自动颁发 / 续期（Phase C：mlshop_order_paid → License 链）。
+     *
+     * 仅商城独立运行（旧插件未激活）时生效；会员升级订单（_mlshop_type=membership，
+     * 目标等级在 _mlshop_membership_target）且等级在「自动颁发 License 的会员等级」
+     * 白名单内时签发 / 续期，复用与旧链完全一致的 product 语义与 user+product 复用逻辑。
+     * 付费墙订单 / 商品订单 / 访客订单不触发。
+     *
+     * @param int $order_id mlshop_order 订单 ID。
+     */
+    public function maybe_issue_for_shop_order($order_id)
+    {
+        if (defined('MLUC_LEGACY_ACTIVE')) {
+            return; // 旧插件激活：License 颁发链仍由 mluc_payment_completed 负责
+        }
+        $order_id = (int) $order_id;
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+            return;
+        }
+        if ((string) get_post_meta($order_id, '_mlshop_type', true) !== 'membership') {
+            return;
+        }
+        $level = (string) get_post_meta($order_id, '_mlshop_membership_target', true);
+        if ('' === $level || !self::is_auto_level($level)) {
+            return;
+        }
+        $user_id = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        if (!$user_id || !get_user_by('id', $user_id)) {
+            return; // 孤立订单（用户已删除）不颁发
+        }
+        self::issue_for_level($order_id, $user_id, $level);
+    }
+
+    /**
+     * 等级是否在后台「自动颁发 License 的会员等级」白名单内。
+     */
+    public static function is_auto_level($level)
+    {
+        $auto_levels = (array) mluc_get_option('license_auto_levels', array());
+        return !empty($auto_levels) && in_array((string) $level, array_map('strval', $auto_levels), true);
+    }
+
+    /**
+     * 按等级签发 / 续期 License（旧链与新商城链共用的落库逻辑）。
+     *
+     * product 语义保持与原 mluc_payment_completed 链一致：默认 PRODUCT_PRO，
+     * 可由 mluc_order_license_product 过滤器按订单 / 等级改写；同一用户 + 同一
+     * 产品复用既有 License（续费延长 expires_at，不新建）。
+     */
+    private static function issue_for_level($order_id, $user_id, $level)
+    {
         $product = apply_filters('mluc_order_license_product', self::PRODUCT_PRO, $order_id, $level);
         $days    = MLUC_Membership::get_level_validity((string) $level);
 
