@@ -42,8 +42,11 @@ if (!function_exists('register_deactivation_hook')) {
     function register_deactivation_hook($file, $cb) {}
 }
 
-/* ---------- 2) 商城主文件：MLUC_ 自动加载器（includes/user/）+ merged helpers ---------- */
+/* ---------- 2) 商城主文件：MLUC_ 自动加载器（includes/user/）+ merged helpers ----------
+ * v3.0.1 起加载器改在 plugins_loaded 注册（事故修复），测试进程需手动触发，
+ * 且必须在 wp-stubs 之前——让真实 MLUC_Membership 先于同名桩被解析。 */
 require __DIR__ . '/../moonlight-shop/moonlight-shop.php';
+mlshop_register_mluc_compat();
 
 /* ---------- 3) WP 桩（真实 MLUC_Membership 经自动加载器加载后，同名测试桩让位） ---------- */
 require __DIR__ . '/wp-stubs.php';

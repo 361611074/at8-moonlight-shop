@@ -3,7 +3,7 @@
  * Plugin Name:      漫步白月光用户中心
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的 WordPress 用户中心，兼容 Astra 主题与 Elementor 页面构建器。提供前端登录、注册、找回密码、账户仪表盘、资料编辑、头像上传等功能。
- * Version:          2.0.1
+ * Version:          2.0.2
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -23,10 +23,21 @@ if (!defined('ABSPATH')) {
 // （includes/user/ 的 MLUC_ 单例）据此整体让位，两插件共存时行为与现状完全一致。
 define('MLUC_LEGACY_ACTIVE', true);
 
-define('MLUC_VERSION', '2.0.1');
-define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
-define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('MLUC_PLUGIN_FILE', __FILE__);
+// 守卫式定义（Phase E 事故修复）：插件加载顺序由 active_plugins 决定，
+// 商城侧 v3.0.1 起只在旧插件缺席时才补齐这些常量；此处再加守卫，
+// 保证任何加载顺序下零警告、零冲突。
+if (!defined('MLUC_VERSION')) {
+    define('MLUC_VERSION', '2.0.2');
+}
+if (!defined('MLUC_PLUGIN_DIR')) {
+    define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
+}
+if (!defined('MLUC_PLUGIN_URL')) {
+    define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));
+}
+if (!defined('MLUC_PLUGIN_FILE')) {
+    define('MLUC_PLUGIN_FILE', __FILE__);
+}
 
 /**
  * 自动加载插件内部类。

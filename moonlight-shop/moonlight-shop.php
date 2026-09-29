@@ -3,7 +3,7 @@
  * Plugin Name:      漫步白月光电子商城
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的电子商城系统，兼容 Astra 主题与 Elementor。支持实物 / 虚拟下载 / 卡密商品，提供购物车、结算、订单全流程；支付网关内置支付宝 / 微信（预留）、PayPal、Stripe、余额、积分、货到付款与线下转账；支持运费模板、物流轨迹查询与售后退款；与「漫步白月光用户中心」账户中心无缝集成。
- * Version:          3.0.0
+ * Version:          3.0.1
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -18,28 +18,54 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLSHOP_VERSION', '3.0.0');
+define('MLSHOP_VERSION', '3.0.1');
 define('MLSHOP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLSHOP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLSHOP_PLUGIN_FILE', __FILE__);
 
 /**
- * 会员中心并入（Phase A）：旧「漫步白月光用户中心」插件激活时由其文件头定义
- * MLUC_LEGACY_ACTIVE，并入模块整体让位；未激活时由商城侧补齐 MLUC_* 兼容常量，
- * 使并入的 MLUC_ 类（includes/user/）在仅装商城时同样可用。
+ * 会员中心并入（Phase A → 事故修复）：
+ *
+ * MLUC_* 兼容常量与 MLUC_ 自动加载器**不能在文件作用域定义**——
+ * 插件文件的加载顺序由 active_plugins 数组决定，若商城先于旧插件加载，
+ * 此处抢注常量（指向商城目录）会让旧插件随后的 define 全部失败，
+ * 旧插件自己的自动加载器随之指向错误目录，全站致命（v3.0 线上事故）。
+ *
+ * 正确时机是 plugins_loaded：此时所有插件文件均已执行完毕，
+ * MLUC_LEGACY_ACTIVE（旧插件文件头定义）已可靠——据此判定：
+ *  - 旧插件激活 → 什么都不做（旧插件自己的常量与加载器接管）；
+ *  - 仅装商城   → 补齐 MLUC_* 常量并注册 MLUC_ 加载器（includes/user/）。
  */
-if (!defined('MLUC_VERSION')) {
-    define('MLUC_VERSION', MLSHOP_VERSION);
+function mlshop_register_mluc_compat()
+{
+    if (defined('MLUC_LEGACY_ACTIVE')) {
+        return;
+    }
+    if (!defined('MLUC_VERSION')) {
+        define('MLUC_VERSION', MLSHOP_VERSION);
+    }
+    if (!defined('MLUC_PLUGIN_DIR')) {
+        define('MLUC_PLUGIN_DIR', MLSHOP_PLUGIN_DIR);
+    }
+    if (!defined('MLUC_PLUGIN_URL')) {
+        define('MLUC_PLUGIN_URL', MLSHOP_PLUGIN_URL);
+    }
+    if (!defined('MLUC_PLUGIN_FILE')) {
+        define('MLUC_PLUGIN_FILE', MLSHOP_PLUGIN_FILE);
+    }
+    spl_autoload_register(function ($class) {
+        $prefix = 'MLUC_';
+        if (strpos($class, $prefix) !== 0) {
+            return;
+        }
+        $relative = substr($class, strlen($prefix));
+        $file     = MLSHOP_PLUGIN_DIR . 'includes/user/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
+        if (file_exists($file)) {
+            require_once $file;
+        }
+    });
 }
-if (!defined('MLUC_PLUGIN_DIR')) {
-    define('MLUC_PLUGIN_DIR', MLSHOP_PLUGIN_DIR);
-}
-if (!defined('MLUC_PLUGIN_URL')) {
-    define('MLUC_PLUGIN_URL', MLSHOP_PLUGIN_URL);
-}
-if (!defined('MLUC_PLUGIN_FILE')) {
-    define('MLUC_PLUGIN_FILE', MLSHOP_PLUGIN_FILE);
-}
+add_action('plugins_loaded', 'mlshop_register_mluc_compat', 5);
 
 spl_autoload_register(function ($class) {
     $prefix = 'MLSHOP_';
@@ -62,20 +88,6 @@ spl_autoload_register(function ($class) {
     }
     $relative = substr($class, strlen($prefix));
     $file     = MLSHOP_PLUGIN_DIR . 'includes/core/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
-    if (file_exists($file)) {
-        require_once $file;
-    }
-});
-
-// 会员中心并入模块（Phase A）：MLUC_ 前缀 → includes/user/class-*.php。
-// 旧插件激活时其自带自动加载器与本映射指向等价实现（先注册者先命中，单实例加载，无冲突）。
-spl_autoload_register(function ($class) {
-    $prefix = 'MLUC_';
-    if (strpos($class, $prefix) !== 0) {
-        return;
-    }
-    $relative = substr($class, strlen($prefix));
-    $file     = MLSHOP_PLUGIN_DIR . 'includes/user/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
     if (file_exists($file)) {
         require_once $file;
     }
