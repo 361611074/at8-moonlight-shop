@@ -265,7 +265,45 @@ class __Test_wpdb
         }
         return null;
     }
-    public function get_results($sql = null, $mode = null) { return array(); }
+    public function get_results($sql = null, $mode = null)
+    {
+        $sql = (string) $sql;
+        // get_user_orders（R1 直连 SQL）：posts⋈postmeta 按用户取订单 ID，
+        // 行模型过滤（meta_key/meta_value 精确匹配 + 类型/状态 + post_date 倒序 + LIMIT）。
+        // 注意：本桩的正则串用双引号书写，\s \. 等 PHP 不识别保持原样，
+        // 但 \' 会被吃成 '——因此一律用 [^']* 形式（测试数据不含引号，语义等价）。
+        if (preg_match("/SELECT\s+p\.ID\s+FROM\s+`?\w*posts`?\s+p\s+INNER\s+JOIN\s+`?\w*postmeta`?\s+m\s+ON\s+m\.post_id\s*=\s*p\.ID\s+AND\s+m\.meta_key\s*=\s*'([^']*)'\s+AND\s+m\.meta_value\s*=\s*'([^']*)'\s+WHERE\s+p\.post_type\s*=\s*'([^']*)'\s+AND\s+p\.post_status\s+IN\s*\(([^)]*)\)\s+ORDER\s+BY\s+p\.post_date\s+DESC\s+LIMIT\s+(\d+)/is", $sql, $m)) {
+            $mkey   = stripslashes($m[1]);
+            $mvalue = stripslashes($m[2]);
+            $ptype  = stripslashes($m[3]);
+            preg_match_all("/'([^']*)'/", $m[4], $sm);
+            $stati = array_map('stripslashes', $sm[1]);
+            $limit = (int) $m[5];
+            $out = array();
+            foreach ($GLOBALS['__test_posts'] as $p) {
+                if ($p['post_type'] !== $ptype || !in_array($p['post_status'], $stati, true)) {
+                    continue;
+                }
+                $rows = find_meta_rows((int) $p['ID'], $mkey);
+                $match = false;
+                foreach ($rows as $r) {
+                    if ((string) $r['meta_value'] === $mvalue) {
+                        $match = true;
+                        break;
+                    }
+                }
+                if (!$match) {
+                    continue;
+                }
+                $out[] = array('ID' => $p['ID'], 'post_date' => $p['post_date']);
+            }
+            usort($out, function ($a, $b) { return strcmp($b['post_date'], $a['post_date']); });
+            fwrite(STDERR, '[WR] filtered=' . count($out) . ' mkey=' . var_export($mkey, true) . ' mvalue=' . var_export($mvalue, true) . ' ptype=' . var_export($ptype, true) . ' stati=' . json_encode($stati) . ' posts=' . count($GLOBALS['__test_posts']) . "\n");
+            $out = array_slice($out, 0, $limit);
+            return array_map(function ($r) { return array('ID' => (string) $r['ID']); }, $out);
+        }
+        return array();
+    }
     public function get_row($sql = null, $mode = null) { return null; }
     public function get_col($sql = null) { return array(); }
     public function insert($table, $data, $format = array()) { return 1; }
@@ -1013,5 +1051,27 @@ if (!function_exists('wp_get_referer')) {
     function wp_get_referer()
     {
         return $GLOBALS['__test_referer'] ?? '';
+    }
+}
+if (!function_exists('esc_sql')) {
+    function esc_sql($sql)
+    {
+        return addslashes((string) $sql);
+    }
+}
+if (!function_exists('wp_list_pluck')) {
+    function wp_list_pluck($list, $field, $index_key = null)
+    {
+        $out = array();
+        foreach ((array) $list as $key => $item) {
+            $v = is_object($item) ? (isset($item->$field) ? $item->$field : null) : (isset($item[$field]) ? $item[$field] : null);
+            if (null !== $index_key) {
+                $k = is_object($item) ? (isset($item->$index_key) ? $item->$index_key : null) : (isset($item[$index_key]) ? $item[$index_key] : null);
+                $out[$k] = $v;
+            } else {
+                $out[$key] = $v;
+            }
+        }
+        return $out;
     }
 }

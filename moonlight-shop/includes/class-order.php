@@ -1482,19 +1482,47 @@ class MLSHOP_Order
 
     public static function get_user_orders($user_id, $limit = 20)
     {
-        return get_posts(array(
-            'post_type'      => 'mlshop_order',
-            'posts_per_page' => $limit,
-            'post_status'    => array(
-                'mlshop_pending', 'mlshop_paid', 'mlshop_processing',
-                'mlshop_awaiting_shipment', 'mlshop_shipped', 'mlshop_delivered',
-                'mlshop_completed', 'mlshop_failed', 'mlshop_refunded', 'mlshop_cancelled',
+        // R1 性能优化（Phase 12 实测驱动）：原 meta_query 实现对
+        // _mlshop_user_id 的 meta_value 匹配是索引外全扫，10 万订单线性恶化。
+        // 改为 posts⋈postmeta 直连 SQL（meta_key 索引命中 + 主键回表取行），
+        // 输出仍为 WP_Post 数组，行为与原实现一致。
+        $ids = static::query_user_order_ids((int) $user_id, max(1, (int) $limit));
+        $out = array();
+        foreach ($ids as $id) {
+            $p = get_post((int) $id);
+            if ($p && 'mlshop_order' === $p->post_type) {
+                $out[] = $p;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * R1：按用户取订单 ID（protected 供测试覆盖接桩）。
+     *
+     * @return int[] 按创建时间倒序
+     */
+    protected static function query_user_order_ids($user_id, $limit)
+    {
+        global $wpdb;
+        $stati = array('mlshop_pending', 'mlshop_paid', 'mlshop_processing', 'mlshop_awaiting_shipment', 'mlshop_shipped', 'mlshop_delivered', 'mlshop_completed', 'mlshop_failed', 'mlshop_refunded', 'mlshop_cancelled');
+        $in = "'" . implode("','", array_map('esc_sql', $stati)) . "'";
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT p.ID
+                 FROM {$wpdb->posts} p
+                 INNER JOIN {$wpdb->postmeta} m
+                    ON m.post_id = p.ID AND m.meta_key = '_mlshop_user_id' AND m.meta_value = %s
+                 WHERE p.post_type = 'mlshop_order'
+                   AND p.post_status IN ($in)
+                 ORDER BY p.post_date DESC
+                 LIMIT %d",
+                (string) $user_id,
+                (int) $limit
             ),
-            'meta_key'       => '_mlshop_user_id',
-            'meta_value'     => $user_id,
-            'orderby'        => 'date',
-            'order'          => 'DESC',
-        ));
+            ARRAY_A
+        );
+        return is_array($rows) ? array_map('intval', wp_list_pluck($rows, 'ID')) : array();
     }
 
     /**
