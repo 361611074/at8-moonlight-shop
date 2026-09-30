@@ -113,8 +113,8 @@
 
 | 编号 | 建议 | 预期收益 | 实施成本 |
 |---|---|---|---|
-| R1 | `get_user_orders` 改为按 `_mlshop_order_no` / 自建关联表查询，或给 postmeta 增加 `(meta_key, meta_value(32))` 复合索引（激活器一次性执行） | 「我的订单」查询从全表扫描降为索引命中，10 万订单下 <10ms | 中 |
-| R3 | 统计聚合改 SQL 直接聚合（`$wpdb->get_results` 按状态/日期 GROUP BY），或引入汇总表 `mlshop_daily_stats` | 统计页从 O(N) meta 读降为 O(天数) 聚合 | 中 |
+| ~~R1~~ ✅ **3.0.1 已实施** | `get_user_orders` 改为 posts⋈postmeta 直连 SQL（`query_user_order_ids`） | 「我的订单」查询命中 meta_key 索引+属主过滤，避免 meta_value 索引外全扫 | 已完成 |
+| R3 | 统计聚合改 SQL 直接聚合（`$wpdb->get_results` 按状态/日期 GROUP BY），或引入汇总表 `mlshop_daily_stats` | 统计页从 O(N) meta 读降为 O(天数) 聚合 | **实测后升级为必须项（3.0.1 已实施批量 SQL 版，复测数据见第五节）** |
 | R2 | 物流两处 `get_posts` 补 `fields => 'ids'` + `no_found_rows => true` | 发货单批量操作内存占用降低 ~60% | 低 |
 | R4 | `_mlshop_card_audit` 写入时检查体积，超 256KB 自动收缩到最近 500 条并设 `autoload=no` | 防止 autoload 选项拖慢全站 | 低 |
 | R5 | `expire_pending_orders` 已按 200/批 ASC 分批（✅ 已达标），无需改动 | — | — |
