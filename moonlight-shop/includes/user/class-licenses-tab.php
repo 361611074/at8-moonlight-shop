@@ -93,6 +93,20 @@ class MLUC_Licenses_Tab
                . ' ｜ ' . esc_html__('站点额度', 'moonlight-user-center') . '：'
                . esc_html((string) $license->max_sites) . '</p>';
 
+            // Pro 安装包下载（签名短时链接，仅授权中心同站可用）
+            $product_slug = $product_row ? $product_row->product_slug : '';
+            $download = '';
+            if ($product_slug !== '' && $license->status === 'active' && class_exists('AT8LIC_REST') && class_exists('AT8LIC_Products')) {
+                $prow = AT8LIC_Products::get((int) $license->product_id);
+                if ($prow && (string) ($prow->download_path ?? '') !== '') {
+                    $download = AT8LIC_REST::signed_download_url($product_slug);
+                }
+            }
+            if ($download !== '') {
+                echo '<p style="margin:4px 0"><a class="button button-small" href="' . esc_url($download) . '">'
+                   . esc_html__('下载 Pro 安装包（最新版）', 'moonlight-user-center') . '</a></p>';
+            }
+
             // 绑定站点
             $act_table = $wpdb->prefix . 'at8lic_activations';
             $acts = $wpdb->get_results(
