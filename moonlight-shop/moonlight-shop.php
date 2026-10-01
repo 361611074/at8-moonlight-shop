@@ -95,6 +95,13 @@ spl_autoload_register(function ($class) {
 
 require_once MLSHOP_PLUGIN_DIR . 'includes/functions.php';
 
+// AT8 授权中心桥接（P6）：支付成功 → 自动发授权码；退款 → 自动吊销。
+MLSHOP_License_Bridge::boot();
+
+// 用户中心「我的授权」Tab（P7）：展示授权/绑定站点/自助解绑。
+require_once MLSHOP_PLUGIN_DIR . 'includes/user/class-licenses-tab.php';
+MLUC_Licenses_Tab::boot();
+
 // 加载翻译：跟随 WordPress 系统语言设定（get_locale），不写死语言。
 // 英文站点：前台与 AJAX 加载英文翻译，wp-admin 后台保持中文源文案。
 add_action('init', function () {
