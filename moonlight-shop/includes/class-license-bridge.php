@@ -203,6 +203,19 @@ class MLSHOP_License_Bridge
         self::email_keys($user->user_email, $order_no, $plain, $issued);
     }
 
+    /** 取产品的签名下载链接（授权中心同站时可用） */
+    private static function package_url($product_slug)
+    {
+        if (!class_exists('AT8LIC_REST') || !class_exists('AT8LIC_Products')) {
+            return '';
+        }
+        $p = AT8LIC_Products::get_by_slug((string) $product_slug);
+        if (!$p || (string) ($p->download_path ?? '') === '') {
+            return '';
+        }
+        return AT8LIC_REST::signed_download_url((string) $product_slug);
+    }
+
     public function refund_order($order_id)
     {
         $order_id = (int) $order_id;
@@ -226,14 +239,24 @@ class MLSHOP_License_Bridge
 
         $rows = '';
         foreach ($issued as $item) {
-            $rows .= '<tr><td style="padding:6px 12px;border:1px solid #ddd">' . esc_html($item['product']) . '</td>'
-                   . '<td style="padding:6px 12px;border:1px solid #ddd"><code style="font-size:14px">' . esc_html($item['license_key']) . '</code></td></tr>';
+            $pkg = self::package_url($item['product']);
+            $pkg_cell = $pkg !== ''
+                ? '<a href="' . esc_url($pkg) . '">下载 Pro 安装包</a>'
+                : '';
+            $rows .= '<tr>'
+                   . '<td style="padding:6px 12px;border:1px solid #ddd">' . esc_html($item['product']) . '</td>'
+                   . '<td style="padding:6px 12px;border:1px solid #ddd"><code style="font-size:14px">' . esc_html($item['license_key']) . '</code></td>'
+                   . '<td style="padding:6px 12px;border:1px solid #ddd">' . $pkg_cell . '</td></tr>';
         }
 
         $body = '<p>您好，</p>'
               . '<p>订单 <strong>' . esc_html($order_no) . '</strong> 已支付成功，以下是您的授权码（请妥善保管）：</p>'
-              . '<table style="border-collapse:collapse">' . $rows . '</table>'
-              . '<p>激活方式：网站后台 → 对应插件的「授权管理」页 → 粘贴授权码 → 激活。</p>'
+              . '<table style="border-collapse:collapse"><tr>'
+              . '<th style="padding:6px 12px;border:1px solid #ddd;text-align:left">产品</th>'
+              . '<th style="padding:6px 12px;border:1px solid #ddd;text-align:left">授权码</th>'
+              . '<th style="padding:6px 12px;border:1px solid #ddd;text-align:left">安装包</th>'
+              . '</tr>' . $rows . '</table>'
+              . '<p>激活方式：网站后台 → 对应插件的「授权管理」页 → 粘贴授权码 → 激活。安装包链接 15 分钟内有效，过期请到账户中心「我的授权」重新获取。</p>'
               . '<p>感谢您的支持！<br>' . esc_html(get_bloginfo('name')) . '</p>';
 
         wp_mail($email, $subject, $body, array('Content-Type: text/html; charset=UTF-8'));
