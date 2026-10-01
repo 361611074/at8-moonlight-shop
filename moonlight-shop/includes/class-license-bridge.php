@@ -32,6 +32,45 @@ class MLSHOP_License_Bridge
         add_action('admin_init', array($i, 'settings'));
         add_action('add_meta_boxes', array($i, 'metabox'));
         add_action('save_post_mlshop_product', array($i, 'save_metabox'), 10, 2);
+        // 履约失败的人工重试入口（订单列表行操作）
+        add_filter('post_row_actions', array($i, 'row_action'), 20, 2);
+        add_action('admin_post_mlshop_retry_fulfill', array($i, 'handle_retry'));
+    }
+
+    /** 订单列表：履约失败且未成功的订单显示"重试授权发码" */
+    public function row_action($actions, $post)
+    {
+        if (($post->post_type ?? '') !== 'mlshop_order' || !current_user_can('manage_woocommerce') && !current_user_can('manage_options')) {
+            return $actions;
+        }
+        $error = get_post_meta((int) $post->ID, self::ERROR_META, true);
+        if (!$error || get_post_meta((int) $post->ID, self::FULFILLED_META, true)) {
+            return $actions;
+        }
+        $url = wp_nonce_url(
+            admin_url('admin-post.php?action=mlshop_retry_fulfill&order=' . (int) $post->ID),
+            'mlshop_retry_' . (int) $post->ID
+        );
+        $actions['mlshop_retry_fulfill'] = '<a href="' . esc_url($url) . '" style="color:#b32d2e">重试授权发码</a>';
+        return $actions;
+    }
+
+    public function handle_retry()
+    {
+        if (!current_user_can('manage_options')) {
+            wp_die('权限不足');
+        }
+        $order_id = isset($_GET['order']) ? (int) $_GET['order'] : 0;
+        if (!$order_id || get_post_type($order_id) !== 'mlshop_order') {
+            wp_die('参数错误');
+        }
+        check_admin_referer('mlshop_retry_' . $order_id);
+
+        delete_post_meta($order_id, self::ERROR_META);
+        $this->fulfill_order($order_id);
+
+        wp_safe_redirect(admin_url('edit.php?post_type=mlshop_order'));
+        exit;
     }
 
     /* ---------------- 配置 ---------------- */
@@ -125,9 +164,23 @@ class MLSHOP_License_Bridge
             return;
         }
 
-        // 幂等重复回调：不发码不重复邮件
+        // 幂等命中（服务器已发过码）：补发"掩码码 + 用户中心指引"邮件，不阻塞后续
         if (!empty($data['idempotent'])) {
             update_post_meta($order_id, self::FULFILLED_META, 'idempotent');
+            delete_post_meta($order_id, self::ERROR_META);
+
+            $masked = array();
+            if (!empty($data['items']) && is_array($data['items'])) {
+                foreach ($data['items'] as $item) {
+                    $masked[] = array(
+                        'product' => isset($item['product']) ? $item['product'] : '',
+                        'license_key_masked' => isset($item['license_key_masked']) ? $item['license_key_masked'] : '',
+                    );
+                }
+            }
+            if ($masked) {
+                self::email_masked($user->user_email, $order_no, $masked);
+            }
             return;
         }
 
@@ -182,6 +235,26 @@ class MLSHOP_License_Bridge
               . '<table style="border-collapse:collapse">' . $rows . '</table>'
               . '<p>激活方式：网站后台 → 对应插件的「授权管理」页 → 粘贴授权码 → 激活。</p>'
               . '<p>感谢您的支持！<br>' . esc_html(get_bloginfo('name')) . '</p>';
+
+        wp_mail($email, $subject, $body, array('Content-Type: text/html; charset=UTF-8'));
+    }
+
+    /** 幂等场景补发：只有掩码码 + 用户中心入口（明文按设计仅首次发放） */
+    private static function email_masked($email, $order_no, $items)
+    {
+        $subject = sprintf('[%s] 您的授权信息（订单 %s）', get_bloginfo('name'), $order_no);
+
+        $rows = '';
+        foreach ($items as $item) {
+            $rows .= '<tr><td style="padding:6px 12px;border:1px solid #ddd">' . esc_html($item['product']) . '</td>'
+                   . '<td style="padding:6px 12px;border:1px solid #ddd"><code>' . esc_html($item['license_key_masked']) . '</code></td></tr>';
+        }
+
+        $body = '<p>您好，</p>'
+              . '<p>订单 <strong>' . esc_html($order_no) . '</strong> 的授权已生效。完整授权码此前已发送到本邮箱；'
+              . '如未收到，请登录网站账户中心 →「我的授权」查看（支持站点绑定/解绑与续费）。</p>'
+              . '<table style="border-collapse:collapse">' . $rows . '</table>'
+              . '<p>' . esc_html(get_bloginfo('name')) . '</p>';
 
         wp_mail($email, $subject, $body, array('Content-Type: text/html; charset=UTF-8'));
     }
