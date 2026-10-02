@@ -105,7 +105,7 @@
                 mlshop_close_member_menu();
             }
         });
-        // 加入购物车
+        // 加入购物车（可变商品：product_id 可为 "pid_variant"）
         $(document).on('click', '.mlshop-add-to-cart', function () {
             var $btn = $(this);
             var qty = 1;
@@ -113,8 +113,11 @@
             if ($form.length && $form.find('.mlshop-qty').length) {
                 qty = parseInt($form.find('.mlshop-qty').val(), 10) || 1;
             }
+            var pid = String($btn.data('product-id'));
+            var variant = $form.length ? $form.find('input[name="mlshop_variant"]:checked').val() : '';
+            if (variant) { pid = pid + '_' + variant; }
             $btn.prop('disabled', true);
-            post('mlshop_add_to_cart', { product_id: $btn.data('product-id'), qty: qty }, function (res) {
+            post('mlshop_add_to_cart', { product_id: pid, qty: qty }, function (res) {
                 $btn.prop('disabled', false);
                 if (res.success) {
                     $btn.text(mlshop_i18n.added);
