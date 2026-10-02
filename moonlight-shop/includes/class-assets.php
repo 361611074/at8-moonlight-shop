@@ -86,6 +86,18 @@ class MLSHOP_Assets
 
         wp_enqueue_style('mlshop-style', MLSHOP_PLUGIN_URL . 'assets/css/mlshop.css', array(), self::asset_version('assets/css/mlshop.css'));
         wp_enqueue_style('mlshop-product', MLSHOP_PLUGIN_URL . 'assets/css/mlshop-product.css', array('mlshop-style'), self::asset_version('assets/css/mlshop-product.css'));
+
+        // 购买按钮样式（后台「商城设置 → 外观」可调）：以 CSS 变量下发给全部按钮
+        $btn_size   = max(10, min(22, (int) mlshop_get_option('btn_font_size', 14)));
+        $btn_radius = max(0, min(24, (int) mlshop_get_option('btn_radius', 8)));
+        $btn_color  = (string) mlshop_get_option('btn_color', '#2271b1');
+        if (!preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $btn_color)) {
+            $btn_color = '#2271b1';
+        }
+        wp_add_inline_style('mlshop-style', sprintf(
+            ':root{--mlshop-btn-size:%dpx;--mlshop-btn-radius:%dpx;--mlshop-btn-color:%s;}',
+            $btn_size, $btn_radius, $btn_color
+        ));
         wp_enqueue_script('mlshop-script', MLSHOP_PLUGIN_URL . 'assets/js/mlshop.js', array('jquery'), self::asset_version('assets/js/mlshop.js'), true);
         wp_localize_script('mlshop-script', 'MLSHOP', mlshop_ajax_data());
         wp_localize_script('mlshop-script', 'mlshop_i18n', array(
