@@ -86,7 +86,17 @@ $type_label = array(
                     <?php endforeach; ?>
                 </div>
         <?php endif; endif; ?>
-        <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php the_ID(); ?>"><?php esc_html_e('加入购物车', 'moonlight-shop'); ?></button>
-            <?php if (function_exists('mlshop_favorite_button')) { mlshop_favorite_button(get_the_ID()); } ?>
+        <?php
+        $at8lic_has_variants = is_array(get_post_meta(get_the_ID(), '_at8lic_variants', true))
+            && get_post_meta(get_the_ID(), '_at8lic_variants', true);
+        ?>
+        <div class="mlshop-product-actions">
+            <?php if ($at8lic_has_variants) : ?>
+                <a class="mlshop-btn mlshop-select-plan" href="<?php the_permalink(); ?>"><?php esc_html_e('选择套餐', 'moonlight-shop'); ?></a>
+            <?php else : ?>
+                <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php the_ID(); ?>"><?php esc_html_e('加入购物车', 'moonlight-shop'); ?></button>
+                <?php if (function_exists('mlshop_favorite_button')) { mlshop_favorite_button(get_the_ID()); } ?>
+            <?php endif; ?>
+        </div>
     </div>
 </article>
