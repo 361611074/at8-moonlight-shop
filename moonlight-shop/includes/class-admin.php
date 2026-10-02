@@ -717,6 +717,11 @@ class MLSHOP_Admin
                             <p>
                                 <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_sync_woo_tags'), 'mlshop_sync_woo_tags')); ?>" class="button"><?php esc_html_e('同步 WooCommerce 商品标签', 'moonlight-shop'); ?></a>
                             </p>
+                            <?php if (class_exists('Moonlight_Woo_Migrate')) : ?>
+                            <hr style="margin:14px 0">
+                            <p class="description" style="font-weight:600;margin-bottom:6px"><?php esc_html_e('商品一键迁入（WooCommerce → 月光商城）', 'moonlight-shop'); ?></p>
+                            <?php Moonlight_Woo_Migrate::render_tools(); ?>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 </table>
