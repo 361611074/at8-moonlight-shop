@@ -176,6 +176,9 @@ class MLSHOP_Admin
             'archive_price_font_size'  => array('type' => 'integer', 'sanitize' => 'absint'),
             'archive_price_font_weight'=> array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'archive_price_color'      => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'btn_font_size'            => array('type' => 'integer', 'sanitize' => 'absint'),
+            'btn_radius'               => array('type' => 'integer', 'sanitize' => 'absint'),
+            'btn_color'                => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'show_breadcrumbs'        => array('type' => 'integer', 'sanitize' => 'absint'),
             'show_product_meta'       => array('type' => 'integer', 'sanitize' => 'absint'),
             'reviews_enabled'         => array('type' => 'integer', 'sanitize' => 'absint'),
@@ -632,6 +635,27 @@ class MLSHOP_Admin
                     <tr>
                         <td colspan="2" style="padding-top:4px;">
                             <p class="description" style="margin:0;"><?php esc_html_e('所有商品列表页（含分类、搜索、Elementor 网格）共用上方两套排版。如需单独微调某处，可在模板或 Elementor 设置中覆盖。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('购买按钮样式', 'moonlight-shop'); ?></th>
+                        <td>
+                            <?php
+                            $cur_btn_color = (string) mlshop_get_option('btn_color', '#2271b1');
+                            if (!preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $cur_btn_color)) { $cur_btn_color = '#2271b1'; }
+                            ?>
+                            <fieldset class="mlshop-inline-fieldset">
+                                <label><?php esc_html_e('文字大小', 'moonlight-shop'); ?>
+                                    <input type="number" min="10" max="22" step="1" name="mlshop_btn_font_size" value="<?php echo esc_attr((int) mlshop_get_option('btn_font_size', 14)); ?>" class="small-text"> px
+                                </label>
+                                <label><?php esc_html_e('圆角', 'moonlight-shop'); ?>
+                                    <input type="number" min="0" max="24" step="1" name="mlshop_btn_radius" value="<?php echo esc_attr((int) mlshop_get_option('btn_radius', 8)); ?>" class="small-text"> px
+                                </label>
+                                <label><?php esc_html_e('主色', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_btn_color" value="<?php echo esc_attr($cur_btn_color); ?>" class="mlshop-color-field" data-default-color="#2271b1">
+                                </label>
+                            </fieldset>
+                            <p class="description"><?php esc_html_e('作用于全部「加入购物车 / 选择套餐」按钮（商品卡片、相关商品、详情页），改完保存刷新前台即见。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                 </table>
