@@ -191,7 +191,7 @@ get_header();
                             </div>
                         </div>
                         <button type="button" class="mlshop-btn mlshop-add-to-cart mlshop-btn-primary" data-product-id="<?php the_ID(); ?>">
-                            <?php esc_html_e('加入购物车', 'moonlight-shop'); ?>
+                            <?php echo esc_html(mlshop_buy_text('add')); ?>
                         </button>
                         <?php mlshop_favorite_button($product_id); ?>
                     </form>
