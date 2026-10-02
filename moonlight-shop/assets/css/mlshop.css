@@ -1719,3 +1719,77 @@
     color: #2563eb;
     border: 1px solid #2563eb;
 }
+
+/* ============================================================
+   商品卡「操作行」升级：加入购物车 / 收藏 并排等宽；可变商品显示「选择套餐」
+   追加于 AT8 授权商城外观升级之后，特异性覆盖旧的堆叠规则。
+   ============================================================ */
+.mlshop-product-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.mlshop-product-actions .mlshop-add-to-cart,
+.mlshop-product-actions .mlshop-select-plan {
+    flex: 1 1 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 8px;
+    background: #2271b1;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: background .15s ease, transform .1s ease;
+}
+.mlshop-product-actions .mlshop-add-to-cart:hover,
+.mlshop-product-actions .mlshop-select-plan:hover {
+    background: #135e96;
+    color: #fff;
+    text-decoration: none;
+    transform: translateY(-1px);
+}
+
+.mlshop-product-actions .mlshop-favorite-btn {
+    flex: 0 0 88px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    min-height: 38px;
+    padding: 0 10px;
+    font-size: 14px;
+    line-height: 1;
+    box-sizing: border-box;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    background: #fff;
+    color: #50575e;
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+}
+.mlshop-product-actions .mlshop-favorite-btn:hover {
+    border-color: #d63384;
+    color: #d63384;
+}
+/* 已收藏态（heart 已点亮） */
+.mlshop-product-actions .mlshop-favorite-btn.is-favorited {
+    border-color: #d63384;
+    color: #d63384;
+}
+
+/* 移动端：两按钮仍并排，收藏稍窄 */
+@media (max-width: 480px) {
+    .mlshop-product-actions .mlshop-favorite-btn {
+        flex-basis: 72px;
+    }
+}
