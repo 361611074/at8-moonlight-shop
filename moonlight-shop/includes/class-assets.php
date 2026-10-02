@@ -102,8 +102,8 @@ class MLSHOP_Assets
         wp_localize_script('mlshop-script', 'MLSHOP', mlshop_ajax_data());
         wp_localize_script('mlshop-script', 'mlshop_i18n', array(
             'network_error'       => __('网络错误，请重试', 'moonlight-shop'),
-            'added'               => __('已加入 ✓', 'moonlight-shop'),
-            'add_to_cart'         => __('加入购物车', 'moonlight-shop'),
+            'added'               => mlshop_buy_text('added'),
+            'add_to_cart'         => mlshop_buy_text('add'),
             'enter_coupon'        => __('请输入优惠码', 'moonlight-shop'),
             'select_recharge_pkg' => __('请选择充值套餐', 'moonlight-shop'),
             'address_required'     => __('请填写收件人、聯絡電話、省市與收件地址', 'moonlight-shop'),
