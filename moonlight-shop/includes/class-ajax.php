@@ -51,8 +51,10 @@ class MLSHOP_Ajax
     public function add_to_cart()
     {
         check_ajax_referer('mlshop_nonce', 'nonce');
-        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
-        $qty       = isset($_POST['qty']) ? (int) $_POST['qty'] : 1;
+        // 支持可变商品 key："1358" 或 "1358_three_year"（变体合法性在 Cart 内校验）
+        $raw        = isset($_POST['product_id']) ? sanitize_text_field(wp_unslash($_POST['product_id'])) : '';
+        $product_id = (int) $raw;
+        $qty        = isset($_POST['qty']) ? (int) $_POST['qty'] : 1;
 
         if (!$product_id || get_post_type($product_id) !== 'mlshop_product') {
             mlshop_send_json(false, __('商品不存在。', 'moonlight-shop'));
@@ -68,7 +70,7 @@ class MLSHOP_Ajax
             $in_cart = 0;
             foreach ($cart->get_items() as $it) {
                 if (isset($it['id']) && (int) $it['id'] === $product_id) {
-                    $in_cart = (int) $it['qty'];
+                    $in_cart += (int) $it['qty'];
                     break;
                 }
             }
@@ -80,19 +82,20 @@ class MLSHOP_Ajax
             }
         }
 
-        $cart->add_item($product_id, $qty);
+        $cart->add_item($raw, $qty);
         mlshop_send_json(true, __('已加入购物车。', 'moonlight-shop'), array('count' => $cart->get_count()));
     }
 
     public function update_cart()
     {
         check_ajax_referer('mlshop_nonce', 'nonce');
-        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+        // 支持可变商品 key："1358_three_year"
+        $product_id = isset($_POST['product_id']) ? sanitize_text_field(wp_unslash($_POST['product_id'])) : '';
         $qty       = isset($_POST['qty']) ? (int) $_POST['qty'] : 0;
         if ($product_id) {
             $qty = max(0, min(999, (int) $qty));
             // 库存校验：购物车页改数量同样不能超卖（_mlshop_stock 为空/0 视为不限量）
-            $stock = (int) get_post_meta($product_id, '_mlshop_stock', true);
+            $stock = (int) get_post_meta((int) $product_id, '_mlshop_stock', true);
             if ($stock > 0 && $qty > $stock) {
                 $qty = $stock;
             }
@@ -104,7 +107,7 @@ class MLSHOP_Ajax
     public function remove_cart()
     {
         check_ajax_referer('mlshop_nonce', 'nonce');
-        $product_id = isset($_POST['product_id']) ? (int) $_POST['product_id'] : 0;
+        $product_id = isset($_POST['product_id']) ? sanitize_text_field(wp_unslash($_POST['product_id'])) : '';
         if ($product_id) {
             MLSHOP_Cart::get_instance()->remove_item($product_id);
         }
