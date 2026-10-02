@@ -510,7 +510,9 @@ class Moonlight_REST
      */
     public function rest_cart_add($request)
     {
-        $product_id = (int) $request->get_param('product_id');
+        // 支持可变商品 key："1358" 或 "1358_three_year"（变体合法性在 Cart 内校验）
+        $raw        = sanitize_text_field((string) $request->get_param('product_id'));
+        $product_id = (int) $raw;
         $qty        = (int) $request->get_param('qty');
         $check = self::validate_cart_product($product_id);
         if (true !== $check) {
@@ -525,8 +527,7 @@ class Moonlight_REST
         $in_cart = 0;
         foreach ($cart->get_items() as $it) {
             if (isset($it['id']) && (int) $it['id'] === $product_id) {
-                $in_cart = (int) $it['qty'];
-                break;
+                $in_cart += (int) $it['qty'];
             }
         }
         // 库存预检（_mlshop_stock 空/0 = 不限量），与 AJAX 同口径
@@ -540,7 +541,7 @@ class Moonlight_REST
             }
         }
 
-        $cart->add_item($product_id, $qty);
+        $cart->add_item($raw, $qty);
         return Moonlight_Rest_Helpers::ok(array(
             'count' => $cart->get_count(),
             'qty'   => $qty,
@@ -552,9 +553,9 @@ class Moonlight_REST
      */
     public function rest_cart_update($request)
     {
-        $product_id = (int) $request->get_param('product_id');
+        $product_id = sanitize_text_field((string) $request->get_param('product_id'));
         $qty        = (int) $request->get_param('qty');
-        $check = self::validate_cart_product($product_id);
+        $check = self::validate_cart_product((int) $product_id);
         if (true !== $check) {
             return $check; // WP_REST_Response（404/400）
         }
