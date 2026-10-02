@@ -87,16 +87,19 @@ $type_label = array(
                 </div>
         <?php endif; endif; ?>
         <?php
-        $at8lic_has_variants = is_array(get_post_meta(get_the_ID(), '_at8lic_variants', true))
-            && get_post_meta(get_the_ID(), '_at8lic_variants', true);
+        // 可变商品：卡片加购默认选第一个套餐（一年），详情页可换
+        $default_key = (string) get_the_ID();
+        $variants_meta = get_post_meta(get_the_ID(), '_at8lic_variants', true);
+        if (is_array($variants_meta) && $variants_meta) {
+            $first_plan = isset($variants_meta[0]['plan']) ? sanitize_key($variants_meta[0]['plan']) : '';
+            if ($first_plan !== '') {
+                $default_key = get_the_ID() . '_' . $first_plan;
+            }
+        }
         ?>
         <div class="mlshop-product-actions">
-            <?php if ($at8lic_has_variants) : ?>
-                <a class="mlshop-btn mlshop-select-plan" href="<?php the_permalink(); ?>"><?php esc_html_e('选择套餐', 'moonlight-shop'); ?></a>
-            <?php else : ?>
-                <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php the_ID(); ?>"><?php esc_html_e('加入购物车', 'moonlight-shop'); ?></button>
-                <?php if (function_exists('mlshop_favorite_button')) { mlshop_favorite_button(get_the_ID()); } ?>
-            <?php endif; ?>
+            <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php echo esc_attr($default_key); ?>"><?php esc_html_e('加入购物车', 'moonlight-shop'); ?></button>
+            <?php if (function_exists('mlshop_favorite_button')) { mlshop_favorite_button(get_the_ID()); } ?>
         </div>
     </div>
 </article>
