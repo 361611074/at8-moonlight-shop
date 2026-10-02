@@ -179,6 +179,11 @@ class MLSHOP_Admin
             'btn_font_size'            => array('type' => 'integer', 'sanitize' => 'absint'),
             'btn_radius'               => array('type' => 'integer', 'sanitize' => 'absint'),
             'btn_color'                => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'buy_text_add'             => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'buy_text_favorite'        => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'buy_text_select'          => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'buy_text_added'           => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
+            'buy_text_adding'          => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'show_breadcrumbs'        => array('type' => 'integer', 'sanitize' => 'absint'),
             'show_product_meta'       => array('type' => 'integer', 'sanitize' => 'absint'),
             'reviews_enabled'         => array('type' => 'integer', 'sanitize' => 'absint'),
@@ -656,6 +661,29 @@ class MLSHOP_Admin
                                 </label>
                             </fieldset>
                             <p class="description"><?php esc_html_e('作用于全部「加入购物车 / 选择套餐」按钮（商品卡片、相关商品、详情页），改完保存刷新前台即见。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('购买文案', 'moonlight-shop'); ?></th>
+                        <td>
+                            <fieldset class="mlshop-inline-fieldset">
+                                <label><?php esc_html_e('加购按钮', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_buy_text_add" value="<?php echo esc_attr(mlshop_buy_text('add')); ?>" class="small-text" placeholder="加入购物车">
+                                </label>
+                                <label><?php esc_html_e('收藏按钮', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_buy_text_favorite" value="<?php echo esc_attr(mlshop_buy_text('favorite')); ?>" class="small-text" placeholder="收藏">
+                                </label>
+                                <label><?php esc_html_e('已加入提示', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_buy_text_added" value="<?php echo esc_attr(mlshop_buy_text('added')); ?>" class="small-text" placeholder="已加入">
+                                </label>
+                                <label><?php esc_html_e('加入中提示', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_buy_text_adding" value="<?php echo esc_attr(mlshop_buy_text('adding')); ?>" class="small-text" placeholder="正在加入…">
+                                </label>
+                                <label><?php esc_html_e('套餐按钮（预留）', 'moonlight-shop'); ?>
+                                    <input type="text" name="mlshop_buy_text_select" value="<?php echo esc_attr(mlshop_buy_text('select')); ?>" class="small-text" placeholder="选择套餐">
+                                </label>
+                            </fieldset>
+                            <p class="description"><?php esc_html_e('留空使用默认值。加购按钮 / 加入中 / 已加入提示全站生效（含商品卡片、详情页、相关商品）；刷新前台即见。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                 </table>
