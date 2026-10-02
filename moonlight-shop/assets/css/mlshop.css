@@ -1414,8 +1414,8 @@
     align-items: center;
     gap: 8px;
     padding: 12px 22px;
-    border-radius: 8px;
-    background: #2271b1;
+    border-radius: var(--mlshop-btn-radius, 8px);
+    background: var(--mlshop-btn-color, #2271b1);
     color: #fff;
     text-decoration: none;
     font-weight: 600;
@@ -1738,13 +1738,13 @@
     justify-content: center;
     min-height: 38px;
     padding: 0 14px;
-    font-size: 14px;
+    font-size: var(--mlshop-btn-size, 14px);
     font-weight: 600;
     line-height: 1;
     box-sizing: border-box;
     border: none;
-    border-radius: 8px;
-    background: #2271b1;
+    border-radius: var(--mlshop-btn-radius, 8px);
+    background: var(--mlshop-btn-color, #2271b1);
     color: #fff;
     cursor: pointer;
     text-decoration: none;
@@ -1753,7 +1753,8 @@
 }
 .mlshop-product-actions .mlshop-add-to-cart:hover,
 .mlshop-product-actions .mlshop-select-plan:hover {
-    background: #135e96;
+    background: var(--mlshop-btn-color, #2271b1);
+    filter: brightness(.86);
     color: #fff;
     text-decoration: none;
     transform: translateY(-1px);
