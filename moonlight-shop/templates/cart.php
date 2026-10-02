@@ -33,18 +33,18 @@ $grand_total  = round($total + (float) $shipping, 2);
             </thead>
             <tbody>
                 <?php foreach ($items as $item) : ?>
-                    <tr data-product-id="<?php echo esc_attr($item['id']); ?>">
+                    <tr data-product-id="<?php echo esc_attr($item['key']); ?>">
                         <td class="mlshop-cart-name"><?php echo esc_html($item['title']); ?></td>
                         <td><?php echo esc_html(mlshop_format_price($item['price'])); ?></td>
                         <td>
                             <div class="mlshop-qty-stepper mlshop-qty-stepper-sm">
                                 <button type="button" class="mlshop-qty-btn mlshop-qty-minus" aria-label="<?php echo esc_attr__('减少数量', 'moonlight-shop'); ?>">−</button>
-                                <input type="number" min="1" class="mlshop-qty" value="<?php echo esc_attr($item['qty']); ?>" data-product-id="<?php echo esc_attr($item['id']); ?>">
+                                <input type="number" min="1" class="mlshop-qty" value="<?php echo esc_attr($item['qty']); ?>" data-product-id="<?php echo esc_attr($item['key']); ?>">
                                 <button type="button" class="mlshop-qty-btn mlshop-qty-plus" aria-label="<?php echo esc_attr__('增加数量', 'moonlight-shop'); ?>">+</button>
                             </div>
                         </td>
                         <td><?php echo esc_html(mlshop_format_price($item['subtotal'])); ?></td>
-                        <td><button class="mlshop-remove" data-product-id="<?php echo esc_attr($item['id']); ?>">×</button></td>
+                        <td><button class="mlshop-remove" data-product-id="<?php echo esc_attr($item['key']); ?>">×</button></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
