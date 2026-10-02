@@ -493,7 +493,9 @@ class MLSHOP_License_Bridge
                   . '</button>';
         }
         $out .= '<p class="at8lic-buy-msg" style="display:none"></p>';
-        $out .= '<p class="at8lic-buy-note">'
+        $adding = function_exists('mlshop_buy_text') ? mlshop_buy_text('adding') : '正在加入…';
+        $added  = function_exists('mlshop_buy_text') ? mlshop_buy_text('added') : '已加入';
+        $out .= '<p style="margin:8px 0 0;color:#646970;font-size:13px">'
               . ($cart_url ? '<span>已加入？<a href="' . esc_url($cart_url) . '">前往购物车结算 →</a></span>　' : '')
               . '<span>支付成功后授权码自动发送，绑定站点即可激活。</span></p>';
         $out .= '</div>';
@@ -501,6 +503,9 @@ class MLSHOP_License_Bridge
         $out .= "<script>
 (function () {
     var btns = document.querySelectorAll('.at8lic-buy[data-product=\"" . esc_js($product_slug) . "\"] .at8lic-buy-btn');
+    var TXT_ADDING = " . wp_json_encode($adding) . ";
+    var TXT_ADDED  = " . wp_json_encode($added . '。') . ";
+    var CART_URL   = " . wp_json_encode($cart_url) . ";
     btns.forEach(function (btn) {
         if (btn.dataset.bound) { return; }
         btn.dataset.bound = '1';
@@ -508,7 +513,7 @@ class MLSHOP_License_Bridge
             var msg = btn.closest('.at8lic-buy').querySelector('.at8lic-buy-msg');
             msg.style.display = 'block';
             msg.style.color = '#646970';
-            msg.textContent = '正在加入购物车…';
+            msg.textContent = TXT_ADDING;
             var body = new URLSearchParams();
             body.append('action', 'mlshop_add_to_cart');
             body.append('nonce', '" . esc_js($nonce) . "');
@@ -519,7 +524,7 @@ class MLSHOP_License_Bridge
                 .then(function (j) {
                     if (j && j.success) {
                         msg.style.color = '#00a32a';
-                        msg.innerHTML = '已加入购物车。" . ($cart_url ? '<a href=\"" . esc_js($cart_url) . "\">去结算 →</a>' : '') . "';
+                        msg.innerHTML = TXT_ADDED + (CART_URL ? ' <a href=\"' + CART_URL + '\">前往购物车结算 →</a>' : '');
                     } else {
                         msg.style.color = '#b32d2e';
                         msg.textContent = (j && j.data && j.data.message) ? j.data.message : '加入失败，请重试';
