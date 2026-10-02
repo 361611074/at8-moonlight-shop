@@ -1398,3 +1398,20 @@
         flex: 1 1 100%;
     }
 }
+/* ---------- 商品描述配图 ---------- */
+.mlshop-fig {
+    margin: 22px 0;
+}
+.mlshop-fig img {
+    max-width: 100%;
+    height: auto;
+    border: 1px solid #eceef2;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(16, 24, 40, .06);
+}
+.mlshop-fig figcaption {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #646970;
+    text-align: center;
+}
