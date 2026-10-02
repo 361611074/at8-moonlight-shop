@@ -94,6 +94,7 @@ spl_autoload_register(function ($class) {
 });
 
 require_once MLSHOP_PLUGIN_DIR . 'includes/functions.php';
+require_once MLSHOP_PLUGIN_DIR . 'includes/buy-texts.php';
 
 // AT8 授权中心桥接（P6）：支付成功 → 自动发授权码；退款 → 自动吊销。
 MLSHOP_License_Bridge::boot();
