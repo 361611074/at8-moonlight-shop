@@ -105,6 +105,15 @@ Moonlight_Woo_Migrate::boot();
 require_once MLSHOP_PLUGIN_DIR . 'includes/user/class-licenses-tab.php';
 MLUC_Licenses_Tab::boot();
 
+// 前台 HTML 页面禁用 CDN/代理缓存（真机教训：改版后旧页面在 CDN 长期滞留，
+// 用户看不到新外观/新功能；静态资源带版本号不受影响，照常走 CDN 加速）。
+add_action('send_headers', function () {
+    if (is_admin() || wp_doing_ajax() || (defined('REST_REQUEST') && REST_REQUEST) || defined('WP_CLI')) {
+        return;
+    }
+    nocache_headers();
+});
+
 // 加载翻译：跟随 WordPress 系统语言设定（get_locale），不写死语言。
 // 英文站点：前台与 AJAX 加载英文翻译，wp-admin 后台保持中文源文案。
 add_action('init', function () {
