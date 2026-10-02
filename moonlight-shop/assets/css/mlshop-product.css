@@ -1010,3 +1010,325 @@
     padding: 1px 7px;
     font-size: 11px;
 }
+
+/* ==================== AT8 授权商城外观升级（追加） ==================== */
+/* ============================================================
+   AT8 授权商城 · 外观升级（变体选择卡 / 购买区 / 商店卡片）
+   作用域全部带 mlshop-/at8lic- 前缀，不影响主题与其他插件。
+   ============================================================ */
+
+/* ---------- 单页摘要区整体节奏 ---------- */
+.mlshop-single-summary .mlshop-price {
+    font-size: 30px;
+    color: #e23b3b;
+    margin: 4px 0 14px;
+    letter-spacing: .5px;
+}
+.mlshop-single-summary .mlshop-type-badge {
+    margin-bottom: 14px;
+}
+
+/* ---------- 变体选择卡（一年 / 三年 / 终身） ---------- */
+.mlshop-variants {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 6px 0 20px;
+    max-width: 560px;
+}
+.mlshop-variant {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 12px 14px 10px;
+    border: 1.5px solid #dcdcde;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.mlshop-variant:hover {
+    border-color: #a7c4e0;
+}
+.mlshop-variant input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+.mlshop-variant .mlshop-variant-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    line-height: 1.3;
+}
+.mlshop-variant .mlshop-variant-price {
+    font-size: 16px;
+    color: #e23b3b;
+    font-weight: 700;
+}
+.mlshop-variant .mlshop-variant-badge {
+    position: absolute;
+    top: -9px;
+    right: 10px;
+    font-size: 11px;
+    font-style: normal;
+    color: #fff;
+    background: #d63384;
+    border-radius: 10px;
+    padding: 1px 8px;
+    line-height: 1.5;
+}
+/* 选中态：描边 + 淡底 + 右上角对勾 */
+.mlshop-variant.is-active {
+    border-color: #2271b1;
+    background: #f0f6fc;
+    box-shadow: 0 0 0 2px rgba(34, 113, 177, .18);
+}
+.mlshop-variant.is-active::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #2271b1;
+    color: #fff;
+    font-size: 12px;
+    line-height: 18px;
+    text-align: center;
+}
+/* 终身卡徽标配色 */
+.mlshop-variant.is-active .mlshop-variant-badge {
+    background: #d63384;
+}
+
+/* ---------- 购买表单：数量 / 加购 / 收藏 ---------- */
+.mlshop-buy-form {
+    align-items: center;
+    gap: 14px;
+    row-gap: 14px;
+    margin: 4px 0 22px;
+    padding: 18px;
+    background: #f8f9fb;
+    border: 1px solid #eceef2;
+    border-radius: 12px;
+}
+.mlshop-buy-form .mlshop-qty-wrap {
+    gap: 8px;
+    font-weight: 500;
+}
+.mlshop-buy-form .mlshop-qty-stepper {
+    width: 132px;
+    height: 46px;
+    border-radius: 8px;
+    border-color: #dcdcde;
+}
+.mlshop-buy-form .mlshop-qty-stepper .mlshop-qty {
+    font-size: 15px;
+    font-weight: 600;
+}
+/* 覆盖旧规则：间距统一交给 flex gap */
+.mlshop-buy-form .mlshop-qty-wrap + .mlshop-add-to-cart,
+.mlshop-buy-form .mlshop-add-to-cart + .mlshop-favorite-btn {
+    margin-left: 0;
+}
+/* 加购主按钮 */
+.mlshop-buy-form .mlshop-add-to-cart {
+    min-height: 46px;
+    padding: 0 36px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: #2271b1;
+    color: #fff;
+    border: none;
+    transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+}
+.mlshop-buy-form .mlshop-add-to-cart:hover {
+    background: #135e96;
+    box-shadow: 0 4px 12px rgba(19, 94, 150, .3);
+    transform: translateY(-1px);
+}
+.mlshop-buy-form .mlshop-add-to-cart:active {
+    transform: translateY(0);
+}
+/* 收藏次按钮 */
+.mlshop-buy-form .mlshop-favorite-btn {
+    min-height: 46px;
+    padding: 0 24px;
+    font-size: 15px;
+    border-radius: 8px;
+    border: 1px solid #dcdcde;
+    background: #fff;
+    color: #50575e;
+    transition: border-color .15s ease, color .15s ease;
+}
+.mlshop-buy-form .mlshop-favorite-btn:hover {
+    border-color: #d63384;
+    color: #d63384;
+}
+
+/* 移动端：纵向堆叠、按钮通栏 */
+@media (max-width: 640px) {
+    .mlshop-variants {
+        grid-template-columns: 1fr 1fr;
+    }
+    .mlshop-buy-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .mlshop-buy-form .mlshop-qty-wrap {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .mlshop-buy-form .mlshop-add-to-cart,
+    .mlshop-buy-form .mlshop-favorite-btn {
+        width: 100%;
+    }
+}
+
+/* ---------- at8lic 商店卡片（[at8lic_store]） ---------- */
+.at8lic-store {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 18px;
+    margin: 16px 0;
+}
+.at8lic-store-item {
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+    border: 1px solid #e2e4e9;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, .05);
+    transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.at8lic-store-item:hover {
+    box-shadow: 0 8px 24px rgba(16, 24, 40, .1);
+    transform: translateY(-2px);
+    border-color: #c9def0;
+}
+.at8lic-store-title {
+    margin: 0 0 8px;
+    font-size: 19px;
+    line-height: 1.35;
+}
+.at8lic-store-title a {
+    color: #1d2327;
+    text-decoration: none;
+}
+.at8lic-store-title a:hover {
+    color: #2271b1;
+}
+.at8lic-store-desc {
+    margin: 0 0 14px;
+    color: #646970;
+    font-size: 14px;
+    line-height: 1.65;
+    flex: 1 1 auto;
+}
+
+/* ---------- at8lic 套餐按钮（卡片上 / 短代码内） ---------- */
+.at8lic-buy {
+    margin-top: auto;
+}
+.at8lic-buy-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 118px;
+    margin: 0 10px 10px 0;
+    padding: 10px 18px;
+    border: 1.5px solid #dcdcde;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.at8lic-buy-btn:hover {
+    border-color: #2271b1;
+    background: #f0f6fc;
+    transform: translateY(-1px);
+}
+.at8lic-buy-btn .at8lic-plan-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+.at8lic-buy-btn .at8lic-plan-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e23b3b;
+}
+.at8lic-buy-btn .at8lic-plan-badge {
+    position: relative;
+    display: inline-block;
+    font-size: 11px;
+    font-style: normal;
+    color: #d63384;
+    background: #fdf0f7;
+    border-radius: 8px;
+    padding: 0 7px;
+    line-height: 1.6;
+    margin-top: 2px;
+}
+.at8lic-plan-lifetime .at8lic-plan-badge {
+    color: #fff;
+    background: #d63384;
+}
+.at8lic-buy-msg {
+    display: none;
+    margin: 4px 0 0;
+    font-size: 14px;
+}
+.at8lic-buy-note {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin: 6px 0 0;
+    color: #646970;
+    font-size: 13px;
+}
+.at8lic-buy-note a {
+    color: #2271b1;
+}
+
+/* ---------- 货币切换 ---------- */
+.at8lic-currency {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    padding: 8px 14px;
+    background: #fff;
+    border: 1px solid #e2e4e9;
+    border-radius: 999px;
+    color: #646970;
+    font-size: 13px;
+}
+.at8lic-currency-switch {
+    color: #2271b1;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 3px 10px;
+    border: 1px solid #c9def0;
+    border-radius: 999px;
+    background: #f0f6fc;
+    transition: background .15s ease;
+}
+.at8lic-currency-switch:hover {
+    background: #dceaf7;
+}
+
+/* ---------- 购物车：变体行样式 ---------- */
+.mlshop-cart-name {
+    font-weight: 500;
+}
