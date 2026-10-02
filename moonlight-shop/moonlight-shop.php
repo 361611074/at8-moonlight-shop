@@ -98,6 +98,9 @@ require_once MLSHOP_PLUGIN_DIR . 'includes/functions.php';
 // AT8 授权中心桥接（P6）：支付成功 → 自动发授权码；退款 → 自动吊销。
 MLSHOP_License_Bridge::boot();
 
+// WooCommerce 商品一键迁入工具（后台「设置 → 商品标签」区）。
+Moonlight_Woo_Migrate::boot();
+
 // 用户中心「我的授权」Tab（P7）：展示授权/绑定站点/自助解绑。
 require_once MLSHOP_PLUGIN_DIR . 'includes/user/class-licenses-tab.php';
 MLUC_Licenses_Tab::boot();
