@@ -1332,3 +1332,68 @@
 .mlshop-cart-name {
     font-weight: 500;
 }
+
+/* ============================================================
+   AT8 外观修正 v2：变体卡左对齐不拉伸 / 购买区单行对齐
+   ============================================================ */
+
+/* 变体卡：flex 等宽排列（不拉伸填满），左对齐 */
+.mlshop-variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    margin: 6px 0 18px;
+}
+.mlshop-variant {
+    flex: 0 0 auto;
+    width: 158px;
+    box-sizing: border-box;
+}
+
+/* 购买表单：数量 + 加购 + 收藏 同一行、垂直居中、左对齐 */
+.mlshop-buy-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 14px;
+}
+/* “数量”标签移到步进器左侧，同行居中 */
+.mlshop-buy-form .mlshop-qty-wrap {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+/* 三件套等高（46px），覆盖旧规则的同高与边距 */
+.mlshop-buy-form .mlshop-qty-stepper {
+    height: 46px;
+    margin: 0;
+}
+.mlshop-buy-form .mlshop-add-to-cart {
+    min-height: 46px;
+    margin: 0;
+}
+.mlshop-buy-form .mlshop-favorite-btn {
+    min-height: 46px;
+    margin: 0;
+}
+.mlshop-buy-form .mlshop-add-to-cart + .mlshop-favorite-btn {
+    margin-left: 0;
+}
+
+/* 移动端：变体卡两列保持，购买区换行但每个元素占满 */
+@media (max-width: 640px) {
+    .mlshop-variant {
+        width: calc(50% - 5px);
+    }
+    .mlshop-buy-form .mlshop-qty-wrap {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .mlshop-buy-form .mlshop-add-to-cart,
+    .mlshop-buy-form .mlshop-favorite-btn {
+        flex: 1 1 100%;
+    }
+}
