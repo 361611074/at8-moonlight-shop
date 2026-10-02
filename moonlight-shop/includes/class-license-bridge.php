@@ -486,17 +486,16 @@ class MLSHOP_License_Bridge
             if ($plan === '') { continue; }
             $price = $usd && isset($v['usd']) && (float) $v['usd'] > 0 ? '$' . number_format((float) $v['usd'], 0) : '¥' . number_format((float) ($v['price'] ?? 0), 0);
             $badge = isset($v['badge']) ? (string) $v['badge'] : '';
-            $out .= '<button type="button" class="at8lic-buy-btn" data-key="' . esc_attr((int) $post->ID . '_' . $plan) . '" data-qty="1"'
-                  . ' style="display:inline-block;margin:4px 8px 4px 0;padding:10px 18px;border:1px solid #dcdcde;border-radius:6px;background:#fff;cursor:pointer;font-size:14px">'
-                  . '<strong>' . esc_html(self::variant_label($plan)) . '</strong>'
-                  . '<span style="color:#646970;margin-left:8px">' . esc_html($price) . '</span>'
-                  . ($badge !== '' ? '<em style="font-style:normal;color:#d63384;margin-left:6px">' . esc_html($badge) . '</em>' : '')
+            $out .= '<button type="button" class="at8lic-buy-btn at8lic-plan-' . esc_attr($plan) . '" data-key="' . esc_attr((int) $post->ID . '_' . $plan) . '" data-qty="1">'
+                  . '<strong class="at8lic-plan-name">' . esc_html(self::variant_label($plan)) . '</strong>'
+                  . '<span class="at8lic-plan-price">' . esc_html($price) . '</span>'
+                  . ($badge !== '' ? '<span class="at8lic-plan-badge">' . esc_html($badge) . '</span>' : '')
                   . '</button>';
         }
-        $out .= '<p class="at8lic-buy-msg" style="display:none;margin:8px 0 0;color:#00a32a"></p>';
-        $out .= '<p style="margin:8px 0 0;color:#646970;font-size:13px">'
-              . ($cart_url ? '已加入？<a href="' . esc_url($cart_url) . '">前往购物车结算 →</a>　' : '')
-              . '支付成功后授权码自动发送，绑定站点即可激活。</p>';
+        $out .= '<p class="at8lic-buy-msg" style="display:none"></p>';
+        $out .= '<p class="at8lic-buy-note">'
+              . ($cart_url ? '<span>已加入？<a href="' . esc_url($cart_url) . '">前往购物车结算 →</a></span>　' : '')
+              . '<span>支付成功后授权码自动发送，绑定站点即可激活。</span></p>';
         $out .= '</div>';
 
         $out .= "<script>
@@ -567,9 +566,9 @@ class MLSHOP_License_Bridge
             if ($slug === '') { continue; }
             $desc = wp_strip_all_tags($p->post_content);
             $desc = function_exists('wp_html_excerpt') ? wp_html_excerpt($desc, 120, '…') : substr($desc, 0, 120);
-            $out .= '<div class="at8lic-store-item" style="background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:18px 22px;margin:0 0 16px">';
-            $out .= '<h3 style="margin:0 0 6px;font-size:18px"><a href="' . esc_url(get_permalink($p)) . '" style="text-decoration:none">' . esc_html(get_the_title($p)) . '</a></h3>';
-            $out .= '<p style="margin:0 0 10px;color:#646970">' . esc_html($desc) . '</p>';
+            $out .= '<div class="at8lic-store-item">';
+            $out .= '<h3 class="at8lic-store-title"><a href="' . esc_url(get_permalink($p)) . '">' . esc_html(get_the_title($p)) . '</a></h3>';
+            $out .= '<p class="at8lic-store-desc">' . esc_html($desc) . '</p>';
             $out .= self::render_plan_buttons($slug);
             $out .= '</div>';
         }
@@ -582,9 +581,9 @@ class MLSHOP_License_Bridge
     {
         $usd = self::is_usd();
         $url = esc_url(add_query_arg('at8lic_currency', $usd ? 'CNY' : 'USD'));
-        $label = $usd ? '结算货币：USD $' : '结算货币：CNY ¥';
-        return '<span class="at8lic-currency" style="font-size:13px;color:#646970">' . esc_html($label)
-             . '　<a href="' . $url . '" rel="nofollow" style="text-decoration:none">切换到 ' . ($usd ? 'CNY ¥' : 'USD $') . '</a></span>';
+        $label = $usd ? '结算货币 USD $' : '结算货币 CNY ¥';
+        return '<span class="at8lic-currency">' . esc_html($label)
+             . '<a class="at8lic-currency-switch" href="' . $url . '" rel="nofollow">切换到 ' . ($usd ? 'CNY ¥' : 'USD $') . '</a></span>';
     }
 
     /* ================= 后台：设置 + 商品映射 ================= */
