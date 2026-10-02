@@ -98,7 +98,7 @@ $type_label = array(
         }
         ?>
         <div class="mlshop-product-actions">
-            <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php echo esc_attr($default_key); ?>"><?php esc_html_e('加入购物车', 'moonlight-shop'); ?></button>
+            <button class="mlshop-btn mlshop-add-to-cart" data-product-id="<?php echo esc_attr($default_key); ?>"><?php echo esc_html(mlshop_buy_text('add')); ?></button>
             <?php if (function_exists('mlshop_favorite_button')) { mlshop_favorite_button(get_the_ID()); } ?>
         </div>
     </div>
