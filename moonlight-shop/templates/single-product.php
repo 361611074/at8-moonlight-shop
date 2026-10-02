@@ -125,7 +125,7 @@ get_header();
                     $at8lic_variants = get_post_meta($product_id, '_at8lic_variants', true);
                     if (is_array($at8lic_variants) && $at8lic_variants && class_exists('MLSHOP_License_Bridge')) :
                     ?>
-                        <div class="mlshop-variants" style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px">
+                        <div class="mlshop-variants" role="radiogroup" aria-label="<?php echo esc_attr__('选择授权套餐', 'moonlight-shop'); ?>">
                             <?php $vi = 0; foreach ($at8lic_variants as $v) :
                                 $vplan  = isset($v['plan']) ? sanitize_key($v['plan']) : '';
                                 if ($vplan === '') { continue; }
@@ -133,15 +133,13 @@ get_header();
                                 $vlabel = isset($v['label']) && $v['label'] !== '' ? $v['label'] : MLSHOP_License_Bridge::variant_label($vplan);
                                 $vbadge = isset($v['badge']) ? (string) $v['badge'] : '';
                             ?>
-                            <label class="mlshop-variant<?php echo 0 === $vi ? ' is-active' : ''; ?>"
-                                   style="display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #dcdcde;border-radius:8px;cursor:pointer;background:<?php echo 0 === $vi ? '#f0f6fc' : '#fff'; ?>">
+                            <label class="mlshop-variant<?php echo 0 === $vi ? ' is-active' : ''; ?>">
                                 <input type="radio" name="mlshop_variant" value="<?php echo esc_attr($vplan); ?>"
                                        data-price-text="<?php echo esc_attr(mlshop_format_price($vprice)); ?>"
-                                       data-badge="<?php echo esc_attr($vbadge); ?>" <?php checked(0, $vi); ?> style="accent-color:#2271b1">
-                                <span><strong><?php echo esc_html($vlabel); ?></strong>
-                                <b style="margin-left:6px"><?php echo esc_html(mlshop_format_price($vprice)); ?></b>
-                                <?php if ($vbadge !== '') : ?><em style="font-style:normal;color:#d63384;margin-left:6px"><?php echo esc_html($vbadge); ?></em><?php endif; ?>
-                                </span>
+                                       data-badge="<?php echo esc_attr($vbadge); ?>" <?php checked(0, $vi); ?>>
+                                <span class="mlshop-variant-name"><?php echo esc_html($vlabel); ?></span>
+                                <b class="mlshop-variant-price"><?php echo esc_html(mlshop_format_price($vprice)); ?></b>
+                                <?php if ($vbadge !== '') : ?><span class="mlshop-variant-badge"><?php echo esc_html($vbadge); ?></span><?php endif; ?>
                             </label>
                             <?php $vi++; endforeach; ?>
                         </div>
@@ -149,14 +147,13 @@ get_header();
                         (function () {
                             var box = document.querySelector('.mlshop-variants');
                             if (!box) { return; }
-                            var priceEl = document.querySelector('.mlshop-price');
-                            var badgeEl = document.querySelector('.mlshop-variant-badge-dyn');
+                            var priceEl = document.querySelector('.mlshop-single-summary .mlshop-price');
                             box.addEventListener('change', function (e) {
                                 var input = e.target;
                                 if (!input || input.name !== 'mlshop_variant') { return; }
                                 box.querySelectorAll('.mlshop-variant').forEach(function (l) {
-                                    l.classList.toggle('is-active', l.querySelector('input').checked);
-                                    l.style.background = l.querySelector('input').checked ? '#f0f6fc' : '#fff';
+                                    var on = l.querySelector('input').checked;
+                                    l.classList.toggle('is-active', on);
                                 });
                                 if (priceEl && input.dataset.priceText) { priceEl.textContent = input.dataset.priceText; }
                             });
