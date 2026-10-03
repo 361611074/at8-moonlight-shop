@@ -228,6 +228,43 @@ class MLSHOP_Admin
             'sanitize_callback' => array($this, 'sanitize_shipping_templates'),
             'default'           => array(),
         ));
+
+        // 前台展示文案覆盖：[<网关ID>]['title'|'desc']，留空回退网关自带文案
+        register_setting($group, 'mlshop_gateway_labels', array(
+            'type'              => 'array',
+            'sanitize_callback' => array($this, 'sanitize_gateway_labels'),
+            'default'           => array(),
+        ));
+    }
+
+    /**
+     * 清洗「前台支付方式文案」表单：逐网关取 title / desc，文本转义后按原样保存。
+     *
+     * 保留已存在但本次未提交的其它网关配置（避免只改一个网关时清空其余）。
+     *
+     * @param mixed $input
+     * @return array
+     */
+    public function sanitize_gateway_labels($input)
+    {
+        $old  = get_option('mlshop_gateway_labels', array());
+        $old  = is_array($old) ? $old : array();
+        $out  = $old;
+        $in   = is_array($input) ? $input : array();
+        foreach ($in as $gid => $fields) {
+            $gid = sanitize_key($gid);
+            if ('' === $gid || !is_array($fields)) {
+                continue;
+            }
+            $title = isset($fields['title']) ? sanitize_text_field($fields['title']) : '';
+            $desc  = isset($fields['desc']) ? sanitize_text_field($fields['desc']) : '';
+            if ('' === $title && '' === $desc) {
+                unset($out[$gid]);
+                continue;
+            }
+            $out[$gid] = array('title' => $title, 'desc' => $desc);
+        }
+        return $out;
     }
 
     /**
@@ -1040,6 +1077,8 @@ class MLSHOP_Admin
                 <p class="description"><?php esc_html_e('勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP 跳轉型網關）請單獨告訴我對接。', 'moonlight-shop'); ?></p>
                 <?php
                 $enabled = get_option('mlshop_enabled_gateways', null);
+                $gw_labels = get_option('mlshop_gateway_labels', array());
+                $gw_labels = is_array($gw_labels) ? $gw_labels : array();
                 if (!is_array($enabled)) {
                     // 第一次进入设置页或尚未保存：默认全部内建网关为启用。
                     $enabled = array('cod', 'balance', 'credit', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
@@ -1086,6 +1125,26 @@ class MLSHOP_Admin
                                         '<code>' . esc_html($gid) . '</code>'
                                     );
                                     ?>
+                                </p>
+                                <p>
+                                    <label class="mlshop-label" for="mlshop_gw_title_<?php echo $gid_esc; ?>">
+                                        <?php esc_html_e('前台顯示名稱', 'moonlight-shop'); ?>
+                                    </label><br>
+                                    <input type="text" class="regular-text"
+                                        id="mlshop_gw_title_<?php echo $gid_esc; ?>"
+                                        name="mlshop_gateway_labels[<?php echo $gid_esc; ?>][title]"
+                                        value="<?php echo esc_attr(isset($gw_labels[$gid]['title']) ? $gw_labels[$gid]['title'] : ''); ?>"
+                                        placeholder="<?php echo esc_attr($g->get_title()); ?>">
+                                </p>
+                                <p>
+                                    <label class="mlshop-label" for="mlshop_gw_desc_<?php echo $gid_esc; ?>">
+                                        <?php esc_html_e('前台顯示說明', 'moonlight-shop'); ?>
+                                    </label><br>
+                                    <input type="text" class="regular-text"
+                                        id="mlshop_gw_desc_<?php echo $gid_esc; ?>"
+                                        name="mlshop_gateway_labels[<?php echo $gid_esc; ?>][desc]"
+                                        value="<?php echo esc_attr(isset($gw_labels[$gid]['desc']) ? $gw_labels[$gid]['desc'] : ''); ?>"
+                                        placeholder="<?php echo esc_attr($g->get_description()); ?>">
                                 </p>
                             </td>
                         </tr>

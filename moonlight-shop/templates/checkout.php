@@ -185,7 +185,7 @@ $is_guest        = !empty($is_guest);
         <?php foreach ($gateways as $g) : ?>
             <label class="mlshop-gateway">
                 <input type="radio" name="gateway" value="<?php echo esc_attr($g->get_id()); ?>" <?php checked($g->get_id(), $default_gateway); ?>>
-                <span class="mlshop-gateway-title"><?php echo esc_html($g->get_title()); ?></span>
+                <span class="mlshop-gateway-title"><?php echo esc_html($g->get_label()); ?></span>
                 <span class="mlshop-gateway-desc"><?php echo esc_html($g->get_description()); ?></span>
             </label>
         <?php endforeach; ?>

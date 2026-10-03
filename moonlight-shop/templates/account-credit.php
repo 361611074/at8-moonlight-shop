@@ -61,7 +61,7 @@ if (!defined('ABSPATH')) {
                     <label for="mlshop_recharge_gateway"><?php esc_html_e('支付方式', 'moonlight-shop'); ?></label>
                     <select name="mlshop_recharge_gateway" id="mlshop_recharge_gateway" class="mlshop-recharge-gateway-select">
                         <?php foreach ($gateways as $g) : ?>
-                            <option value="<?php echo esc_attr($g->get_id()); ?>"><?php echo esc_html($g->get_title()); ?></option>
+                            <option value="<?php echo esc_attr($g->get_id()); ?>"><?php echo esc_html($g->get_label()); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

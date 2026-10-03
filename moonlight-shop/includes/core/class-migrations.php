@@ -146,8 +146,53 @@ class Moonlight_Migrations
                 $done++;
             }
         } while ($chunk >= 500);
-        self::log('m2_backfill_orders', sprintf('backfilled %d orders', $done));
+
+        $guest_done = self::m2_migrate_guest_meta();
+
+        self::log('m2_backfill_orders', sprintf('backfilled %d orders, guest meta %d', $done, $guest_done));
         return true;
+    }
+
+    /**
+     * 游客订单旧键 → 新键回填（1.7/1.8 → 3.x 键名变更）。
+     *
+     * 旧版：`_mlshop_access_token`（取货令牌）/ `_mlshop_email`（游客邮箱）
+     * 新版：`_mlshop_guest_token` / `_mlshop_guest_email`
+     *
+     * 幂等：目标键已存在则跳过；旧键保留不删（回滚后旧插件仍可工作）。
+     *
+     * @return int 回填条数
+     */
+    protected static function m2_migrate_guest_meta()
+    {
+        global $wpdb;
+        $map = array(
+            '_mlshop_access_token' => '_mlshop_guest_token',
+            '_mlshop_email'        => '_mlshop_guest_email',
+        );
+        $moved = 0;
+        foreach ($map as $old_key => $new_key) {
+            $rows = $wpdb->get_results(
+                $wpdb->prepare(
+                    "SELECT m.post_id, m.meta_value
+                     FROM {$wpdb->postmeta} m
+                     INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
+                     WHERE m.meta_key = %s
+                       AND p.post_type = 'mlshop_order'
+                       AND m.meta_value <> ''",
+                    $old_key
+                )
+            );
+            foreach ((array) $rows as $r) {
+                $pid  = (int) $r->post_id;
+                $cur  = get_post_meta($pid, $new_key, true);
+                if ('' === $cur || null === $cur) {
+                    update_post_meta($pid, $new_key, $r->meta_value);
+                    $moved++;
+                }
+            }
+        }
+        return $moved;
     }
 
     /**

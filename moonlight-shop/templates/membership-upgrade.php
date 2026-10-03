@@ -37,7 +37,7 @@ if (!defined('ABSPATH')) {
                             <?php foreach ($gateways as $g) : ?>
                                 <label class="mlshop-membership-gateway">
                                     <input type="radio" name="mlshop_mb_gateway_<?php echo esc_attr($key); ?>" value="<?php echo esc_attr($g->get_id()); ?>" <?php checked($g->get_id(), 'cod'); ?>>
-                                    <span><?php echo esc_html($g->get_title()); ?></span>
+                                    <span><?php echo esc_html($g->get_label()); ?></span>
                                 </label>
                             <?php endforeach; ?>
                         </div>

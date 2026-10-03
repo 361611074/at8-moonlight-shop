@@ -377,7 +377,7 @@ function mlshop_get_gateway_title($gateway_id)
     if (class_exists('MLSHOP_Payment')) {
         $g = MLSHOP_Payment::get_instance()->get_gateway($gateway_id);
         if ($g) {
-            return $g->get_title();
+            return $g->get_label();
         }
     }
     return $gateway_id;

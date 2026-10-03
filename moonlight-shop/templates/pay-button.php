@@ -60,7 +60,7 @@ $post_id         = isset($post_id) ? (int) $post_id : 0;
                 <?php foreach ($gateways as $g) : ?>
                     <label class="mlshop-gateway">
                         <input type="radio" name="mlshop_paywall_gateway" value="<?php echo esc_attr($g->get_id()); ?>" <?php checked($g->get_id(), $default_gateway); ?>>
-                        <span class="mlshop-gateway-title"><?php echo esc_html($g->get_title()); ?></span>
+                        <span class="mlshop-gateway-title"><?php echo esc_html($g->get_label()); ?></span>
                         <?php if ($g->get_description()) : ?>
                             <span class="mlshop-gateway-desc"><?php echo esc_html($g->get_description()); ?></span>
                         <?php endif; ?>
