@@ -331,6 +331,24 @@ class MLUC_License_Manager
         return $active;
     }
 
+    /**
+     * 本地授权管理模式：仅供授权方（at8.fun）自己的站点使用。
+     *
+     * Free 版会随包分发到客户站，因此默认**关闭**。关闭时：
+     *   1) 后台不出现「License 管理」菜单（签发 / 撤销 / 续期属于授权方职能）；
+     *   2) 本地 License 记录不能单独放行 Pro —— 必须配置 License Server 并通过远程校验；
+     *      否则客户可在数据库自行插入 License 记录来解锁 Pro。
+     *
+     * 授权方自用站开启方式（wp-config.php）：
+     *     define('MLUC_LICENSE_LOCAL_MODE', true);
+     *
+     * @return bool
+     */
+    public static function local_mode_enabled()
+    {
+        return defined('MLUC_LICENSE_LOCAL_MODE') && MLUC_LICENSE_LOCAL_MODE;
+    }
+
     private function compute_product_active($product)
     {
         $posts = get_posts(array(
@@ -353,7 +371,12 @@ class MLUC_License_Manager
                 continue;
             }
             if ('' === $server) {
-                return true; // 本地验证。
+                // 未配置 License Server：仅授权方自用站（本地模式）允许纯本地验证。
+                // 客户站必须走远程校验，否则本地记录可被自行伪造来解锁 Pro。
+                if (self::local_mode_enabled()) {
+                    return true; // 本地验证（授权方自用）。
+                }
+                continue;
             }
             if ($this->remote_verify_ok($post_id, $product, $server)) {
                 return true;
@@ -463,6 +486,17 @@ class MLUC_License_Manager
         delete_transient('mluc_lic_verify_' . md5((string) $post->post_title));
 
         do_action('mluc_license_activated', $post->ID, $site['url']);
+
+        // 客户站未配置 License Server 时，记录虽已写入但不会放行 Pro —— 明确回报，
+        // 避免出现「提示激活成功、Pro 仍不可用」的困惑。
+        $server = trim((string) mluc_get_option('license_server_url', ''));
+        if ('' === $server && !self::local_mode_enabled()) {
+            return new WP_Error(
+                'mluc_lic_no_server',
+                __('License 已记录，但本站未配置 License Server，Pro 功能不会启用。请到「用户中心 → 设置 → License / Pro」填写授权服务器地址。', 'moonlight-user-center')
+            );
+        }
+
         return true;
     }
 

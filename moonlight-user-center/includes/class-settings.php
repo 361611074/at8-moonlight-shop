@@ -1160,7 +1160,7 @@ class MLUC_Settings
         <p>
             <label for="mluc_lic_server"><strong><?php esc_html_e('License Server 地址（可选）', 'moonlight-user-center'); ?></strong></label><br>
             <input type="url" id="mluc_lic_server" class="large-text code" name="mluc_options[license_server_url]" value="<?php echo esc_attr($server); ?>" placeholder="https://license.example.com">
-            <span class="description"><?php echo esc_html__('留空 = 本地验证模式（License 存本站）。配置后走远程验证：结果缓存 12 小时；网络失败进入 7 天宽限期，期间 Pro 功能照常，绝不因 Server 故障影响 Free 功能。', 'moonlight-user-center'); ?></span>
+            <span class="description"><?php echo esc_html__('留空则 Pro 不启用（安全默认：避免本站自行签发授权）。配置后走远程验证：结果缓存 12 小时；网络失败进入 7 天宽限期，期间 Pro 功能照常，绝不因 Server 故障影响 Free 功能。', 'moonlight-user-center'); ?></span>
         </p>
         <p>
             <label for="mluc_lic_auto"><strong><?php esc_html_e('支付成功自动颁发 License 的会员等级', 'moonlight-user-center'); ?></strong></label><br>

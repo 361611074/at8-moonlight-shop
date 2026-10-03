@@ -34,6 +34,11 @@ class MLUC_License_Admin
 
     public function register_menu()
     {
+        // 签发 / 撤销 / 续期属于授权方（at8.fun）职能，不随 Free 版分发到客户站。
+        // 客户站默认不注册此菜单；授权方自用站以 wp-config.php 常量开启。
+        if (!MLUC_License_Manager::local_mode_enabled()) {
+            return;
+        }
         add_submenu_page(
             'mluc-settings',
             __('License 管理', 'moonlight-user-center'),
@@ -231,6 +236,10 @@ class MLUC_License_Admin
      */
     public function handle_issue()
     {
+        // 即使菜单已隐藏，仍需服务端守卫：防止直接构造 admin-post 请求自助签发 License。
+        if (!MLUC_License_Manager::local_mode_enabled()) {
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+        }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_issue')) {
             wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
         }
@@ -265,6 +274,10 @@ class MLUC_License_Admin
      */
     public function handle_row_action()
     {
+        // 同上：撤销 / 恢复 / 续期属授权方职能，服务端强制校验。
+        if (!MLUC_License_Manager::local_mode_enabled()) {
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+        }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_action')) {
             wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
         }

@@ -86,7 +86,7 @@ class MLPRO_License_Client
             }
         } else {
             // 本地模式：option 开关（默认 1）。
-            self::$active_cache = ((int) get_option(self::OPT_LOCAL_ACTIVE, 1) === 1);
+            self::$active_cache = ((int) get_option(self::OPT_LOCAL_ACTIVE, 0) === 1);
             self::$mode_cache   = 'local';
         }
         return self::$active_cache;
@@ -212,7 +212,7 @@ class MLPRO_License_Client
         $mode        = self::get_mode();
         $has_engine  = class_exists('MLUC_License_Manager');
         $legacy_pro  = self::legacy_pro_active();
-        $local_on    = ((int) get_option(self::OPT_LOCAL_ACTIVE, 1) === 1);
+        $local_on    = ((int) get_option(self::OPT_LOCAL_ACTIVE, 0) === 1);
         $action_url  = admin_url('admin-post.php');
         ?>
         <div class="wrap">
