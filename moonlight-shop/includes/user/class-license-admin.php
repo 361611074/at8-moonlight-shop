@@ -35,6 +35,13 @@ class MLUC_License_Admin
 
     public function register_menu()
     {
+        // 签发 / 撤销 / 续期属授权方（at8.fun）职能，Free 版会随包分发到客户站，
+        // 因此仅在授权方自用站（wp-config.php 定义 MLUC_LICENSE_LOCAL_MODE）才挂菜单。
+        // 与独立用户中心插件里的同名类保持一致的双保险：开关 + 分发包剔除该文件。
+        if (!method_exists('MLUC_License_Manager', 'local_mode_enabled')
+            || !MLUC_License_Manager::local_mode_enabled()) {
+            return;
+        }
         // Phase B：跟随设置页挂载模式——仅装商城时与「会员与账户」同组（商城菜单下），
         // 旧插件共存 / top 模式挂回「用户中心」顶级菜单。
         $parent = method_exists('MLUC_Settings', 'submenu_parent_slug')
@@ -237,6 +244,10 @@ class MLUC_License_Admin
      */
     public function handle_issue()
     {
+        if (!method_exists('MLUC_License_Manager', 'local_mode_enabled')
+            || !MLUC_License_Manager::local_mode_enabled()) {
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+        }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_issue')) {
             wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
         }
@@ -271,6 +282,10 @@ class MLUC_License_Admin
      */
     public function handle_row_action()
     {
+        if (!method_exists('MLUC_License_Manager', 'local_mode_enabled')
+            || !MLUC_License_Manager::local_mode_enabled()) {
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+        }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_action')) {
             wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
         }

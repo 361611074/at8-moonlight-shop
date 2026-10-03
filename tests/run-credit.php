@@ -194,20 +194,20 @@ class Fake_WPDB_Usermeta
 $GLOBALS['wpdb'] = new Fake_WPDB_Usermeta();
 
 /* ---------- 被测代码 ---------- */
-require ABSPATH . '../moonlight-user-center/includes/functions.php';
-require ABSPATH . '../moonlight-user-center/includes/class-wallet.php';
-require ABSPATH . '../moonlight-user-center/includes/class-credit.php';
-require ABSPATH . '../moonlight-user-center/includes/class-checkin.php';
-require ABSPATH . '../moonlight-user-center/includes/class-payment-gateway-interface.php';
-require ABSPATH . '../moonlight-user-center/includes/class-payment-log.php';
-require ABSPATH . '../moonlight-user-center/includes/class-payments.php';
-require ABSPATH . '../moonlight-user-center/includes/class-payment-manager.php';
-require ABSPATH . '../moonlight-user-center/includes/class-gateway-manual.php';
-require ABSPATH . '../moonlight-user-center/includes/class-gateway-paypal.php';
-require ABSPATH . '../moonlight-user-center/includes/class-gateway-stripe.php';
-require ABSPATH . '../moonlight-user-center/includes/class-gateway-alipay.php';
-require ABSPATH . '../moonlight-user-center/includes/class-gateway-balance.php';
-require ABSPATH . '../moonlight-user-center/includes/class-credit-ui.php';
+require ABSPATH . './fixtures/user-center/includes/functions.php';
+require ABSPATH . './fixtures/user-center/includes/class-wallet.php';
+require ABSPATH . './fixtures/user-center/includes/class-credit.php';
+require ABSPATH . './fixtures/user-center/includes/class-checkin.php';
+require ABSPATH . './fixtures/user-center/includes/class-payment-gateway-interface.php';
+require ABSPATH . './fixtures/user-center/includes/class-payment-log.php';
+require ABSPATH . './fixtures/user-center/includes/class-payments.php';
+require ABSPATH . './fixtures/user-center/includes/class-payment-manager.php';
+require ABSPATH . './fixtures/user-center/includes/class-gateway-manual.php';
+require ABSPATH . './fixtures/user-center/includes/class-gateway-paypal.php';
+require ABSPATH . './fixtures/user-center/includes/class-gateway-stripe.php';
+require ABSPATH . './fixtures/user-center/includes/class-gateway-alipay.php';
+require ABSPATH . './fixtures/user-center/includes/class-gateway-balance.php';
+require ABSPATH . './fixtures/user-center/includes/class-credit-ui.php';
 
 /* ==========================================================================
  * 套餐解析 / 比例守卫 / 换算
@@ -228,7 +228,7 @@ $GLOBALS['__test_options']['mluc_options'] = array('credit_rate' => 12.5, 'credi
 check('合法比例原样生效', 12.5 === mluc_get_credit_rate() && 250.0 === mluc_get_credit_exchange_rate());
 
 check('自定义充值价格 = 积分 ÷ 比例（1000/12.5=80）', 80.0 === round(1000 / mluc_get_credit_rate(), 2));
-require_once ABSPATH . '../moonlight-user-center/includes/class-gateway-credit.php';
+require_once ABSPATH . './fixtures/user-center/includes/class-gateway-credit.php';
 check('支付积分 = ceil(金额 × 比例)', 125 === (int) ceil(9.99 * mluc_get_credit_rate()));
 
 /* ==========================================================================

@@ -2191,8 +2191,11 @@ foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
         file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.po")
         && file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.mo"));
 }
-check('旧插件文件头定义 MLUC_LEGACY_ACTIVE',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/moonlight-user-center.php'), "define('MLUC_LEGACY_ACTIVE', true)"));
+// 单插件形态：不再有独立用户中心插件，改验「并入模块自带让位守卫」——
+// 引擎缺席时商城补齐 MLUC_* 常量与加载器，存在旧插件时才让位。
+check('商城主文件含并入让位守卫 mlshop_mluc_legacy_active / mlshop_user_modules_should_boot',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'mlshop_register_mluc_compat')
+    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'mlshop_user_modules_should_boot'));
 check('商城主文件注册 MLUC_ → includes/user/ 自动加载',
     false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "includes/user/class-"));
 check('商城主文件含启动守卫 mlshop_user_modules_should_boot',
@@ -2209,9 +2212,9 @@ check('合并层补齐积分/钱包依赖函数（credit_enabled / balance_enabl
     false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_credit_enabled')
     && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_atomic_decrement_user_meta'));
 check('独立插件的同名函数有 function_exists 守卫（两插件同装不致命）',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'),
+    false !== strpos((string) file_get_contents(__DIR__ . '/./fixtures/user-center/includes/functions.php'),
         "if (!function_exists('mluc_credit_enabled'))")
-    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'),
+    && false !== strpos((string) file_get_contents(__DIR__ . '/./fixtures/user-center/includes/functions.php'),
         "if (!function_exists('mluc_atomic_decrement_user_meta'))"));
 // 仍未并入：UC 独立支付体系（商城已用自己的网关与订单流程接管）与页面创建器
 check('UC 独立支付体系未并入（payments/paywall/paypal/stripe/gateway/activator/account-orders）',
@@ -2334,10 +2337,10 @@ check('余额在完单失败后自动回补（50）', (float) get_user_meta(42, 
 $GLOBALS['__test_user_id'] = 0;
 
 echo "== 双插件同装共存（商城先加载顺序，回归 Cannot redeclare 致命） ==\n";
-require __DIR__ . '/../moonlight-user-center/includes/functions.php';
+require __DIR__ . '/./fixtures/user-center/includes/functions.php';
 check('会员中心函数加载无致命，积分助手可用', function_exists('mluc_credit_enabled') && function_exists('mluc_atomic_increment_user_meta'));
 check('共用 mluc_* 未被重定义（商城版生效）', mluc_get_option('nothing_here', 'sentinel') === 'sentinel');
-check('会员中心 functions.php 共用函数带 function_exists 守卫', false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'), "if (!function_exists('mluc_get_option'))"));
+check('会员中心 functions.php 共用函数带 function_exists 守卫', false !== strpos((string) file_get_contents(__DIR__ . '/./fixtures/user-center/includes/functions.php'), "if (!function_exists('mluc_get_option'))"));
 
 echo "== Phase A：并入模块用例（子进程 run-user.php） ==\n";
 // Windows 中文用户目录下，绝对路径经 cmd 代码页转码会乱码（Could not open input file）；

@@ -163,10 +163,18 @@ check('设置页挂到商城菜单下「会员与账户」', 1 === count($__pb_s
     && '会员与账户' === $__pb_sub[0]['title']);
 MLUC_License_Admin::get_instance()->register_menu();
 MLUC_System_Status::get_instance()->register_menu();
-$__pb_sub = $GLOBALS['__test_admin_menu']['sub'];
-check('License 管理与设置页同组（商城菜单下）', 3 === count($__pb_sub)
-    && 'edit.php?post_type=mlshop_product' === $__pb_sub[1]['parent'] && 'mluc-licenses' === $__pb_sub[1]['slug']);
-check('系统状态与设置页同组（商城菜单下）', 'edit.php?post_type=mlshop_product' === $__pb_sub[2]['parent'] && 'mluc-status' === $__pb_sub[2]['slug']);
+$__pb_by_slug = array();
+foreach ((array) $GLOBALS['__test_admin_menu']['sub'] as $__pb_one) {
+    if (isset($__pb_one['slug'])) {
+        $__pb_by_slug[$__pb_one['slug']] = $__pb_one;
+    }
+}
+// 单插件形态下授权签发界面默认关闭：仅授权方自用站（wp-config.php 定义
+// MLUC_LICENSE_LOCAL_MODE）才注册菜单，客户站不得出现任何签发入口。
+check('授权管理默认不注册菜单（客户站无签发入口）', !isset($__pb_by_slug['mluc-licenses']));
+check('系统状态与设置页同组（商城菜单下）',
+    isset($__pb_by_slug['mluc-status'])
+    && 'edit.php?post_type=mlshop_product' === $__pb_by_slug['mluc-status']['parent']);
 __test_reset_card_env();
 
 echo "== Phase B：mluc_account_tabs 过滤器 Tab 去重 ==\n";
@@ -713,13 +721,6 @@ MLUC_Migration_Status::get_instance()->register_menu();
 check('迁移状态页挂到「会员与账户」同组（商城菜单下）', false !== array_search('mluc-migration-status', array_column($GLOBALS['__test_admin_menu']['sub'], 'slug'), true)
     && 'edit.php?post_type=mlshop_product' === $GLOBALS['__test_admin_menu']['sub'][count($GLOBALS['__test_admin_menu']['sub']) - 1]['parent']);
 
-echo "== Phase E：旧插件退役提示（源级断言：notice + dismiss 处理器存在） ==\n";
-$__uc_main = file_get_contents(dirname(__DIR__) . '/moonlight-user-center/moonlight-user-center.php');
-check('退役提示 notice 存在且以商城激活为前提', false !== strpos($__uc_main, "class_exists('MLSHOP_Order')")
-    && false !== strpos($__uc_main, 'mluc_retire_notice_dismissed'));
-check('dismiss 处理器存在（admin_post + nonce）', false !== strpos($__uc_main, 'admin_post_mluc_retire_notice_dismiss')
-    && false !== strpos($__uc_main, "check_admin_referer('mluc_retire_notice_dismiss')"));
-
 /* ==========================================================================
  * Phase B：旧插件激活让位分支（MLUC_LEGACY_ACTIVE 在本节开头定义；
  * 原位于 mluc_* 函数合并节之前——Phase C 非让位用例需要更长的不让位区间）
@@ -745,8 +746,12 @@ check('LEGACY：仍注册「用户中心」顶级菜单（mluc-settings，positi
     && 'mluc-settings' === $GLOBALS['__test_admin_menu']['top'][0]['slug']
     && 31 === $GLOBALS['__test_admin_menu']['top'][0]['position']);
 MLUC_License_Admin::get_instance()->register_menu();
-check('LEGACY：License 管理仍挂「用户中心」顶级菜单下', 2 === count($GLOBALS['__test_admin_menu']['sub'])
-    && 'mluc-settings' === $GLOBALS['__test_admin_menu']['sub'][1]['parent'] && 'mluc-licenses' === $GLOBALS['__test_admin_menu']['sub'][1]['slug']);
+$__lg = array();
+foreach ((array) $GLOBALS['__test_admin_menu']['sub'] as $__one) {
+    if (isset($__one['slug']) && 'mluc-licenses' === $__one['slug']) { $__lg[] = $__one; }
+}
+// LEGACY 场景同样不挂签发菜单：授权签发只对授权方自用站开放（MLUC_LICENSE_LOCAL_MODE）。
+check('LEGACY：授权签发菜单不注册（客户站不可自助发授权）', empty($__lg));
 __test_reset_card_env();
 
 echo "== Phase C：LEGACY 回归（旧插件激活时商城侧 Phase C 新行为全部不生效） ==\n";
