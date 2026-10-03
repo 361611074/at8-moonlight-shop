@@ -31,6 +31,13 @@ class MLUC_Licenses_Tab
             return $tabs;
         }
 
+        // 授权是「站点运营方」的东西（谁买了 Pro、绑在哪个域名、怎么续期），
+        // 与前台买教材的会员无关。只有站点管理员才需要看到这张卡，
+        // 普通会员看到只会困惑「什么是 Pro 方案」。
+        if (!current_user_can('manage_options')) {
+            return $tabs;
+        }
+
         $tabs['licenses'] = array(
             'title'    => __('我的授权', 'moonlight-user-center'),
             'icon'     => 'dashicons-admin-network',
