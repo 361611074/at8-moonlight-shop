@@ -91,7 +91,12 @@ add_action('plugins_loaded', function () {
 
     // 支付 / License / 通知扩展模块（v2.0.0：Free + Pro 商业化体系）
     MLUC_License_Manager::get_instance();
-    MLUC_License_Admin::get_instance();
+    // 授权管理界面（签发 / 撤销 / 续期）属授权方职能：仅授权方站点启用。
+    // 客户分发包不含 class-license-admin.php（构建时排除），此处再判常量，
+    // 形成「既无开关、也无代码」的双保险。
+    if (defined('MLUC_LICENSE_LOCAL_MODE') && MLUC_LICENSE_LOCAL_MODE) {
+        MLUC_License_Admin::get_instance();
+    }
     MLUC_Account_Orders::get_instance();
     MLUC_Email_Notifications::get_instance();
     MLUC_System_Status::get_instance();
