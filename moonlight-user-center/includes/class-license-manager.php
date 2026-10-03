@@ -387,6 +387,11 @@ class MLUC_License_Manager
 
     /**
      * 远程验证（含缓存 + Grace Period）。
+     *
+     * 协议：at8-license-server-v2（授权方自建 WordPress 授权中心）
+     *   POST {server}/wp-json/at8-license/v1/license/verify
+     *   签名头 X-AT8-Key / Timestamp / Nonce / Signature（HMAC-SHA256）
+     *   成功响应 {success:true, status:'active', expires_at, lifetime, ...}
      */
     private function remote_verify_ok($post_id, $product, $server)
     {
@@ -398,21 +403,10 @@ class MLUC_License_Manager
             return (bool) $cached['valid'];
         }
 
-        $response = wp_remote_post(
-            untrailingslashit($server) . '/wp-json/mluc-license/v1/verify',
-            array(
-                'timeout' => 10,
-                'headers' => array('Content-Type' => 'application/json'),
-                'body'    => wp_json_encode(array(
-                    'license_key' => $key,
-                    'product'     => $product,
-                    'site_url'    => home_url(),
-                )),
-            )
-        );
+        $result = self::remote_call($server, 'verify', $key, $product);
 
-        if (is_wp_error($response)) {
-            // 网络失败：宽限期内沿用最后一次成功验证的结果，绝不让 Server 故障即时禁用 Pro。
+        if (is_wp_error($result)) {
+            // 网络故障：宽限期内沿用最后一次成功验证的结果，绝不让 Server 故障即时禁用 Pro。
             $last_check = (int) get_post_meta($post_id, '_mluc_license_last_check_ts', true);
             $grace_end  = $last_check + self::GRACE_DAYS * DAY_IN_SECONDS;
             if ($last_check && time() < $grace_end) {
@@ -421,13 +415,116 @@ class MLUC_License_Manager
             return false;
         }
 
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        $valid = !empty($body['valid']);
+        $valid = self::is_remote_valid($result);
+        if ($valid) {
+            // 顺带把服务端的到期时间同步到本地，便于本地展示。
+            if (isset($result['expires_at']) && (int) $result['expires_at'] > 0) {
+                update_post_meta($post_id, '_mluc_license_expires', (int) $result['expires_at']);
+            }
+        }
         update_post_meta($post_id, '_mluc_license_last_check', current_time('mysql'));
         update_post_meta($post_id, '_mluc_license_last_check_ts', time());
         update_post_meta($post_id, '_mluc_license_last_valid', $valid ? 1 : 0);
         set_transient($cache_k, array('valid' => $valid), self::REMOTE_CACHE_TTL);
         return $valid;
+    }
+
+    /**
+     * 授权码归一化：与服务端 AT8LIC_Keys::normalize() 完全一致。
+     *
+     * @param string $key
+     * @return string
+     */
+    public static function normalize_key($key)
+    {
+        return preg_replace('/[^A-Z0-9]/', '', strtoupper(trim((string) $key)));
+    }
+
+    /**
+     * 调用 at8-license-server-v2 REST 接口（带 HMAC 签名）。
+     *
+     * 签名串："{ts}\n{nonce}\n{METHOD}\n{path}\n{sha256(raw_body)}"
+     * 签名值：base64(hmac_sha256(签名串, normalize(key)))
+     *
+     * @param string $server  授权服务器地址
+     * @param string $action  activate | verify | deactivate
+     * @param string $key     License Key
+     * @param string $product 产品标识（moonlight-shop-pro 等）
+     * @return array|WP_Error 解码后的响应体
+     */
+    public static function remote_call($server, $action, $key, $product)
+    {
+        $server = untrailingslashit(trim((string) $server));
+        if ('' === $server) {
+            return new WP_Error('mluc_lic_no_server', __('未配置 License Server 地址。', 'moonlight-user-center'));
+        }
+        $action = in_array($action, array('activate', 'verify', 'deactivate'), true) ? $action : 'verify';
+
+        // body 先生成字符串：签名与实际发送必须是同一份字节
+        $raw_body = wp_json_encode(array(
+            'product'  => (string) $product,
+            'site_url' => home_url(),
+        ));
+        $url  = $server . '/wp-json/at8-license/v1/license/' . $action;
+        $path = (string) wp_parse_url($url, PHP_URL_PATH);
+
+        $ts    = (string) time();
+        $nonce = wp_generate_password(16, false, false);
+        $sig   = base64_encode(
+            hash_hmac(
+                'sha256',
+                implode("\n", array($ts, $nonce, 'POST', $path, hash('sha256', $raw_body))),
+                self::normalize_key($key),
+                true // 原始二进制：与服务端 AT8LIC_Security 一致，缺省会得到 hex 而验签失败
+            )
+        );
+
+        $response = wp_remote_post($url, array(
+            'timeout' => 8, // 授权校验不能拖慢前台；超时即走宽限期，不阻塞页面
+            'headers' => array(
+                'Content-Type'    => 'application/json',
+                'X-AT8-Key'       => (string) $key,
+                'X-AT8-Timestamp' => $ts,
+                'X-AT8-Nonce'     => $nonce,
+                'X-AT8-Signature' => $sig,
+            ),
+            'body'    => $raw_body,
+        ));
+
+        if (is_wp_error($response)) {
+            return new WP_Error('mluc_lic_network', __('无法连接授权服务器。', 'moonlight-user-center'));
+        }
+        $code = (int) wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        if (!is_array($body)) {
+            return new WP_Error('mluc_lic_bad_response', __('授权服务器返回异常。', 'moonlight-user-center'));
+        }
+        if (200 !== $code || empty($body['success'])) {
+            $msg = !empty($body['message']) ? (string) $body['message'] : __('授权校验未通过。', 'moonlight-user-center');
+            return new WP_Error('mluc_lic_rejected', $msg, array('status' => $code));
+        }
+        return $body;
+    }
+
+    /**
+     * 判定 v2 响应是否代表授权有效。
+     *
+     * @param array $body
+     * @return bool
+     */
+    public static function is_remote_valid($body)
+    {
+        if (!is_array($body) || empty($body['success'])) {
+            return false;
+        }
+        if (isset($body['status']) && 'active' !== $body['status']) {
+            return false;
+        }
+        // 过期判断：lifetime=true 视为永久
+        if (empty($body['lifetime']) && !empty($body['expires_at']) && (int) $body['expires_at'] < time()) {
+            return false;
+        }
+        return true;
     }
 
     /* ---------------- 激活 / 停用 / 续期 / 撤销 ---------------- */
@@ -440,9 +537,11 @@ class MLUC_License_Manager
      */
     public static function activate($key)
     {
+        $key = trim(strtoupper((string) $key));
         $post = self::get_by_key($key);
         if (!$post) {
-            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-user-center'));
+            // 客户站本地没有记录属正常：授权由授权方服务器保管，这里做远程首次激活。
+            return self::activate_remotely($key);
         }
         $status = self::effective_status($post->ID);
         if (self::STATUS_REVOKED === $status) {
@@ -516,6 +615,13 @@ class MLUC_License_Manager
         if ((string) get_post_meta($post->ID, '_mluc_license_site_hash', true) !== $site['hash']) {
             return new WP_Error('mluc_lic_site', __('该 License 未绑定当前站点。', 'moonlight-user-center'));
         }
+
+        // 有授权服务器时同步解绑（释放服务端席位）；失败不阻塞本地解绑，避免客户被卡住。
+        $server = trim((string) mluc_get_option('license_server_url', ''));
+        if ('' !== $server) {
+            self::remote_call($server, 'deactivate', (string) $post->post_title, self::PRODUCT_PRO);
+        }
+
         $count = (int) get_post_meta($post->ID, '_mluc_license_count', true);
         update_post_meta($post->ID, '_mluc_license_count', max(0, $count - 1));
         update_post_meta($post->ID, '_mluc_license_site', '');
@@ -524,6 +630,70 @@ class MLUC_License_Manager
         delete_transient('mluc_lic_verify_' . md5((string) $post->post_title));
 
         do_action('mluc_license_deactivated', $post->ID, $site['url']);
+        return true;
+    }
+
+    /**
+     * 远程首次激活：向授权服务器校验授权码 → 成功后写入本地记录。
+     *
+     * 仅在配置了 License Server 时可用（授权方自建授权中心）。
+     * 本地记录只是缓存快照，任何时候都以服务端为准。
+     *
+     * @param string $key
+     * @return true|WP_Error
+     */
+    protected static function activate_remotely($key)
+    {
+        $server = trim((string) mluc_get_option('license_server_url', ''));
+        if ('' === $server) {
+            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-user-center'));
+        }
+
+        // 不限定产品：授权码在服务端已绑定产品，此处只验「码有效 + 绑定本站」。
+        // 产品维度由后续 is_product_active($product) 逐个校验（Pro 端有双产品语义）。
+        $result = self::remote_call($server, 'activate', $key, '');
+        if (is_wp_error($result)) {
+            $code = $result->get_error_code();
+            $msg  = $result->get_error_message();
+            if ('mluc_lic_network' === $code) {
+                return new WP_Error($code, __('无法连接授权服务器，请检查「用户中心 → 设置 → License / Pro」中的服务器地址。', 'moonlight-user-center'));
+            }
+            if ('mluc_lic_no_server' === $code) {
+                return new WP_Error($code, __('本站未配置 License Server，无法激活 Pro。请联系插件提供方。', 'moonlight-user-center'));
+            }
+            return new WP_Error($code, $msg);
+        }
+        if (!self::is_remote_valid($result)) {
+            return new WP_Error('mluc_lic_invalid', __('该授权码无效、已过期或已被吊销。', 'moonlight-user-center'));
+        }
+
+        // 写本地快照（post_title = Key，作为后续 verify 的凭据）
+        $post_id = wp_insert_post(array(
+            'post_title'  => $key,
+            'post_type'   => self::CPT,
+            'post_status' => 'publish',
+        ));
+        if (is_wp_error($post_id) || !$post_id) {
+            return new WP_Error('mluc_lic_local', __('授权已通过，但本地记录创建失败，请联系管理员。', 'moonlight-user-center'));
+        }
+        $site = self::current_site();
+        // 产品以服务端返回为准（授权码绑定的产品），不要写死常量：
+        // 同一个 Pro 插件在不同版本里用的是不同 product slug，写死会导致门禁查不到。
+        $remote_product = !empty($result['product']) ? sanitize_key((string) $result['product']) : '';
+        update_post_meta($post_id, '_mluc_license_product', $remote_product ? $remote_product : self::PRODUCT_PRO);
+        update_post_meta($post_id, '_mluc_license_status', self::STATUS_ACTIVE);
+        update_post_meta($post_id, '_mluc_license_site', $site['url']);
+        update_post_meta($post_id, '_mluc_license_site_hash', $site['hash']);
+        update_post_meta($post_id, '_mluc_license_count', 1);
+        if (!empty($result['expires_at'])) {
+            update_post_meta($post_id, '_mluc_license_expires', (int) $result['expires_at']);
+        }
+        update_post_meta($post_id, '_mluc_license_last_check', current_time('mysql'));
+        update_post_meta($post_id, '_mluc_license_last_check_ts', time());
+        update_post_meta($post_id, '_mluc_license_last_valid', 1);
+        delete_transient('mluc_lic_verify_' . md5($key));
+
+        do_action('mluc_license_activated', $post_id, $site['url']);
         return true;
     }
 
