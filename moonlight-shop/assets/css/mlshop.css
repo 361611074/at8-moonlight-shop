@@ -1441,8 +1441,8 @@
 .mlshop-header-actions {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    margin-left: 14px;
+    gap: var(--mlshop-ha-gap, 10px);
+    margin-left: var(--mlshop-ha-margin, 14px);
     vertical-align: middle;
     line-height: 1;
 }
@@ -1455,17 +1455,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: rgba(120, 120, 120, .16);
-    color: #2b2b2b;
+    width: var(--mlshop-ha-size, 36px);
+    height: var(--mlshop-ha-size, 36px);
+    border-radius: var(--mlshop-ha-radius, 50%);
+    background: var(--mlshop-ha-bg, rgba(120, 120, 120, .16));
+    color: var(--mlshop-ha-color, #2b2b2b);
     text-decoration: none;
     transition: background-color .18s ease, color .18s ease;
 }
 
 .mlshop-header-btn:hover {
-    background-color: rgba(34, 113, 177, .18);
+    background-color: var(--mlshop-ha-bg-hover, rgba(34, 113, 177, .18));
     color: #2271b1;
     text-decoration: none;
 }
@@ -1484,7 +1484,8 @@
     padding: 0 5px;
     box-sizing: border-box;
     border-radius: 9px;
-    background: #e53935;
+    background: var(--mlshop-ha-badge-bg, #e53935);
+    color: var(--mlshop-ha-badge-text, #fff);
     color: #fff;
     font-size: 11px;
     line-height: 18px;
@@ -1559,8 +1560,8 @@
 /* 移动端：行内仍显示，但按钮尺寸略小，且让位 mobile header 内的 right section 元素 */
 @media (max-width: 768px) {
     .mlshop-header-actions { gap: 6px; margin-left: 8px; }
-    .mlshop-header-btn { width: 32px; height: 32px; }
-    .mlshop-header-btn .mlshop-header-icon svg { width: 18px; height: 18px; }
+    .mlshop-header-btn { width: var(--mlshop-ha-size, 32px); height: var(--mlshop-ha-size, 32px); }
+    .mlshop-header-btn .mlshop-header-icon svg { width: var(--mlshop-ha-icon, 18px); height: var(--mlshop-ha-icon, 18px); }
 }
 
 /* === 商品卡片 + 单页：「加入购物车」与「收藏」按钮尺寸统一（以加入购物车为基线，2026-08-28） === */
@@ -1793,4 +1794,44 @@
     .mlshop-product-actions .mlshop-favorite-btn {
         flex-basis: 72px;
     }
+}
+
+/* ==========================================================================
+   移动端页眉动作按钮（购物车 / 收藏 / 会员）
+   JS 在移动端会把 .mlshop-header-actions 搬到 <body> 下并加 .mlshop-header-mobile-float
+   （Astra 移动端使用另一套 header，桌面 header 整棵子树宽度为 0，放进去必隐形）。
+   固定在页头右缘、汉堡按钮左侧，脱离主题布局，任何主题都可见。
+   ========================================================================== */
+.mlshop-header-mobile-float {
+    position: fixed;
+    /* 兜底坐标：JS 会读取汉堡按钮实际位置覆盖这两个值 */
+    top: 10px;
+    right: 56px;
+    transform: translateY(-50%);
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    background: transparent;
+}
+
+.mlshop-header-mobile-float .mlshop-header-btn {
+    background: rgba(255, 255, 255, .92);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .12);
+}
+
+.mlshop-header-mobile-float .mlshop-header-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* 会员下拉菜单对齐右侧，避免超出屏幕 */
+.mlshop-header-mobile-float .mlshop-member-menu {
+    right: 0;
+    left: auto;
+}
+
+@media (max-width: 480px) {
+    .mlshop-header-mobile-float { gap: 2px; }
 }

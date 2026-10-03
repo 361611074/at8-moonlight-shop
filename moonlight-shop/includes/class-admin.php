@@ -235,6 +235,61 @@ class MLSHOP_Admin
             'sanitize_callback' => array($this, 'sanitize_gateway_labels'),
             'default'           => array(),
         ));
+
+        // 页眉动作按钮（购物车 / 收藏 / 会员）外观自定义
+        register_setting($group, 'mlshop_header_actions', array(
+            'type'              => 'array',
+            'sanitize_callback' => array($this, 'sanitize_header_actions'),
+            'default'           => array(),
+        ));
+    }
+
+    /**
+     * 清洗「页眉动作按钮」表单：逐项按类型收敛（颜色 / 尺寸 / 开关）。
+     *
+     * 保留未提交的其它键，避免半填表单清空其余设置。
+     *
+     * @param mixed $input
+     * @return array
+     */
+    public function sanitize_header_actions($input)
+    {
+        $old = get_option('mlshop_header_actions', array());
+        $out = is_array($old) ? $old : array();
+        $in  = is_array($input) ? $input : array();
+
+        $color_keys = array('color', 'bg', 'bg_hover', 'badge_bg', 'badge_text');
+        $size_keys  = array('size', 'icon_size', 'radius', 'gap', 'margin_left', 'mobile_top', 'mobile_right');
+
+        foreach ($in as $k => $v) {
+            if (in_array($k, $color_keys, true)) {
+                $color = sanitize_hex_color($v);
+                if ($color) {
+                    $out[$k] = $color;
+                }
+            } elseif (in_array($k, $size_keys, true)) {
+                $num = (float) $v;
+                // 尺寸给上下限，防止 0 或超大把页眉撑破（与前台输出的夹取范围一致）
+                if ($num > 0) {
+                    $caps = array(
+                        'size'         => array(20, 80),
+                        'icon_size'    => array(12, 60),
+                        'radius'       => array(0, 60),
+                        'gap'          => array(0, 60),
+                        'margin_left'  => array(0, 200),
+                        'mobile_top'   => array(0, 400),
+                        'mobile_right' => array(0, 400),
+                    );
+                    $r = isset($caps[$k]) ? $caps[$k] : array(0, 200);
+                    $out[$k] = max($r[0], min($r[1], $num));
+                }
+            } elseif ('show_badge' === $k) {
+                $out[$k] = empty($v) ? 0 : 1;
+            } elseif ('show_label' === $k) {
+                $out[$k] = empty($v) ? 0 : 1;
+            }
+        }
+        return $out;
     }
 
     /**
@@ -451,6 +506,7 @@ class MLSHOP_Admin
                     <li><a href="#mlshop-sec-shipping"><?php esc_html_e('運費設定', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-mail"><?php esc_html_e('郵件設置', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-stripe"><?php esc_html_e('Stripe 支付', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-headerbtns"><?php esc_html_e('頁眉按鈕', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-pmethods"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-paypal"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-alipay"><?php esc_html_e('支付寶支付', 'moonlight-shop'); ?></a></li>
@@ -1072,6 +1128,92 @@ class MLSHOP_Admin
                 <p>
                     <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_test_stripe'), 'mlshop_test_stripe')); ?>" class="button"><?php esc_html_e('測試 Stripe 連線', 'moonlight-shop'); ?></a>
                 </p>
+
+                <h2 id="mlshop-sec-headerbtns" class="mlshop-card-title"><?php esc_html_e('頁眉按鈕（購物車 / 收藏 / 會員）', 'moonlight-shop'); ?></h2>
+                <p class="description"><?php esc_html_e('控制頁眉右上角三顆按鈕的外觀。桌面端顯示在頁眉右欄；行動端會自動固定在漢堡選單左側（位置可單獨設定）。留空即用預設值。', 'moonlight-shop'); ?></p>
+                <?php
+                $ha = (array) get_option('mlshop_header_actions', array());
+                $ha = wp_parse_args($ha, array(
+                    'size'        => 36,
+                    'icon_size'   => 22,
+                    'radius'      => 50,
+                    'gap'         => 10,
+                    'margin_left' => 14,
+                    'color'       => '',
+                    'bg'          => '',
+                    'bg_hover'    => '',
+                    'badge_bg'    => '',
+                    'badge_text'  => '',
+                    'show_badge'  => 1,
+                    'show_label'  => 0,
+                    'mobile_top'    => 10,
+                    'mobile_right'  => 56,
+                ));
+                $ha_num = function ($key) use ($ha) {
+                    return (float) $ha[$key];
+                };
+                ?>
+                <table class="form-table">
+                    <tr>
+                        <th><?php esc_html_e('按鈕尺寸', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="number" min="20" max="80" step="1" name="mlshop_header_actions[size]" value="<?php echo esc_attr($ha_num('size')); ?>" class="small-text"> px
+                            <p class="description"><?php esc_html_e('按鈕正方形邊長，推薦 32–44。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('圖標尺寸', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="number" min="12" max="60" step="1" name="mlshop_header_actions[icon_size]" value="<?php echo esc_attr($ha_num('icon_size')); ?>" class="small-text"> px
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('圓角', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="number" min="0" max="60" step="1" name="mlshop_header_actions[radius]" value="<?php echo esc_attr($ha_num('radius')); ?>" class="small-text"> px
+                            <p class="description"><?php esc_html_e('填 50 為正圓，填 0 為方角。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('間距 / 左邊距', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="number" min="0" max="60" step="1" name="mlshop_header_actions[gap]" value="<?php echo esc_attr($ha_num('gap')); ?>" class="small-text"> px
+                            <input type="number" min="0" max="200" step="1" name="mlshop_header_actions[margin_left]" value="<?php echo esc_attr($ha_num('margin_left')); ?>" class="small-text"> px
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('圖標顏色', 'moonlight-shop'); ?></th>
+                        <td><input type="text" class="regular-text" name="mlshop_header_actions[color]" value="<?php echo esc_attr($ha['color']); ?>" placeholder="#1f2937"></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('按鈕背景', 'moonlight-shop'); ?></th>
+                        <td><input type="text" class="regular-text" name="mlshop_header_actions[bg]" value="<?php echo esc_attr($ha['bg']); ?>" placeholder="rgba(120,120,120,0.08)"></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('懸停背景', 'moonlight-shop'); ?></th>
+                        <td><input type="text" class="regular-text" name="mlshop_header_actions[bg_hover]" value="<?php echo esc_attr($ha['bg_hover']); ?>" placeholder="rgba(34,113,177,0.18)"></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('角標', 'moonlight-shop'); ?></th>
+                        <td>
+                            <label><input type="checkbox" name="mlshop_header_actions[show_badge]" value="1" <?php checked((int) $ha['show_badge'], 1); ?>> <?php esc_html_e('顯示購物車 / 收藏數量角標', 'moonlight-shop'); ?></label>
+                            <p class="description">
+                                <?php esc_html_e('顏色：', 'moonlight-shop'); ?>
+                                <input type="text" class="regular-text" name="mlshop_header_actions[badge_bg]" value="<?php echo esc_attr($ha['badge_bg']); ?>" placeholder="#e53935">
+                                <?php esc_html_e('文字：', 'moonlight-shop'); ?>
+                                <input type="text" class="regular-text" name="mlshop_header_actions[badge_text]" value="<?php echo esc_attr($ha['badge_text']); ?>" placeholder="#ffffff">
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('行動端位置', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="number" min="0" max="400" step="1" name="mlshop_header_actions[mobile_top]" value="<?php echo esc_attr($ha_num('mobile_top')); ?>" class="small-text"> px（距頂）
+                            <input type="number" min="0" max="400" step="1" name="mlshop_header_actions[mobile_right]" value="<?php echo esc_attr($ha_num('mobile_right')); ?>" class="small-text"> px（距右）
+                            <p class="description"><?php esc_html_e('預設會自動對齊漢堡選單；若手動填寫則以此為準。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                </table>
 
                 <h2 id="mlshop-sec-pmethods" class="mlshop-card-title"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></h2>
                 <p class="description"><?php esc_html_e('勾選需要在前台結算頁公開的支付方式；未勾選的方式在前台「選擇支付方式」列表中不會顯示，且 AJAX 下單會被拒絕。如需新增支付方式（例如獨立的 APP 跳轉型網關）請單獨告訴我對接。', 'moonlight-shop'); ?></p>

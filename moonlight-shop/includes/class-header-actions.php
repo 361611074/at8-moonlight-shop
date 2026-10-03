@@ -44,6 +44,127 @@ class MLSHOP_Header_Actions
         // 默认 wp_get_environment_type() !== 'production' 时启用；
         // 可通过过滤器 moonlight_disable_cache 强制开关（返回 true = 禁缓存）。
         add_action('send_headers', array($this, 'prevent_front_cache'), 5);
+        // 外观自定义：把后台设置输出为 CSS 变量（桌面 / 移动端共用同一套）
+        add_action('wp_head', array($this, 'render_style_vars'), 20);
+    }
+
+    /**
+     * 默认外观值（后台未配置时使用）。
+     *
+     * @return array
+     */
+    public static function defaults()
+    {
+        return array(
+            'size'         => 36,
+            'icon_size'    => 22,
+            'radius'       => 50,
+            'gap'          => 10,
+            'margin_left'  => 14,
+            'color'        => '',
+            'bg'           => 'rgba(120, 120, 120, .08)',
+            'bg_hover'     => 'rgba(34, 113, 177, .18)',
+            'badge_bg'     => '#e53935',
+            'badge_text'   => '#ffffff',
+            'show_badge'   => 1,
+            'mobile_top'   => 0,
+            'mobile_right' => 0,
+        );
+    }
+
+    /**
+     * 读取后台配置并与默认值合并。
+     *
+     * @return array
+     */
+    public static function get_style()
+    {
+        $saved = get_option('mlshop_header_actions', array());
+        $saved = is_array($saved) ? $saved : array();
+        return wp_parse_args($saved, self::defaults());
+    }
+
+    /**
+     * 输出 CSS 变量。值已在保存时 sanitize，这里再做一次数值收敛后拼进 style。
+     */
+    public function render_style_vars()
+    {
+        if (is_admin()) {
+            return;
+        }
+        $s = self::get_style();
+        $d = self::defaults();
+
+        // 与默认值一致的项不输出：避免每页多输出无意义样式，
+        // 也避免把默认值写死成 inline 变量后 CSS 里的 fallback 永远生效不到。
+        $num = function ($key, $min, $max) use ($s, $d) {
+            $v = (float) $s[$key];
+            if ($v <= 0 || (string) $s[$key] === (string) $d[$key]) {
+                return '';
+            }
+            return max($min, min($max, $v)) . 'px';
+        };
+        $color = function ($key) use ($s, $d) {
+            $v = trim((string) $s[$key]);
+            $def = trim((string) $d[$key]);
+            if ('' === $v || $v === $def) {
+                return '';
+            }
+            // 仅允许安全的颜色写法（hex 或 rgba()/rgb()/var()），杜绝任意字符串注入
+            if (preg_match('/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/', $v)
+                || preg_match('/^rgba?\(\s*[\d.\s,%]+\)$/', $v)
+                || preg_match('/^var\(--[a-zA-Z0-9_-]+\)$/', $v)) {
+                return $v;
+            }
+            return '';
+        };
+
+        $vars = array();
+        $map  = array(
+            '--mlshop-ha-size'       => $num('size', 20, 80),
+            '--mlshop-ha-icon'       => $num('icon_size', 12, 60),
+            '--mlshop-ha-radius'     => $num('radius', 0, 60),
+            '--mlshop-ha-gap'        => $num('gap', 0, 60),
+            '--mlshop-ha-margin'     => $num('margin_left', 0, 200),
+            '--mlshop-ha-color'      => $color('color'),
+            '--mlshop-ha-bg'         => $color('bg'),
+            '--mlshop-ha-bg-hover'   => $color('bg_hover'),
+            '--mlshop-ha-badge-bg'   => $color('badge_bg'),
+            '--mlshop-ha-badge-text' => $color('badge_text'),
+        );
+        foreach ($map as $k => $v) {
+            if ('' !== $v) {
+                $vars[] = $k . ':' . $v;
+            }
+        }
+
+        $css = '';
+        if (!empty($vars)) {
+            $css = ':root{' . implode(';', $vars) . '}';
+        }
+        if ((int) $s['show_badge'] !== 1) {
+            $css .= '.mlshop-header-count{display:none;}';
+        }
+        // 移动端固定位置：仅在后台显式填写（>0）时覆盖 JS 的自动对齐
+        $mt = (float) $s['mobile_top'];
+        $mr = (float) $s['mobile_right'];
+        $dmt = (float) $d['mobile_top'];
+        $dmr = (float) $d['mobile_right'];
+        if ($mt > 0 || $mr > 0) {
+            $css .= '.mlshop-header-mobile-float{';
+            if ($mt > 0 && $mt !== $dmt) {
+                $css .= 'top:' . max(0, min(400, $mt)) . 'px;';
+            }
+            if ($mr > 0 && $mr !== $dmr) {
+                $css .= 'right:' . max(0, min(400, $mr)) . 'px;';
+            }
+            $css .= '}';
+        }
+
+        if ('' === $css) {
+            return; // 全默认 → 不输出任何 style
+        }
+        echo '<style id="mlshop-header-actions-vars">' . $css . '</style>' . "\n";
     }
 
     /**

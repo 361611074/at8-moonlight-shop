@@ -61,12 +61,76 @@
     }
 
     $(function () {
-        // 页眉购物车 / 收藏按钮 inline 定位：把 .mlshop-header-actions 移到 Astra Header Builder 的右栏（primary / mobile）。
-        // 它当前位于 `do_action('astra_header')` 或 `astra_header_primary_container_after` 触发点
-        // —— 移动后必然内联到 right 区，且按钮有 `mlshop-header-in-right` 类避免被 CSS 隐藏。
+        // 页眉购物车 / 收藏 / 会员按钮的宿主切换。
+        //
+        // 桌面端：移进 Astra Header Builder 的右栏（primary / mobile），随主题排版。
+        // 移动端：Astra 会换成另一套 header，原桌面 header 整棵子树宽度为 0
+        //          （实测 .site-header-primary-section-right 及其所有祖先 width 均为 0），
+        //          按钮放进去等于隐形，且父级塌缩时任何 CSS 定位都救不回来。
+        //          因此移动端把按钮组搬到 <body> 下，用 fixed 固定在页头右缘、汉堡按钮左侧。
+        var MLSHOP_MOBILE_BP = 1024;
+
+        // 找出移动端汉堡菜单按钮（不同主题类名不一，逐个探测且要求真实可见）
+        function mlshop_find_burger() {
+            var sels = [
+                '.ast-mobile-menu-wrap',
+                '.ast-mobile-menu',
+                '.ast-mobile-menu-col',
+                '.menu-toggle',
+                '[class*="mobile-menu-toggle"]',
+                'button[aria-label*="menu" i]',
+                '.site-header-toggle'
+            ];
+            for (var i = 0; i < sels.length; i++) {
+                var el = document.querySelector(sels[i]);
+                if (el) {
+                    var r = el.getBoundingClientRect();
+                    if (r.width > 0 && r.height > 0) {
+                        return r;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // 让悬浮按钮组与汉堡按钮同一条水平线，并贴在它左侧
+        function mlshop_align_mobile_float() {
+            if (window.innerWidth > MLSHOP_MOBILE_BP) {
+                return;
+            }
+            var $btn = $('.mlshop-header-mobile-float');
+            if (!$btn.length) {
+                return;
+            }
+            var r = mlshop_find_burger();
+            if (!r) {
+                return; // 找不到就沿用 CSS 里的兜底坐标
+            }
+            $btn[0].style.top = Math.round(r.top + r.height / 2) + 'px';
+            $btn[0].style.right = Math.round(window.innerWidth - r.left + 8) + 'px';
+        }
+
         function mlshop_relocate_header_actions() {
             var $btn = $('.mlshop-header-actions');
-            if (!$btn.length || $btn.hasClass('mlshop-header-in-right')) {
+            if (!$btn.length) {
+                return;
+            }
+            var isMobile = (window.innerWidth <= MLSHOP_MOBILE_BP);
+
+            if (isMobile) {
+                if (!$btn.hasClass('mlshop-header-mobile-float')) {
+                    $btn.addClass('mlshop-header-mobile-float').removeClass('mlshop-header-in-right');
+                    $('body').append($btn);
+                }
+                mlshop_align_mobile_float();
+                return;
+            }
+
+            // 回到桌面：撤掉移动态并放回主题右栏
+            $btn.removeClass('mlshop-header-mobile-float');
+            $btn[0].style.top = '';
+            $btn[0].style.right = '';
+            if ($btn.hasClass('mlshop-header-in-right')) {
                 return;
             }
             var $target = $('.site-header-primary-section-right').first();
@@ -82,6 +146,15 @@
         mlshop_relocate_header_actions();
         // Astra Elementor 自定义样式 / 触发延迟 / 主题 customizer 修改后可能重渲染 header，重跑一次
         $(window).on('load', mlshop_relocate_header_actions);
+        // 字体/图标的异步加载会改变汉堡按钮尺寸，加载完再对齐一次
+        $(window).on('load', function () { setTimeout(mlshop_align_mobile_float, 300); });
+        $(document).on('ready', function () { setTimeout(mlshop_align_mobile_float, 300); });
+        // 跨断点旋转屏幕 / 改窗口宽度时切换宿主并重新对齐
+        var mlshop_relocate_timer = null;
+        $(window).on('resize orientationchange', function () {
+            clearTimeout(mlshop_relocate_timer);
+            mlshop_relocate_timer = setTimeout(mlshop_relocate_header_actions, 150);
+        });
 
         // 会员中心下拉菜单：点击按钮切换显隐，点击外部 / Esc 关闭
         function mlshop_close_member_menu() {
