@@ -1110,7 +1110,7 @@ class MLUC_Paywall
         if (empty($img_urls)) {
             $img_urls = array('');
         }
-        include MLUC_PLUGIN_DIR . 'templates/paywall-meta.php';
+        include MLUC_UC_DIR . 'templates/paywall-meta.php';
     }
 
     public function save_meta($post_id)

@@ -29,14 +29,34 @@ define('MLUC_LEGACY_ACTIVE', true);
 if (!defined('MLUC_VERSION')) {
     define('MLUC_VERSION', '2.1.1');
 }
-if (!defined('MLUC_PLUGIN_DIR')) {
-    define('MLUC_PLUGIN_DIR', plugin_dir_path(__FILE__));
-}
-if (!defined('MLUC_PLUGIN_URL')) {
-    define('MLUC_PLUGIN_URL', plugin_dir_url(__FILE__));
-}
 if (!defined('MLUC_PLUGIN_FILE')) {
     define('MLUC_PLUGIN_FILE', __FILE__);
+}
+
+/**
+ * 本插件自有路径常量（MLUC_UC_*）：永远指向用户中心自己的目录。
+ *
+ * 为什么不用 MLUC_PLUGIN_DIR：商城插件在 plugins_loaded 阶段会「并入」用户中心
+ * 并定义 MLUC_PLUGIN_DIR / MLUC_PLUGIN_URL 指向商城目录。正常情况下商城会检测到
+ * 本插件已加载（MLUC_LEGACY_ACTIVE）而整体让位；但在「后台点击启用本插件」的
+ * 那一次请求里，本插件尚未写入 active_plugins，商城已经抢占了同名常量，
+ * 导致本插件随后的守卫 define 全部跳过、自动加载器指向商城目录，
+ * 激活钩子找不到 MLUC_Activator → 整站 Fatal（插件一旦停用就再也开不回来）。
+ *
+ * 故：资源路径一律用 MLUC_UC_*，与商城并入常量彻底解耦。
+ */
+if (!defined('MLUC_UC_FILE')) {
+    define('MLUC_UC_FILE', __FILE__);
+    define('MLUC_UC_DIR', plugin_dir_path(__FILE__));
+    define('MLUC_UC_URL', plugin_dir_url(__FILE__));
+}
+
+// 保留旧常量供向后兼容（被商城抢先定义时不动）。
+if (!defined('MLUC_PLUGIN_DIR')) {
+    define('MLUC_PLUGIN_DIR', MLUC_UC_DIR);
+}
+if (!defined('MLUC_PLUGIN_URL')) {
+    define('MLUC_PLUGIN_URL', MLUC_UC_URL);
 }
 
 /**
@@ -48,14 +68,15 @@ spl_autoload_register(function ($class) {
         return;
     }
     $relative = substr($class, strlen($prefix));
-    $file     = MLUC_PLUGIN_DIR . 'includes/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
+    // 用本插件自有目录常量，不依赖可能被商城并入逻辑抢占的 MLUC_PLUGIN_DIR。
+    $file = MLUC_UC_DIR . 'includes/class-' . strtolower(str_replace('_', '-', $relative)) . '.php';
     if (file_exists($file)) {
         require_once $file;
     }
 });
 
 // 加载函数辅助
-require_once MLUC_PLUGIN_DIR . 'includes/functions.php';
+require_once MLUC_UC_DIR . 'includes/functions.php';
 
 // 加载翻译：跟随 WordPress 系统语言设定（get_locale），不写死语言。
 // 英文站点：前台与 AJAX 加载英文翻译，wp-admin 后台保持中文源文案。

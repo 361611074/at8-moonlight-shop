@@ -55,7 +55,7 @@ class MLUC_Editor_Button
      */
     public function add_tinymce_plugin($plugins)
     {
-        $plugins['mluc_hidecontent'] = MLUC_PLUGIN_URL . 'assets/js/mluc-tinymce.js?ver=' . MLUC_VERSION;
+        $plugins['mluc_hidecontent'] = MLUC_UC_URL . 'assets/js/mluc-tinymce.js?ver=' . MLUC_VERSION;
         return $plugins;
     }
 

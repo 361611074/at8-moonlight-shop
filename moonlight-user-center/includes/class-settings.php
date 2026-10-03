@@ -28,7 +28,7 @@ class MLUC_Settings
         add_action('admin_enqueue_scripts', array($this, 'admin_enqueue'));
 
         // 插件列表页的「设置」快捷入口
-        add_filter('plugin_action_links_' . plugin_basename(MLUC_PLUGIN_FILE), array($this, 'add_action_links'));
+        add_filter('plugin_action_links_' . plugin_basename(MLUC_UC_FILE), array($this, 'add_action_links'));
     }
 
     /**
@@ -67,12 +67,12 @@ class MLUC_Settings
         if (!isset($_GET['page']) || 'mluc-settings' !== $_GET['page']) {
             return;
         }
-        wp_enqueue_style('mluc-style', MLUC_PLUGIN_URL . 'assets/css/mluc.css', array(), MLUC_VERSION);
+        wp_enqueue_style('mluc-style', MLUC_UC_URL . 'assets/css/mluc.css', array(), MLUC_VERSION);
         // WP 媒体库（侧栏菜单图标可上传 PNG / SVG）
         wp_enqueue_media();
         wp_enqueue_script(
             'mluc-admin',
-            MLUC_PLUGIN_URL . 'assets/js/mluc-admin.js',
+            MLUC_UC_URL . 'assets/js/mluc-admin.js',
             array('jquery'),
             MLUC_VERSION,
             true

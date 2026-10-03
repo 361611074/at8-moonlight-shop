@@ -31,7 +31,7 @@ class MLUC_Assets
     {
         // 站点通用样式：hidecontent 锁定卡 + 账户中心基础样式。
         // 全站加载（~32KB），避免 Elementor 模板 / 可复用区块等场景下条件检测漏检导致卡片无样式。
-        wp_enqueue_style('mluc-style', MLUC_PLUGIN_URL . 'assets/css/mluc.css', array(), MLUC_VERSION);
+        wp_enqueue_style('mluc-style', MLUC_UC_URL . 'assets/css/mluc.css', array(), MLUC_VERSION);
 
         // 交互资源（dashicons + mluc.js）仅在真正用到账户中心交互的页面加载。
         $has = false;
@@ -59,7 +59,7 @@ class MLUC_Assets
         // 前台账户中心侧栏使用 dashicons 字体；前台默认未启用，需显式 enqueue
         // 避免图标在前端显示为方块。
         wp_enqueue_style('dashicons');
-        wp_enqueue_script('mluc-script', MLUC_PLUGIN_URL . 'assets/js/mluc.js', array('jquery'), MLUC_VERSION, true);
+        wp_enqueue_script('mluc-script', MLUC_UC_URL . 'assets/js/mluc.js', array('jquery'), MLUC_VERSION, true);
         wp_localize_script('mluc-script', 'MLUC', mluc_ajax_data());
         wp_localize_script('mluc-script', 'mluc_i18n', array(
             'op_failed'           => mluc_ui_label('av_op_failed', 'Operation failed.'),
@@ -90,7 +90,7 @@ class MLUC_Assets
         $screen = function_exists('get_current_screen') ? get_current_screen() : null;
         if ($screen && isset($screen->post_type) && in_array($screen->post_type, array('post', 'page'), true)) {
             wp_enqueue_media();
-            wp_enqueue_script('mluc-pw-admin', MLUC_PLUGIN_URL . 'assets/js/mluc-pw-admin.js', array('jquery'), MLUC_VERSION, true);
+            wp_enqueue_script('mluc-pw-admin', MLUC_UC_URL . 'assets/js/mluc-pw-admin.js', array('jquery'), MLUC_VERSION, true);
         }
     }
 

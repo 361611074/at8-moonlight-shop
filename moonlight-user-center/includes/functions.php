@@ -119,7 +119,7 @@ if (!function_exists('mluc_get_template')) {
         }
 
         $theme_file  = get_stylesheet_directory() . '/mluc/' . $slug . '.php';
-        $plugin_file = MLUC_PLUGIN_DIR . 'templates/' . $slug . '.php';
+        $plugin_file = MLUC_UC_DIR . 'templates/' . $slug . '.php';
 
         $file = file_exists($theme_file) ? $theme_file : $plugin_file;
         if (file_exists($file)) {
