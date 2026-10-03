@@ -228,6 +228,21 @@ class MLUC_Settings
             'mluc_email'
         );
 
+        // 积分与余额（v2.1.0）：充值比例 / 兑换比例全部后台可自定义
+        add_settings_section(
+            'mluc_credit',
+            __('积分与余额', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_credit',
+            __('积分体系', 'moonlight-user-center'),
+            array($this, 'render_credit_field'),
+            'mluc-settings',
+            'mluc_credit'
+        );
+
         // 订单管理（所有支付方式通用）
         add_settings_section(
             'mluc_orders',
@@ -751,6 +766,33 @@ class MLUC_Settings
                 'buy_pp_error' => array('t' => 'PayPal 付款异常提示', 'd' => 'PayPal payment error. Please try again or contact the administrator.'),
                 'buy_pp_goto' => array('t' => '请完成 PayPal 付款提示', 'd' => 'Please complete the PayPal payment below.'),
                 'buy_net_error' => array('t' => '網絡異常提示', 'd' => 'Network error. Please try again later.'),
+                'buy_gateway_balance' => array('t' => '余额支付（网关名称）', 'd' => 'Account Balance'),
+                'buy_gateway_credit' => array('t' => '积分支付（网关名称）', 'd' => 'Points Payment'),
+                'buy_order_balance' => array('t' => '余额支付成功提示', 'd' => 'Payment successful via account balance.'),
+                'buy_order_credit' => array('t' => '积分支付成功提示', 'd' => 'Payment successful via points.'),
+            ),
+            __('积分与余额页', 'moonlight-user-center') => array(
+                'cr_tab' => array('t' => '积分余额（侧栏）', 'd' => 'Points & Balance'),
+                'cr_recharge_title' => array('t' => '充值（标题）', 'd' => 'Top Up'),
+                'cr_exchange_title' => array('t' => '兑换余额（标题）', 'd' => 'Exchange to Balance'),
+                'cr_balance_credit' => array('t' => '积分余额（卡片标签）', 'd' => 'Points Balance'),
+                'cr_balance_money' => array('t' => '账户余额（卡片标签）', 'd' => 'Account Balance'),
+                'cr_custom' => array('t' => '自定义（选项）', 'd' => 'Custom'),
+                'cr_rate_hint' => array('t' => '充值比例提示（%1$s 积分名，%2$s 比例值）', 'd' => 'Rate: %2$s %1$s per currency unit'),
+                'cr_exchange_hint' => array('t' => '兑换比例提示（%1$s 比例值）', 'd' => 'Rate: %1$s points = 1 currency unit'),
+                'cr_btn_recharge' => array('t' => '去充值（按钮）', 'd' => 'Top Up'),
+                'cr_btn_exchange' => array('t' => '立即兑换（按钮）', 'd' => 'Exchange Now'),
+                'cr_ledger_credit' => array('t' => '积分流水（标题）', 'd' => 'Points History'),
+                'cr_ledger_balance' => array('t' => '余额流水（标题）', 'd' => 'Balance History'),
+                'cr_empty_ledger' => array('t' => '无流水提示', 'd' => 'No records yet.'),
+                'cr_th_time' => array('t' => '时间（表头）', 'd' => 'Time'),
+                'cr_th_delta' => array('t' => '变动（表头）', 'd' => 'Change'),
+                'cr_th_balance' => array('t' => '余额（表头）', 'd' => 'Balance'),
+                'cr_th_note' => array('t' => '说明（表头）', 'd' => 'Note'),
+                'cr_exchanged' => array('t' => '兑换成功提示', 'd' => 'Exchange successful.'),
+                'cr_checkin_btn' => array('t' => '签到（按钮）', 'd' => 'Check In'),
+                'cr_checkin_done' => array('t' => '今日已签到（状态）', 'd' => 'Checked in today'),
+                'cr_checkin_streak' => array('t' => '连续签到天数（%d 为天数）', 'd' => '%d-day streak'),
             ),
             __('我的订单 / 我的 License 页', 'moonlight-user-center') => array(
                 'od_title' => array('t' => '我的订单（标题）', 'd' => 'My Orders'),
@@ -1150,6 +1192,103 @@ class MLUC_Settings
     }
 
     /**
+     * 积分与余额设置（v2.1.0）：启用开关、积分名称、充值比例 / 套餐 / 限额、
+     * 兑换比例与单次下限——全部后台可自定义，前台只展示不传价。
+     */
+    public function render_credit_field()
+    {
+        $credit_on    = mluc_credit_enabled();
+        $balance_on   = mluc_balance_enabled();
+        $name         = mluc_get_credit_name();
+        $rate         = mluc_get_credit_rate();
+        $packages     = (array) mluc_get_option('credit_packages', array());
+        $lines        = array();
+        foreach ($packages as $pkg) {
+            if (is_array($pkg) && isset($pkg['credit'], $pkg['price'])) {
+                $lines[] = $pkg['credit'] . '|' . $pkg['price'];
+            }
+        }
+        $packages_txt = implode("\n", $lines);
+        $cmin     = (int) mluc_get_option('credit_custom_min', 10);
+        $cmax     = (int) mluc_get_option('credit_custom_max', 0);
+        $ex_on    = !empty(mluc_get_option('credit_exchange_enabled', 0));
+        $ex_rate  = mluc_get_credit_exchange_rate();
+        $ex_min   = (int) mluc_get_option('credit_exchange_min', 100);
+        $symbol   = MLUC_Payments::get_currency_symbol();
+        ?>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[credit_enabled]" value="1" <?php checked($credit_on); ?>>
+                <?php esc_html_e('启用积分体系（积分充值、积分支付、积分兑换余额）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_credit_name"><?php esc_html_e('积分名称', 'moonlight-user-center'); ?></label>
+            <input type="text" id="mluc_credit_name" class="small-text" name="mluc_options[credit_name]" value="<?php echo esc_attr($name); ?>">
+            <span class="description"><?php esc_html_e('如：积分 / 金币 / Z币。显示在账户中心与支付选项。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label for="mluc_credit_rate"><strong><?php esc_html_e('充值比例（1 货币单位 = 多少积分）', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="number" id="mluc_credit_rate" class="small-text" name="mluc_options[credit_rate]" value="<?php echo esc_attr((string) $rate); ?>" min="0.01" step="0.01">
+            <span class="description"><?php echo esc_html(sprintf(__('用户自定义充值时：应付金额 = 积分数 ÷ 该比例。例：10 表示 1%1$s 得 10 积分；支付订单时按此比例换算积分（向上取整）。', 'moonlight-user-center'), $symbol)); ?></span>
+        </p>
+        <p>
+            <label for="mluc_credit_packages"><strong><?php esc_html_e('充值套餐（每行一条：积分|金额）', 'moonlight-user-center'); ?></strong></label><br>
+            <textarea id="mluc_credit_packages" class="large-text" rows="4" name="mluc_options[credit_packages_txt]" placeholder="100|10&#10;500|45&#10;1000|80"><?php echo esc_textarea($packages_txt); ?></textarea>
+            <span class="description"><?php echo esc_html(sprintf(__('例：100|10 表示 100 积分卖 %1$s10。留空使用内置默认套餐（100|10、500|45、1000|80）。套餐金额即服务端价格，不经过比例换算。', 'moonlight-user-center'), $symbol)); ?></span>
+        </p>
+        <p>
+            <label for="mluc_credit_custom_min"><?php esc_html_e('自定义充值限额', 'moonlight-user-center'); ?></label>
+            <input type="number" id="mluc_credit_custom_min" class="small-text" name="mluc_options[credit_custom_min]" value="<?php echo esc_attr((string) $cmin); ?>" min="1"> -
+            <input type="number" id="mluc_credit_custom_max" class="small-text" name="mluc_options[credit_custom_max]" value="<?php echo esc_attr((string) $cmax); ?>" min="0">
+            <span class="description"><?php esc_html_e('单次自定义充值的积分数量区间（上限填 0 = 不限制）。', 'moonlight-user-center'); ?></span>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[balance_enabled]" value="1" <?php checked($balance_on); ?>>
+                <?php esc_html_e('启用余额钱包（余额可作为支付方式，并作为积分兑换的目标）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[credit_exchange_enabled]" value="1" <?php checked($ex_on); ?>>
+                <strong><?php esc_html_e('启用积分兑换余额', 'moonlight-user-center'); ?></strong>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_credit_exchange_rate"><strong><?php esc_html_e('兑换比例（多少积分 = 1 货币单位余额）', 'moonlight-user-center'); ?></strong></label><br>
+            <input type="number" id="mluc_credit_exchange_rate" class="small-text" name="mluc_options[credit_exchange_rate]" value="<?php echo esc_attr((string) $ex_rate); ?>" min="0.01" step="0.01">
+            <span class="description"><?php echo esc_html(sprintf(__('例：100 表示 100 积分兑换 1%1$s 余额。兑换所得余额可用于余额支付。', 'moonlight-user-center'), $symbol)); ?></span>
+        </p>
+        <p>
+            <label for="mluc_credit_exchange_min"><?php esc_html_e('单次最少兑换积分', 'moonlight-user-center'); ?></label>
+            <input type="number" id="mluc_credit_exchange_min" class="small-text" name="mluc_options[credit_exchange_min]" value="<?php echo esc_attr((string) $ex_min); ?>" min="1">
+        </p>
+        <hr>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[checkin_enabled]" value="1" <?php checked(!empty(mluc_get_option('checkin_enabled', 0))); ?>>
+                <strong><?php esc_html_e('启用每日签到送积分', 'moonlight-user-center'); ?></strong>
+            </label>
+        </p>
+        <p>
+            <label for="mluc_checkin_base"><?php esc_html_e('基础奖励', 'moonlight-user-center'); ?></label>
+            <input type="number" id="mluc_checkin_base" class="small-text" name="mluc_options[checkin_base]" value="<?php echo esc_attr((string) max(0, (int) mluc_get_option('checkin_base', 5))); ?>" min="0">
+            <?php echo esc_html($name); ?>，
+            <label for="mluc_checkin_every"><?php esc_html_e('连续每满', 'moonlight-user-center'); ?></label>
+            <input type="number" id="mluc_checkin_every" class="small-text" name="mluc_options[checkin_every]" value="<?php echo esc_attr((string) max(0, (int) mluc_get_option('checkin_every', 7))); ?>" min="0">
+            <?php esc_html_e('天额外', 'moonlight-user-center'); ?>
+            <label for="mluc_checkin_extra"></label>
+            <input type="number" id="mluc_checkin_extra" class="small-text" name="mluc_options[checkin_extra]" value="<?php echo esc_attr((string) max(0, (int) mluc_get_option('checkin_extra', 20))); ?>" min="0">
+            <span class="description"><?php echo esc_html(sprintf(__('例：基础 5%1$s，连续每满 7 天额外 +20%1$s（当天发放）。填 0 可关闭加成。', 'moonlight-user-center'), $name)); ?></span>
+        </p>
+        <p class="description">
+            <?php esc_html_e('账本安全：余额与积分的每次增减均为原子操作并记录流水；订单支付按服务端换算，客户端传值不参与计价。与 Moonlight Shop 同装时，商城积分模块优先，本区块设置仅作用于独立流程。', 'moonlight-user-center'); ?>
+        </p>
+        <?php
+    }
+
+    /**
      * 清洗提交值。复选框未勾选时不提交，必须显式记为 0。
      */
     public function sanitize_options($input)
@@ -1222,6 +1361,40 @@ class MLUC_Settings
 
         // 支付调试日志（排查用）
         $options['pay_debug_log'] = !empty($input['pay_debug_log']) ? 1 : 0;
+
+        // 积分与余额（v2.1.0）：比例/限额数值守卫，套餐逐行解析后存数组。
+        $options['credit_enabled'] = !empty($input['credit_enabled']) ? 1 : 0;
+        $options['balance_enabled'] = !empty($input['balance_enabled']) ? 1 : 0;
+        $credit_name = isset($input['credit_name']) ? sanitize_text_field(wp_unslash($input['credit_name'])) : '';
+        $options['credit_name'] = '' !== trim($credit_name) ? $credit_name : '';
+        $credit_rate = isset($input['credit_rate']) ? (float) $input['credit_rate'] : 10;
+        $options['credit_rate'] = $credit_rate > 0 ? $credit_rate : 10;
+        $exchange_rate = isset($input['credit_exchange_rate']) ? (float) $input['credit_exchange_rate'] : 100;
+        $options['credit_exchange_rate'] = $exchange_rate > 0 ? $exchange_rate : 100;
+        $options['credit_custom_min'] = max(1, (int) ($input['credit_custom_min'] ?? 10));
+        $options['credit_custom_max'] = max(0, (int) ($input['credit_custom_max'] ?? 0));
+        $options['credit_exchange_min'] = max(1, (int) ($input['credit_exchange_min'] ?? 100));
+        $options['credit_exchange_enabled'] = !empty($input['credit_exchange_enabled']) ? 1 : 0;
+        $options['checkin_enabled'] = !empty($input['checkin_enabled']) ? 1 : 0;
+        $options['checkin_base']  = max(0, (int) ($input['checkin_base'] ?? 5));
+        $options['checkin_every'] = max(0, (int) ($input['checkin_every'] ?? 7));
+        $options['checkin_extra'] = max(0, (int) ($input['checkin_extra'] ?? 20));
+        // 套餐：文本「积分|金额」逐行解析，非法行跳过；留空 = 使用内置默认（mluc_get_recharge_packages 处理）。
+        $packages_txt = isset($input['credit_packages_txt']) ? (string) wp_unslash($input['credit_packages_txt']) : '';
+        $clean_packages = array();
+        foreach (preg_split('/\r\n|\r|\n/', $packages_txt) as $line) {
+            $line = trim(sanitize_text_field((string) $line));
+            if ('' === $line || false === strpos($line, '|')) {
+                continue;
+            }
+            list($p_credit, $p_price) = array_map('trim', explode('|', $line, 2));
+            $p_credit = (float) $p_credit;
+            $p_price  = (float) $p_price;
+            if ($p_credit > 0 && $p_price > 0) {
+                $clean_packages[] = array('credit' => $p_credit, 'price' => $p_price);
+            }
+        }
+        $options['credit_packages'] = $clean_packages;
 
         // 界面文案（数组，逐项清洗；空值回退默认由 mluc_ui_label 处理）
         $options['ui_labels'] = array();

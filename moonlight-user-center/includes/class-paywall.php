@@ -866,6 +866,12 @@ class MLUC_Paywall
                         mountPayPal(card, d.order_id);
                         return;
                     }
+                    // 余额 / 积分等即时网关：支付已完成，刷新展示解锁内容。
+                    if (d.reload) {
+                        say(card, res.message || CFG.i18n.ok_reload);
+                        setTimeout(function () { window.location.reload(); }, 1200);
+                        return;
+                    }
                     if (d.instructions) {
                         var ins = card.querySelector('.mluc-pw-instructions');
                         var insBody = card.querySelector('.mluc-pw-instructions-body');

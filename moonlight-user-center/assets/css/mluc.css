@@ -1970,3 +1970,53 @@ html {
     font-size: 13px;
     display: inline-block;
 }
+
+/* =========================================================
+   积分与余额（v2.1.0）：余额卡片 / 充值套餐 / 兑换 / 双流水
+   ========================================================= */
+.mluc-credit-cards {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 4px 0 8px;
+}
+.mluc-credit-card {
+    display: flex; flex-direction: column; gap: 4px;
+    padding: 14px 16px; border-radius: 10px;
+    background: #f6f8fb; border: 1px solid #e7ecf3;
+}
+.mluc-credit-card-label { font-size: 12px; color: #6b7280; }
+.mluc-credit-card-value { font-size: 22px; font-weight: 700; color: #1f2937; word-break: break-all; }
+.mluc-credit-packages {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;
+}
+.mluc-credit-pkg {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    padding: 10px 8px; border: 1px solid #e7ecf3; border-radius: 10px;
+    cursor: pointer; transition: border-color .15s ease, box-shadow .15s ease;
+}
+.mluc-credit-pkg:hover { border-color: #2f6fed; }
+.mluc-credit-pkg:has(input:checked) { border-color: #2f6fed; box-shadow: 0 0 0 1px #2f6fed inset; }
+.mluc-credit-pkg-credit { font-weight: 600; color: #1f2937; }
+.mluc-credit-pkg-price { color: #2f6fed; font-size: 14px; }
+.mluc-credit-custom, .mluc-credit-gateways, .mluc-credit-exchange {
+    margin-top: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+}
+.mluc-credit-custom-input, .mluc-credit-exchange-input {
+    padding: 8px 12px; border: 1px solid #d9e0ea; border-radius: 8px; width: 160px; font-size: 14px;
+}
+.mluc-credit-custom-hint, .mluc-credit-exchange-hint, .mluc-credit-custom-price, .mluc-credit-exchange-price {
+    color: #6b7280; font-size: 13px;
+}
+.mluc-credit-custom-price, .mluc-credit-exchange-price { color: #2f6fed; font-weight: 600; }
+.mluc-credit-no-gw {
+    margin: 10px 0 0; color: #8a6d1a; background: #fdf6e3;
+    border: 1px solid #f0e2b6; border-radius: 6px; padding: 8px 12px; font-size: 13px;
+    display: inline-block;
+}
+.mluc-credit-msg { min-height: 18px; margin: 6px 0 0; font-size: 13px; color: #b42318; }
+.mluc-credit-plus { color: #12805c; font-weight: 600; }
+.mluc-credit-minus { color: #b42318; font-weight: 600; }
+@media (max-width: 600px) {
+    .mluc-credit-cards { grid-template-columns: 1fr; }
+}
+
+.mluc-credit-checkin { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.mluc-credit-checkin-streak { color: #6b7280; font-size: 13px; }

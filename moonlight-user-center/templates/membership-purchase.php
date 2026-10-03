@@ -181,6 +181,8 @@ if (!defined('ABSPATH')) {
                     window.location.href = res.data.redirect;
                 } else {
                     say(res.message);
+                    // 余额 / 积分等即时网关：支付已完成，刷新展示新等级。
+                    if (res.data && res.data.reload) { setTimeout(function () { window.location.reload(); }, 1200); }
                 }
             })
             .catch(function () {
