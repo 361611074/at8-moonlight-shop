@@ -197,50 +197,12 @@ class MLUC_Settings
             'mluc_membership'
         );
 
-        // 独立收款（仅装用户中心、未启用商城时生效）
-        add_settings_section(
-            'mluc_payment',
-            __('独立收款（未启用商城时生效）', 'moonlight-user-center'),
-            '__return_false',
-            'mluc-settings'
-        );
-        add_settings_field(
-            'mluc_payment',
-            __('付款说明', 'moonlight-user-center'),
-            array($this, 'render_payment_field'),
-            'mluc-settings',
-            'mluc_payment'
-        );
-
-        // 在线支付（PayPal / Stripe）
-        add_settings_section(
-            'mluc_payment_online',
-            __('在线支付（PayPal / Stripe）', 'moonlight-user-center'),
-            '__return_false',
-            'mluc-settings'
-        );
-        add_settings_field(
-            'mluc_payment_online',
-            __('网关凭据', 'moonlight-user-center'),
-            array($this, 'render_online_payment_field'),
-            'mluc-settings',
-            'mluc_payment_online'
-        );
-
-        // 在线支付（支付宝）
-        add_settings_section(
-            'mluc_payment_alipay',
-            __('在线支付（支付宝）', 'moonlight-user-center'),
-            '__return_false',
-            'mluc-settings'
-        );
-        add_settings_field(
-            'mluc_payment_alipay',
-            __('支付宝配置', 'moonlight-user-center'),
-            array($this, 'render_alipay_field'),
-            'mluc-settings',
-            'mluc_payment_alipay'
-        );
+        // 独立收款 / 在线支付 / 订单超时 —— 已在 2026-10 移除并入态的这些区块。
+        // 单插件形态下能力统一由商城提供：网关见 mlshop_enabled_gateways 与各网关
+        // 设置区，订单超时见 mlshop_order_expire_minutes。此前并入模块仍渲染这些
+        // 表单，但对应网关类并未随迁，客户看到的是「填了也不生效」的死配置。
+        // 独立用户中心插件单独安装时（MLUC_LEGACY_ACTIVE）本文件不参与加载，
+        // 其自带设置页保持原样，不受影响。
 
         // License / Pro
         add_settings_section(
@@ -272,20 +234,7 @@ class MLUC_Settings
             'mluc_email'
         );
 
-        // 订单管理（所有支付方式通用）
-        add_settings_section(
-            'mluc_orders',
-            __('订单管理（所有支付方式通用）', 'moonlight-user-center'),
-            '__return_false',
-            'mluc-settings'
-        );
-        add_settings_field(
-            'mluc_orders',
-            __('超时自动关闭', 'moonlight-user-center'),
-            array($this, 'render_orders_field'),
-            'mluc-settings',
-            'mluc_orders'
-        );
+        // 订单管理（所有支付方式通用）—— 同样已移入商城（mlshop_order_expire_minutes）
 
         // 侧栏菜单图标（前端账户中心左侧导航）
         add_settings_section(
@@ -526,137 +475,8 @@ class MLUC_Settings
         <?php
     }
 
-    /**
-     * 独立收款设置：货币符号 + 线下转账付款说明。
-     * 仅装用户中心（未启用商城）时生效：用户购买后按此说明转账，管理员在「会员订单」确认收款即自动开通。
-     */
-    public function render_payment_field()
-    {
-        $symbol       = mluc_get_option('pay_currency_symbol', '$');
-        $instructions = mluc_get_option('pay_manual_instructions', '');
-        $manual_on    = mluc_get_option('manual_enabled', 1);
-        ?>
-        <p>
-            <label>
-                <input type="checkbox" name="mluc_options[manual_enabled]" value="1" <?php checked($manual_on, 1); ?>>
-                <?php esc_html_e('启用线下转账（Bank Transfer，管理员确认收款）', 'moonlight-user-center'); ?>
-            </label>
-            <span class="description"><?php esc_html_e('取消勾选后前台购买/付费墙不再出现线下转账选项；PayPal 与 Stripe 的启用开关在下方「在线支付」区块。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p>
-            <label for="mluc_pay_currency"><?php esc_html_e('货币符号', 'moonlight-user-center'); ?></label>
-            <input type="text" id="mluc_pay_currency" class="small-text" name="mluc_options[pay_currency_symbol]" value="<?php echo esc_attr($symbol); ?>">
-        </p>
-        <p>
-            <label for="mluc_pay_instructions"><strong><?php esc_html_e('付款说明（展示给用户）', 'moonlight-user-center'); ?></strong></label><br>
-            <textarea id="mluc_pay_instructions" class="large-text" rows="5" name="mluc_options[pay_manual_instructions]" placeholder="轉帳銀行 / 帳號 / 聯絡方式等"><?php echo esc_textarea($instructions); ?></textarea>
-        </p>
-        <p class="description">
-            <?php esc_html_e('双插件同装时购买走商城支付流程，此说明不展示。仅装用户中心时，用户在账户中心「会员等级」选择等级购买，再按此说明完成转账；管理员在「会员订单」确认收款后等级自动开通。', 'moonlight-user-center'); ?>
-        </p>
-        <?php
-    }
 
-    /**
-     * 订单管理：Pending 订单超时自动关闭（对所有支付方式生效）。
-     */
-    public function render_orders_field()
-    {
-        $auto_hours = (int) mluc_get_option('order_auto_close_hours', 72);
-        ?>
-        <p>
-            <label for="mluc_pay_autoclose"><?php esc_html_e('Pending 订单自动关闭', 'moonlight-user-center'); ?></label>
-            <input type="number" id="mluc_pay_autoclose" class="small-text" name="mluc_options[order_auto_close_hours]" value="<?php echo esc_attr($auto_hours); ?>" min="0" max="8760">
-            <?php esc_html_e('小时（0 = 不自动关闭）', 'moonlight-user-center'); ?>
-            <span class="description"><?php esc_html_e('创建后超过该时长仍未完成支付的 Pending 订单将自动置为 Cancelled。对线下转账、PayPal、Stripe、支付宝全部生效，与上方各网关的启用开关无关。建议不小于 24 小时，以免误伤正在进行的在线支付。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p>
-            <label>
-                <input type="checkbox" name="mluc_options[pay_debug_log]" value="1" <?php checked(!empty(mluc_get_option('pay_debug_log', 0))); ?>>
-                <?php esc_html_e('支付调试日志（在订单内记录网关交互上下文，排查用，平时建议关闭）', 'moonlight-user-center'); ?>
-            </label>
-        </p>
-        <?php
-    }
 
-    /**
-     * 在线支付设置：货币代码 + PayPal / Stripe 凭据。
-     */
-    public function render_online_payment_field()
-    {
-        $code        = mluc_get_option('pay_currency_code', 'USD');
-        $pp_enabled  = mluc_get_option('paypal_enabled', 0);
-        $pp_mode     = mluc_get_option('paypal_mode', 'sandbox');
-        $pp_cid      = mluc_get_option('paypal_client_id', '');
-        $pp_secret   = mluc_get_option('paypal_secret', '');
-        $st_enabled  = mluc_get_option('stripe_enabled', 0);
-        $st_pk       = mluc_get_option('stripe_pk', '');
-        $st_sk       = mluc_get_option('stripe_sk', '');
-        $st_wh       = mluc_get_option('stripe_webhook_secret', '');
-        $account_url = mluc_get_account_url();
-        $webhook_url = rest_url('mluc/v1/stripe-webhook');
-        ?>
-        <p>
-            <label for="mluc_currency_code"><strong><?php esc_html_e('货币代码（ISO 4217，两个网关共用）', 'moonlight-user-center'); ?></strong></label><br>
-            <input type="text" id="mluc_currency_code" class="small-text" name="mluc_options[pay_currency_code]" value="<?php echo esc_attr($code); ?>" placeholder="USD" maxlength="3">
-            <span class="description"><?php esc_html_e('如 USD / HKD / EUR / JPY。需与会员等级价格币种一致。', 'moonlight-user-center'); ?></span>
-        </p>
-        <hr>
-        <p>
-            <label>
-                <input type="checkbox" name="mluc_options[paypal_enabled]" value="1" <?php checked($pp_enabled, 1); ?>>
-                <?php esc_html_e('启用 PayPal（前台 Smart Buttons，服务端扣款）', 'moonlight-user-center'); ?>
-            </label>
-        </p>
-        <p>
-            <label for="mluc_pp_mode"><?php esc_html_e('模式', 'moonlight-user-center'); ?></label>
-            <select id="mluc_pp_mode" name="mluc_options[paypal_mode]">
-                <option value="sandbox" <?php selected($pp_mode, 'sandbox'); ?>><?php esc_html_e('沙盒（Sandbox）', 'moonlight-user-center'); ?></option>
-                <option value="live" <?php selected($pp_mode, 'live'); ?>><?php esc_html_e('正式（Live）', 'moonlight-user-center'); ?></option>
-            </select>
-        </p>
-        <p>
-            <label for="mluc_pp_cid"><?php esc_html_e('Client ID', 'moonlight-user-center'); ?></label><br>
-            <input type="text" id="mluc_pp_cid" class="large-text code" name="mluc_options[paypal_client_id]" value="<?php echo esc_attr($pp_cid); ?>" autocomplete="off">
-        </p>
-        <p>
-            <label for="mluc_pp_secret"><?php esc_html_e('Secret', 'moonlight-user-center'); ?></label><br>
-            <input type="password" id="mluc_pp_secret" class="large-text code" name="mluc_options[paypal_secret]" value="<?php echo esc_attr($pp_secret); ?>" autocomplete="new-password">
-        </p>
-        <hr>
-        <p>
-            <label>
-                <input type="checkbox" name="mluc_options[stripe_enabled]" value="1" <?php checked($st_enabled, 1); ?>>
-                <?php esc_html_e('启用 Stripe（Checkout 托管结账页，支持信用卡 / Apple Pay / Google Pay）', 'moonlight-user-center'); ?>
-            </label>
-        </p>
-        <p>
-            <label for="mluc_st_pk"><?php esc_html_e('Publishable Key', 'moonlight-user-center'); ?></label><br>
-            <input type="text" id="mluc_st_pk" class="large-text code" name="mluc_options[stripe_pk]" value="<?php echo esc_attr($st_pk); ?>" placeholder="pk_live_... / pk_test_..." autocomplete="off">
-        </p>
-        <p>
-            <label for="mluc_st_sk"><?php esc_html_e('Secret Key', 'moonlight-user-center'); ?></label><br>
-            <input type="password" id="mluc_st_sk" class="large-text code" name="mluc_options[stripe_sk]" value="<?php echo esc_attr($st_sk); ?>" placeholder="sk_live_... / sk_test_..." autocomplete="new-password">
-        </p>
-        <p>
-            <label for="mluc_st_wh"><?php esc_html_e('Webhook Signing Secret（可选，兜底开通）', 'moonlight-user-center'); ?></label><br>
-            <input type="password" id="mluc_st_wh" class="large-text code" name="mluc_options[stripe_webhook_secret]" value="<?php echo esc_attr($st_wh); ?>" placeholder="whsec_..." autocomplete="new-password">
-        </p>
-        <p class="description">
-            <?php
-            echo esc_html(sprintf(
-                /* translators: %s: webhook URL */
-                __('如需 Webhook 兜底，在 Stripe 后台添加端点 %s ，订阅 checkout.session.completed 事件，并把 Signing Secret 填到上面。', 'moonlight-user-center'),
-                $webhook_url
-            ));
-            ?>
-        </p>
-        <p class="description">
-            <?php esc_html_e('回跳处理地址为账户中心页面，支付完成后自动校验并开通会员，无需管理员手动确认；线下转账流程保持不变。', 'moonlight-user-center'); ?>
-            <br><?php echo esc_html($account_url); ?>
-        </p>
-        <?php
-    }
 
     /**
      * 界面文案：账户中心全部前台可见文案，可改成英文或其他语言。
@@ -1075,72 +895,6 @@ class MLUC_Settings
         <?php
     }
 
-    /**
-     * 支付宝配置：启用开关 / 模式 / App ID / 应用私钥 / 支付宝公钥。
-     * 密钥脱敏：已配置时输入框留空 = 保持不变；绝不回显明文（§18）。
-     */
-    public function render_alipay_field()
-    {
-        $enabled   = mluc_get_option('alipay_enabled', 0);
-        $mode      = mluc_get_option('alipay_mode', 'sandbox');
-        $app_id    = mluc_get_option('alipay_app_id', '');
-        $priv_set  = '' !== trim((string) mluc_get_option('alipay_private_key', ''));
-        $pub_set   = '' !== trim((string) mluc_get_option('alipay_public_key', ''));
-        $priv_hint = $priv_set
-            ? sprintf(__('已配置（尾 4 位 …%s），留空保持不变', 'moonlight-user-center'), esc_html(self::key_tail(mluc_get_option('alipay_private_key', ''))))
-            : __('未配置', 'moonlight-user-center');
-        $pub_hint = $pub_set
-            ? sprintf(__('已配置（尾 4 位 …%s），留空保持不变', 'moonlight-user-center'), esc_html(self::key_tail(mluc_get_option('alipay_public_key', ''))))
-            : __('未配置', 'moonlight-user-center');
-        ?>
-        <p>
-            <label>
-                <input type="checkbox" name="mluc_options[alipay_enabled]" value="1" <?php checked($enabled, 1); ?>>
-                <?php esc_html_e('启用支付宝（电脑网站支付，跳转式，仅支持 CNY）', 'moonlight-user-center'); ?>
-            </label>
-        </p>
-        <p>
-            <label for="mluc_ali_mode"><?php esc_html_e('环境', 'moonlight-user-center'); ?></label>
-            <select id="mluc_ali_mode" name="mluc_options[alipay_mode]">
-                <option value="sandbox" <?php selected($mode, 'sandbox'); ?>><?php esc_html_e('沙盒（Sandbox）', 'moonlight-user-center'); ?></option>
-                <option value="production" <?php selected($mode, 'production'); ?>><?php esc_html_e('正式（Production）', 'moonlight-user-center'); ?></option>
-            </select>
-            <span class="description"><?php esc_html_e('生产环境涉及真实收款，切换前请确认应用与密钥均为正式环境。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p>
-            <label for="mluc_ali_appid"><strong><?php esc_html_e('App ID', 'moonlight-user-center'); ?></strong></label><br>
-            <input type="text" id="mluc_ali_appid" class="regular-text code" name="mluc_options[alipay_app_id]" value="<?php echo esc_attr($app_id); ?>" autocomplete="off">
-        </p>
-        <p>
-            <label for="mluc_ali_priv"><strong><?php esc_html_e('应用私钥（RSA2）', 'moonlight-user-center'); ?></strong></label><br>
-            <textarea id="mluc_ali_priv" class="large-text code" rows="4" name="mluc_options[alipay_private_key]" placeholder="<?php echo esc_attr($priv_hint); ?>" autocomplete="new-password"></textarea>
-            <span class="description"><?php echo esc_html__('支持 PKCS#1 / PKCS#8，可带或不含 PEM 头。仅保存在本站数据库，不写入代码与日志。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p>
-            <label for="mluc_ali_pub"><strong><?php esc_html_e('支付宝公钥（RSA2）', 'moonlight-user-center'); ?></strong></label><br>
-            <textarea id="mluc_ali_pub" class="large-text code" rows="4" name="mluc_options[alipay_public_key]" placeholder="<?php echo esc_attr($pub_hint); ?>" autocomplete="new-password"></textarea>
-            <span class="description"><?php echo esc_html__('注意：填支付宝公钥（开放平台「接口加签方式」页查看），不是应用公钥。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p class="description">
-            <?php
-            echo esc_html(sprintf(
-                /* translators: %s: notify URL */
-                __('在支付宝开放平台无需手动配置异步地址，本插件下单时自动携带 notify_url：%s（服务器需可公网访问）。', 'moonlight-user-center'),
-                class_exists('MLUC_Gateway_Alipay') ? MLUC_Gateway_Alipay::notify_url() : ''
-            ));
-            ?>
-        </p>
-        <p class="description">
-            <?php
-            echo esc_html(sprintf(
-                /* translators: %s: 当前货币代码 */
-                __('支付宝仅支持 CNY 结算。当前货币代码为 %1$s，需改为 CNY 后前台才会出现支付宝选项。', 'moonlight-user-center'),
-                class_exists('MLUC_Payments') ? MLUC_Payments::currency_code() : ''
-            ));
-            ?>
-        </p>
-        <?php
-    }
 
     /**
      * 取密钥尾 4 位（脱敏展示用）。

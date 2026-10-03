@@ -158,7 +158,7 @@ function mlshop_user_modules_should_boot()
  * 说明：
  * - MLUC_Payments / MLUC_Purchases / MLUC_Paywall / MLUC_Account_Orders / PayPal·Stripe·Alipay
  *   网关类不随 Phase A 并入（Phase C/D 处理），此处不实例化；
- * - MLUC_Payment_Manager 保留（注册表无内置网关可注册，过滤器仍对第三方开放）；
+ * - MLUC_Payment_Manager 不再启动（支付统一由商城网关提供，详见下方注释）；
  * - 页面创建（原 MLUC_Activator）Phase B 再并入。
  */
 function mlshop_boot_user_modules()
@@ -190,7 +190,9 @@ function mlshop_boot_user_modules()
     MLUC_License_Admin::get_instance();
     MLUC_Email_Notifications::get_instance();
     MLUC_System_Status::get_instance();
-    MLUC_Payment_Manager::get_instance();
+    // MLUC_Payment_Manager 不再启动：并入态下 UC 独立支付网关未随迁，
+    // 空注册表只会让设置页出现「填了也不生效」的死配置（支付统一走商城网关）。
+    // 独立用户中心插件激活时由其自身启动，行为不变。
     MLUC_Migration_Status::get_instance();
     // 并入：已购教材 / 每日签到 / 余额钱包（此前只在独立用户中心插件里，
     // 商城单独安装时会缺失这三个模块，导致 [mluc_purchases] 无输出、
