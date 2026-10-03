@@ -23,7 +23,8 @@ moonlight-user-center (Free 核心)
 
 - **前端登录 / 注册 / 找回密码**：短代码驱动，任意主题可用，样式作用域限定 `.mluc-`。
 - **账户中心仪表盘**：概览 / 资料编辑 / 会员等级 / 已购内容 / **我的订单** / **我的 License**，Tab 通过 `mluc_account_tabs` 过滤器可扩展。
-- **统一支付抽象层**：`MLUC_Payment_Gateway_Interface` + `MLUC_Payment_Manager` 注册表；内置 manual / PayPal / Stripe / Alipay，第三方可通过 `mluc_payment_gateways_registered` 追加网关。
+- **统一支付抽象层**：`MLUC_Payment_Gateway_Interface` + `MLUC_Payment_Manager` 注册表；内置 manual / PayPal / Stripe / Alipay / **Balance** / **Credit**，第三方可通过 `mluc_payment_gateways_registered` 追加网关。
+- **积分与余额（v2.1.0）**：独立积分体系——积分充值（套餐 + 自定义，充值比例后台可配）、**积分兑换余额（兑换比例后台可配）**、余额支付 / 积分支付购买会员与解锁内容、每日签到送积分（基础奖励 + 连续加成可配）、管理员调账留痕；账本增减全部原子操作并记录流水。与 Moonlight Shop 同装时商城积分模块优先，本模块自动让位。
 - **支付宝（电脑网站支付）**：RSA2 签名（OpenSSL 实现，PKCS#1 / PKCS#8 均可）；异步 notify 验签 + 商户身份 + 订单号 + 金额 + 状态四重校验；浏览器回跳以服务端 `alipay.trade.query` 复核为准；重复通知幂等；支持退款；仅 CNY。
 - **PayPal / Stripe（零回归）**：既有 Smart Buttons 与 Checkout 流程原样保留；Stripe Webhook 兜底端点 `/wp-json/mluc/v1/stripe-webhook`；支付宝 notify 端点 `/wp-json/mluc/v1/alipay/notify`。
 - **License 授权体系**：`MLUC-PRO-XXXX-XXXX-XXXX-XXXX` 安全随机 Key；签发 / 激活 / 停用 / 验证 / 撤销 / 续期；订单与 License 分离（续费叠加有效期，不新建）；远程 License Server 模式可选（验证缓存 12h，断网宽限 7 天，**Server 故障绝不影响 Free**）；支付成功可按配置自动颁发 License；退款自动撤销。
