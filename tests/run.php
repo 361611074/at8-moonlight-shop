@@ -1062,14 +1062,17 @@ echo "== MLPRO_License_Client（引擎缺席 → 本地模式回退） ==\n";
 check('MLUC 引擎在测试环境中不存在', !class_exists('MLUC_License_Manager'));
 delete_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE);
 MLPRO_License_Client::clear_cache();
-check('引擎缺席默认本地激活（option 默认 1）', MLPRO_License_Client::is_active() === true);
+// 安全默认：引擎缺席时不得默认激活（否则只装 Pro 不装用户中心即可白嫖 Pro）。
+// 历史实现默认为 1（已激活），等于给 Pro 留后门，已于授权安全修复中改为 0。
+check('引擎缺席默认未激活（option 默认 0，安全默认）', MLPRO_License_Client::is_active() === false);
 check('模式识别为 local', MLPRO_License_Client::get_mode() === 'local');
+update_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE, 1);
+MLPRO_License_Client::clear_cache();
+check('本地开关显式开启 → 激活', MLPRO_License_Client::is_active() === true);
 update_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE, 0);
 MLPRO_License_Client::clear_cache();
 check('本地开关关闭 → 未激活', MLPRO_License_Client::is_active() === false);
-update_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE, 1);
-MLPRO_License_Client::clear_cache();
-check('本地开关重新开启 → 激活', MLPRO_License_Client::is_active() === true);
+delete_option(MLPRO_License_Client::OPT_LOCAL_ACTIVE);
 
 echo "== MLPRO_Webhooks::sign_payload / format_signature ==\n";
 $wh_body = '{"event":"order.paid","data":{"order_id":7}}';
