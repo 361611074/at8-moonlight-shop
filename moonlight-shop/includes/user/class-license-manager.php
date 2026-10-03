@@ -644,13 +644,19 @@ class MLUC_License_Manager
     /**
      * 账户中心「我的 License」Tab（mluc_account_tabs 过滤器挂载）。
      */
+    /**
+     * 账户中心「我的 License」Tab —— **已停用**。
+     *
+     * 授权（Pro 授权码的签发 / 绑定域名 / 到期 / 解绑）属于站点运营方的
+     * 后台事务，前台账户中心不展示：普通会员看到「我的授权」只会困惑，
+     * 管理员在前台看到也属于错位。管理入口改由 MLUC_Licenses_Tab 注册为
+     * wp-admin 子菜单（仅当授权中心表存在时出现）。
+     *
+     * @param array $tabs
+     * @return array
+     */
     public function register_tab($tabs)
     {
-        $tabs['licenses'] = array(
-            'title'    => mluc_ui_label('tab_licenses', __('My Licenses', 'moonlight-user-center')),
-            'icon'     => 'dashicons-awards',
-            'callback' => array($this, 'render_tab'),
-        );
         return $tabs;
     }
 

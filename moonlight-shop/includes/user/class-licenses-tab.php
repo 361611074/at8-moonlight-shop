@@ -1,10 +1,14 @@
 <?php
 /**
- * 用户中心「我的授权」Tab（P7，规划书 §37-§41）。
+ * 「我的授权」—— 站点运营方（Pro 授权持有者）的后台管理页。
  *
  * 同站直连模式：用户中心与授权中心部署在同一 WordPress 时，
  * 直接读取 at8lic_ 表（仅当前用户的授权），解绑直接调用授权中心函数（带属主校验）。
- * 授权中心未启用时 Tab 自动隐藏。
+ *
+ * 位置：**只出现在 wp-admin**，前台账户中心不展示。
+ * 理由：授权码（谁买了 Pro、绑在哪个域名、何时到期、怎么续期/解绑）属于
+ * 站点运营动作，不是前台会员功能 —— 出现在账户中心会让会员困惑「什么是 Pro」。
+ * 管理入口按理应放在后台，这里用后台子菜单承载。
  *
  * 展示：授权列表（产品/类型/状态/到期/掩码 key）+ 绑定站点 + 自助解绑。
  */
@@ -18,31 +22,62 @@ class MLUC_Licenses_Tab
     public static function boot()
     {
         $i = new self();
-        add_filter('mluc_account_tabs', array($i, 'register_tab'));
+        add_action('admin_menu', array($i, 'register_admin_menu'), 20);
     }
 
-    public function register_tab($tabs)
+    /**
+     * 授权中心表是否存在且当前用户有管理权。
+     *
+     * @return bool
+     */
+    protected function is_available()
     {
         global $wpdb;
-        // 授权中心未启用（表不存在）则不显示
-        $table = $wpdb->prefix . 'at8lic_licenses';
-        $exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
-        if ($exists !== $table) {
-            return $tabs;
-        }
-
-        // 授权是「站点运营方」的东西（谁买了 Pro、绑在哪个域名、怎么续期），
-        // 与前台买教材的会员无关。只有站点管理员才需要看到这张卡，
-        // 普通会员看到只会困惑「什么是 Pro 方案」。
         if (!current_user_can('manage_options')) {
-            return $tabs;
+            return false;
+        }
+        $table = $wpdb->prefix . 'at8lic_licenses';
+        return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table)) === $table;
+    }
+
+    /**
+     * 注册为后台子菜单。跟随用户中心设置页的挂载位置：
+     * 独立插件模式挂在「用户中心」下，单插件模式挂在商城菜单下。
+     */
+    public function register_admin_menu()
+    {
+        if (!$this->is_available()) {
+            return;
+        }
+        $parent = 'mlshop';
+        if (class_exists('MLUC_Settings') && method_exists('MLUC_Settings', 'submenu_parent_slug')) {
+            $parent = MLUC_Settings::submenu_parent_slug();
+        }
+        // 父菜单不存在时退回顶级菜单，避免 add_submenu_page 静默失败
+        global $admin_page_hooks;
+        if (!isset($admin_page_hooks[$parent]) && 'mlshop' !== $parent) {
+            $parent = 'mlshop';
         }
 
-        $tabs['licenses'] = array(
-            'title'    => __('我的授权', 'moonlight-user-center'),
-            'icon'     => 'dashicons-admin-network',
-            'callback' => array($this, 'render'),
+        add_submenu_page(
+            $parent,
+            __('我的授权', 'moonlight-user-center'),
+            __('我的授权', 'moonlight-user-center'),
+            'manage_options',
+            'mluc-licenses',
+            array($this, 'render')
         );
+    }
+
+    /**
+     * 兼容旧调用：前台账户中心不再注册「我的授权」Tab。
+     *
+     * @param array $tabs
+     * @return array
+     */
+    public function register_tab($tabs)
+    {
+        // 前台不展示：入口已挪到 wp-admin
         return $tabs;
     }
 
@@ -133,12 +168,12 @@ class MLUC_Licenses_Tab
                     echo '<td style="padding:4px 0;text-align:right">';
 
                     if ('production' === $act->environment) {
-                        // tab 参数先并入 query（wp_nonce_url 会实体化 &，之后再追加参数会破坏 _wpnonce）
+                        // 本页已挪到 wp-admin，解绑链接必须回到后台页
+                        // （前台账户中心不再有 licenses Tab，指过去会 404）
                         $base = add_query_arg(array(
-                            'tab'         => 'licenses',
                             'mluc_unbind' => (int) $act->id,
                             'lic'         => (int) $license->id,
-                        ), mluc_get_account_url());
+                        ), admin_url('admin.php?page=mluc-licenses'));
                         $url = wp_nonce_url($base, 'mluc_unbind_' . (int) $act->id);
 
                         echo '<a href="' . esc_url($url) . '" style="color:#b32d2e"'
