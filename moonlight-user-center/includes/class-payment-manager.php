@@ -55,6 +55,9 @@ class MLUC_Payment_Manager
         $this->register(new MLUC_Gateway_PayPal());
         $this->register(new MLUC_Gateway_Stripe());
         $this->register(new MLUC_Gateway_Alipay());
+        // 账本网关（v2.1.0）：余额 / 积分即时扣款，启用与比例见「设置 → 积分与余额」。
+        $this->register(new MLUC_Gateway_Balance());
+        $this->register(new MLUC_Gateway_Credit());
         $this->gateways = apply_filters('mluc_payment_gateways_registered', $this->gateways);
     }
 

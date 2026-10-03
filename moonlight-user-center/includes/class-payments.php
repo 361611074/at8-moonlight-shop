@@ -118,6 +118,34 @@ class MLUC_Payments
         $level   = (string) get_post_meta($order_id, '_mluc_pay_level', true);
         $paytype = (string) get_post_meta($order_id, '_mluc_pay_type', true);
 
+        // 积分充值订单（v2.1.0）：付款完成后由 MLUC_Credit_UI 监听 mluc_payment_completed
+        // 按订单记录的积分数入账（内部幂等），此处只负责原子完单。
+        if ('recharge' === $paytype) {
+            $credit = (float) get_post_meta($order_id, '_mluc_pay_credit', true);
+            if (!$user_id || $credit <= 0 || !class_exists('MLUC_Credit')) {
+                return new WP_Error('mluc_bad_recharge', __('充值订单无效。', 'moonlight-user-center'));
+            }
+            global $wpdb;
+            $claimed = $wpdb->query($wpdb->prepare(
+                "UPDATE {$wpdb->postmeta} SET meta_value = 'paid' WHERE post_id = %d AND meta_key = '_mluc_pay_status' AND meta_value = 'pending'",
+                $order_id
+            ));
+            if (!$claimed) {
+                return new WP_Error('mluc_dup', __('訂單已完成或已取消。', 'moonlight-user-center'));
+            }
+            clean_post_cache($order_id);
+            update_post_meta($order_id, '_mluc_pay_granted', current_time('mysql'));
+            if ('' !== $txn) {
+                update_post_meta($order_id, '_mluc_pay_txn', $txn);
+            }
+            if ('' !== $gateway) {
+                update_post_meta($order_id, '_mluc_pay_gateway_paid', $gateway);
+            }
+            MLUC_Payment_Log::write($order_id, $gateway, 'complete', 'paid', array('trade_no' => $txn, 'amount' => (string) $credit));
+            do_action('mluc_payment_completed', $order_id, $user_id, 'recharge');
+            return true;
+        }
+
         // 付费墙订单：不涉及会员等级，付款完成后解锁对应文章（见 MLUC_Paywall）。
         if ('paywall' === $paytype) {
             $pw_post = (int) get_post_meta($order_id, '_mluc_pay_post', true);
