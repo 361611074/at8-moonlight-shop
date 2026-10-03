@@ -2197,10 +2197,26 @@ check('商城主文件注册 MLUC_ → includes/user/ 自动加载',
     false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "includes/user/class-"));
 check('商城主文件含启动守卫 mlshop_user_modules_should_boot',
     false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'function mlshop_user_modules_should_boot'));
-check('不并入类未混入（payments/paywall/purchases/paypal/stripe/gateway/activator/account-orders）',
+// 单插件形态（2026-10 起）：商城 + 用户中心合并为一个插件分发。
+// 已并入：已购教材 / 每日签到 / 余额钱包（此前只在独立插件里，单装商城会缺失）。
+check('并入模块含已购教材 / 签到 / 钱包三个类',
+    file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-purchases.php')
+    && file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-checkin.php')
+    && file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-wallet.php'));
+check('商城主文件启动并入的三个模块',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "array('MLUC_Purchases', 'MLUC_Checkin', 'MLUC_Wallet')"));
+check('合并层补齐积分/钱包依赖函数（credit_enabled / balance_enabled / credit_name / atomic_*）',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_credit_enabled')
+    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_atomic_decrement_user_meta'));
+check('独立插件的同名函数有 function_exists 守卫（两插件同装不致命）',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'),
+        "if (!function_exists('mluc_credit_enabled'))")
+    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'),
+        "if (!function_exists('mluc_atomic_decrement_user_meta'))"));
+// 仍未并入：UC 独立支付体系（商城已用自己的网关与订单流程接管）与页面创建器
+check('UC 独立支付体系未并入（payments/paywall/paypal/stripe/gateway/activator/account-orders）',
     !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-payments.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-paywall.php')
-    && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-purchases.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-paypal.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-stripe.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-gateway-manual.php')

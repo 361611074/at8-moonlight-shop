@@ -1001,6 +1001,62 @@ if (!mlshop_mluc_legacy_active()) {
             ));
         }
     }
+
+    /* ---------------------------------------------------------------------
+     * 并入模块的积分 / 钱包依赖（MLUC_Checkin / MLUC_Wallet / MLUC_Purchases）
+     * 旧插件激活时由旧插件自己定义这些函数，本区块整体让位，不会重复声明。
+     * --------------------------------------------------------------------- */
+
+    if (!function_exists('mluc_credit_enabled')) {
+        /**
+         * 积分功能是否启用（签到奖励、积分支付的总开关）。
+         */
+        function mluc_credit_enabled()
+        {
+            return !empty(mluc_get_option('credit_enabled', 0));
+        }
+    }
+
+    if (!function_exists('mluc_balance_enabled')) {
+        /**
+         * 余额钱包是否启用（余额支付 + 积分兑换的目标账本）。
+         */
+        function mluc_balance_enabled()
+        {
+            return !empty(mluc_get_option('balance_enabled', 0));
+        }
+    }
+
+    if (!function_exists('mluc_get_credit_name')) {
+        /**
+         * 积分显示名称（后台可改，留空回退「积分」）。
+         */
+        function mluc_get_credit_name()
+        {
+            $name = trim((string) mluc_get_option('credit_name', ''));
+            return '' !== $name ? $name : __('积分', 'moonlight-user-center');
+        }
+    }
+
+    if (!function_exists('mluc_atomic_decrement_user_meta')) {
+        /**
+         * 原子扣减 usermeta（转发到商城实现，SQL 条件更新防并发超扣）。
+         */
+        function mluc_atomic_decrement_user_meta($user_id, $meta_key, $amount)
+        {
+            return mlshop_atomic_decrement_user_meta($user_id, $meta_key, $amount);
+        }
+    }
+
+    if (!function_exists('mluc_atomic_increment_user_meta')) {
+        /**
+         * 原子累加 usermeta（转发到商城实现）。
+         */
+        function mluc_atomic_increment_user_meta($user_id, $meta_key, $amount)
+        {
+            return mlshop_atomic_increment_user_meta($user_id, $meta_key, $amount);
+        }
+    }
 }
 
 /* END MLUC merged helpers */

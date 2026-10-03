@@ -166,6 +166,14 @@ function mlshop_boot_user_modules()
     if (!mlshop_user_modules_should_boot()) {
         return;
     }
+    // 积分 / 余额的旧类名别名：并入模块的 MLUC_Checkin 等仍按旧名调用，
+    // 用 class_alias 指向商城实现（同一个类，不产生第二份实例与重复钩子）。
+    if (!class_exists('MLUC_Credit', false) && class_exists('MLSHOP_Credit')) {
+        class_alias('MLSHOP_Credit', 'MLUC_Credit');
+    }
+    if (!class_exists('MLUC_Payment_Log', false) && class_exists('MLSHOP_Payment_Log')) {
+        class_alias('MLSHOP_Payment_Log', 'MLUC_Payment_Log');
+    }
     MLUC_Auth::get_instance();
     MLUC_Account::get_instance();
     MLUC_Avatar::get_instance();
@@ -184,6 +192,31 @@ function mlshop_boot_user_modules()
     MLUC_System_Status::get_instance();
     MLUC_Payment_Manager::get_instance();
     MLUC_Migration_Status::get_instance();
+    // 并入：已购教材 / 每日签到 / 余额钱包（此前只在独立用户中心插件里，
+    // 商城单独安装时会缺失这三个模块，导致 [mluc_purchases] 无输出、
+    // 签到与钱包入口不可用）。现在单插件即可完整覆盖。
+    // class_exists + method_exists 守卫：离线测试桩（tests/wp-stubs.php）里
+    // MLUC_Wallet 等可能是无 get_instance 的空壳占位类，跳过即可。
+    foreach (array('MLUC_Purchases', 'MLUC_Checkin', 'MLUC_Wallet') as $mluc_user_class) {
+        if (class_exists($mluc_user_class) && method_exists($mluc_user_class, 'get_instance')) {
+            call_user_func(array($mluc_user_class, 'get_instance'));
+        }
+    }
+    // 补齐前台页面并修正失效的页面 ID 配置（单插件形态下没有独立插件的激活器了）。
+    // 必须延后到 wp_loaded 且仅在后台执行：wp_insert_post() 会调用 get_permalink()，
+    // 而 rewrite 规则在 plugins_loaded 阶段尚未就绪，提前建页会直接 Fatal。
+    // 前台零开销：只在后台、且固定链接结构变化后才同步一次。
+    add_action('wp_loaded', function () {
+        if (!is_admin() || !class_exists('MLUC_Page_Sync')) {
+            return;
+        }
+        $sig = (string) get_option('permalink_structure');
+        if ((string) get_option('mluc_pages_synced_stamp') === $sig) {
+            return; // 本结构下已同步过
+        }
+        MLUC_Page_Sync::boot();
+        update_option('mluc_pages_synced_stamp', $sig);
+    }, 20);
     do_action('mluc_loaded');
 }
 

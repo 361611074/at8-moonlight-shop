@@ -175,29 +175,35 @@ if (!function_exists('mluc_send_json')) {
  * 比例全部来自后台「用户中心 → 设置 → 积分与余额」，前台绝不传价。
  * ----------------------------------------------------------------- */
 
-/**
- * 积分体系是否启用。
- */
-function mluc_credit_enabled()
-{
-    return !empty(mluc_get_option('credit_enabled', 0));
+if (!function_exists('mluc_credit_enabled')) {
+    /**
+     * 积分体系是否启用。
+     */
+    function mluc_credit_enabled()
+    {
+        return !empty(mluc_get_option('credit_enabled', 0));
+    }
 }
 
 /**
  * 余额钱包是否启用（余额支付 + 积分兑换的目标账本）。
  */
-function mluc_balance_enabled()
-{
-    return !empty(mluc_get_option('balance_enabled', 0));
+if (!function_exists('mluc_balance_enabled')) {
+    function mluc_balance_enabled()
+    {
+        return !empty(mluc_get_option('balance_enabled', 0));
+    }
 }
 
 /**
  * 积分名称（积分 / 金币 / Z币 等）。
  */
-function mluc_get_credit_name()
-{
-    $name = trim((string) mluc_get_option('credit_name', ''));
-    return '' !== $name ? $name : __('积分', 'moonlight-user-center');
+if (!function_exists('mluc_get_credit_name')) {
+    function mluc_get_credit_name()
+    {
+        $name = trim((string) mluc_get_option('credit_name', ''));
+        return '' !== $name ? $name : __('积分', 'moonlight-user-center');
+    }
 }
 
 /**
@@ -274,62 +280,64 @@ function mluc_get_recharge_custom_limits()
  * @param float  $amount   增量（> 0）。
  * @return float 更新后的值。
  */
-function mluc_atomic_increment_user_meta($user_id, $meta_key, $amount)
-{
-    global $wpdb;
-    $user_id = (int) $user_id;
-    $amount  = (float) $amount;
-    if ($user_id <= 0 || '' === $meta_key || $amount == 0.0) {
-        return (float) get_user_meta($user_id, $meta_key, true);
-    }
+if (!function_exists('mluc_atomic_increment_user_meta')) {
+    function mluc_atomic_increment_user_meta($user_id, $meta_key, $amount)
+    {
+        global $wpdb;
+        $user_id = (int) $user_id;
+        $amount  = (float) $amount;
+        if ($user_id <= 0 || '' === $meta_key || $amount == 0.0) {
+            return (float) get_user_meta($user_id, $meta_key, true);
+        }
 
-    // 1) 确保恰有一行：无则补插；多行（历史脏数据）合并求和后清理。
-    $count = (int) $wpdb->get_var($wpdb->prepare(
-        "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
-        $user_id,
-        $meta_key
-    ));
-    if (0 === $count) {
-        $wpdb->query($wpdb->prepare(
-            "INSERT INTO {$wpdb->usermeta} (user_id, meta_key, meta_value) VALUES (%d, %s, %f)",
+        // 1) 确保恰有一行：无则补插；多行（历史脏数据）合并求和后清理。
+        $count = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s",
             $user_id,
-            $meta_key,
-            $amount
+            $meta_key
         ));
-        return (float) get_user_meta($user_id, $meta_key, true);
-    }
-    if ($count > 1) {
-        $wpdb->query($wpdb->prepare(
-            "UPDATE {$wpdb->usermeta} m
-             JOIN (
-                 SELECT MIN(meta_id) AS keep_id, SUM(meta_value + 0) AS total
-                 FROM {$wpdb->usermeta}
+        if (0 === $count) {
+            $wpdb->query($wpdb->prepare(
+                "INSERT INTO {$wpdb->usermeta} (user_id, meta_key, meta_value) VALUES (%d, %s, %f)",
+                $user_id,
+                $meta_key,
+                $amount
+            ));
+            return (float) get_user_meta($user_id, $meta_key, true);
+        }
+        if ($count > 1) {
+            $wpdb->query($wpdb->prepare(
+                "UPDATE {$wpdb->usermeta} m
+                 JOIN (
+                     SELECT MIN(meta_id) AS keep_id, SUM(meta_value + 0) AS total
+                     FROM {$wpdb->usermeta}
+                     WHERE user_id = %d AND meta_key = %s
+                 ) agg ON TRUE
+                 SET m.meta_value = agg.total
+                 WHERE m.meta_id = agg.keep_id",
+                $user_id,
+                $meta_key
+            ));
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$wpdb->usermeta}
                  WHERE user_id = %d AND meta_key = %s
-             ) agg ON TRUE
-             SET m.meta_value = agg.total
-             WHERE m.meta_id = agg.keep_id",
-            $user_id,
-            $meta_key
-        ));
-        $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$wpdb->usermeta}
-             WHERE user_id = %d AND meta_key = %s
-               AND meta_id <> (SELECT MIN(meta_id) FROM (SELECT meta_id FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s) x)",
-            $user_id,
-            $meta_key,
-            $user_id,
-            $meta_key
-        ));
-    }
+                   AND meta_id <> (SELECT MIN(meta_id) FROM (SELECT meta_id FROM {$wpdb->usermeta} WHERE user_id = %d AND meta_key = %s) x)",
+                $user_id,
+                $meta_key,
+                $user_id,
+                $meta_key
+            ));
+        }
 
-    // 2) 单条 UPDATE 原子累加。
-    $wpdb->query($wpdb->prepare(
-        "UPDATE {$wpdb->usermeta} SET meta_value = meta_value + %f WHERE user_id = %d AND meta_key = %s",
-        $amount,
-        $user_id,
-        $meta_key
-    ));
-    return (float) get_user_meta($user_id, $meta_key, true);
+        // 2) 单条 UPDATE 原子累加。
+        $wpdb->query($wpdb->prepare(
+            "UPDATE {$wpdb->usermeta} SET meta_value = meta_value + %f WHERE user_id = %d AND meta_key = %s",
+            $amount,
+            $user_id,
+            $meta_key
+        ));
+        return (float) get_user_meta($user_id, $meta_key, true);
+    }
 }
 
 /**
@@ -341,21 +349,23 @@ function mluc_atomic_increment_user_meta($user_id, $meta_key, $amount)
  * @param float  $amount   扣减量（> 0）。
  * @return bool 是否扣减成功（false = 余额不足或记录不存在）。
  */
-function mluc_atomic_decrement_user_meta($user_id, $meta_key, $amount)
-{
-    global $wpdb;
-    $user_id = (int) $user_id;
-    $amount  = (float) $amount;
-    if ($user_id <= 0 || '' === $meta_key || $amount <= 0) {
-        return false;
+if (!function_exists('mluc_atomic_decrement_user_meta')) {
+    function mluc_atomic_decrement_user_meta($user_id, $meta_key, $amount)
+    {
+        global $wpdb;
+        $user_id = (int) $user_id;
+        $amount  = (float) $amount;
+        if ($user_id <= 0 || '' === $meta_key || $amount <= 0) {
+            return false;
+        }
+        $updated = $wpdb->query($wpdb->prepare(
+            "UPDATE {$wpdb->usermeta} SET meta_value = meta_value - %f
+             WHERE user_id = %d AND meta_key = %s AND meta_value + 0 >= %f",
+            $amount,
+            $user_id,
+            $meta_key,
+            $amount
+        ));
+        return (int) $updated > 0;
     }
-    $updated = $wpdb->query($wpdb->prepare(
-        "UPDATE {$wpdb->usermeta} SET meta_value = meta_value - %f
-         WHERE user_id = %d AND meta_key = %s AND meta_value + 0 >= %f",
-        $amount,
-        $user_id,
-        $meta_key,
-        $amount
-    ));
-    return (int) $updated > 0;
 }
