@@ -679,10 +679,12 @@ class MLSHOP_Order
         $map = array(
             'cod'      => __('货到付款', 'moonlight-shop'),
             'balance'  => __('余额支付', 'moonlight-shop'),
+            'credit'   => __('积分支付', 'moonlight-shop'),
             'manual'   => __('线下转账', 'moonlight-shop'),
             'stripe'   => __('Stripe', 'moonlight-shop'),
             'paypal'   => __('PayPal', 'moonlight-shop'),
             'alipay'   => __('支付寶', 'moonlight-shop'),
+            'wechat'   => __('微信支付', 'moonlight-shop'),
         );
         return isset($map[$gw]) ? $map[$gw] : ($gw ?: '—');
     }
@@ -1373,12 +1375,24 @@ class MLSHOP_Order
         }
 
         if ('recharge' === $type && $uid > 0 && get_post_meta($order_id, '_mlshop_recharge_granted', true)) {
-            $credit = (float) get_post_meta($order_id, '_mlshop_credit', true);
+            // 修复：读取键与写入键一致（create_recharge 写入 _mlshop_credit_amount，
+            // 此处曾误读 _mlshop_credit 导致充值退款永远收不回积分）。
+            $credit = (float) get_post_meta($order_id, '_mlshop_credit_amount', true);
             if ($credit > 0) {
                 $remaining = MLSHOP_Credit::spend($uid, $credit, sprintf(__('订单 #%d 退款回收充值积分', 'moonlight-shop'), $order_id));
                 if (false === $remaining) {
                     update_post_meta($order_id, '_mlshop_recharge_revoke_short', $credit);
                 }
+            }
+        }
+
+        // 积分支付订单：按实际扣减量原路返还积分（退款 / 已付款后取消均触发）。
+        // 与充值回收相互独立：充值订单没有 _mlshop_credit_spent，积分支付订单
+        // 没有 _mlshop_recharge_granted，两条账目不会互相串扰。
+        if ('credit' === $gateway && $uid > 0) {
+            $points = (float) get_post_meta($order_id, '_mlshop_credit_spent', true);
+            if ($points > 0 && class_exists('MLSHOP_Credit')) {
+                MLSHOP_Credit::add($uid, $points, sprintf(__('订单 #%d 退款返还积分', 'moonlight-shop'), $order_id));
             }
         }
 

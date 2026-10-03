@@ -60,6 +60,7 @@ Pro 通过 License 激活（引擎来自会员中心 `MLUC_License_Manager`，�
 - **Stripe**：Publishable + Secret Key + Webhook Signing Secret（金额/签名双重校验，secret 未配置时 webhook 直接拒绝）；
 - **PayPal**：Client ID + Secret + Webhook ID（沙盒/正式切换）；
 - **余额/积分**：充值套餐在「付费内容」区配置；
+- **积分支付**：全局兑换比例（N 积分 = 1 货币单位）后台可配，三处联动——自定义充值金额、订单积分支付（第 8 网关，全额扣分、退款原路回补）、商品/付费内容积分价自动换算（手填积分价优先）。管理员可在用户资料页手动调整积分（含必填备注、流水留痕）；
 - 所有密钥保存后不再回显（只显示尾 4 位），留空表示不修改。
 
 ### 配置物流
@@ -100,6 +101,10 @@ do_action('mlshop_order_paid', $order_id);            // paid/processing/awaitin
 // 价格（统一价格计算器）
 apply_filters('moonlight_product_price', $price, $product, $level);
 apply_filters('moonlight_tier_price', $price, $ctx);   // ['kind','level','sell','gold','diamond']
+
+// 积分（兑换比例与双向换算）
+apply_filters('mlshop_currency_to_credit', $points, $amount);   // 货币 → 积分（默认 ceil(金额×比例)）
+apply_filters('mlshop_credit_to_currency', $price, $points);    // 积分 → 货币（默认 round(积分÷比例,2)）
 
 // 支付 / 物流 / 售后 / 卡密
 apply_filters('moonlight_payment_gateways', $gateways);        // 网关注册表

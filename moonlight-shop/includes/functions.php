@@ -284,6 +284,60 @@ function mlshop_get_credit_rate()
 }
 
 /**
+ * 积分支付网关是否开启（后台「付费/会员/积分」→「允许订单使用积分支付」）。
+ */
+function mlshop_credit_pay_enabled()
+{
+    return (bool) mlshop_get_option('credit_pay_enabled', 1);
+}
+
+/**
+ * 商品/付费内容积分价是否按汇率自动换算
+ * （后台「付费/会员/积分」→「积分价自动换算」）。
+ */
+function mlshop_credit_auto_price_enabled()
+{
+    return (bool) mlshop_get_option('credit_auto_price', 1);
+}
+
+/**
+ * 货币金额 → 积分（向上取整：1 货币单位 = credit_rate 积分）。
+ *
+ * 用于积分支付网关与积分价自动换算。向上取整保证商家在换算中不吃亏；
+ * 结果仍可经 mlshop_currency_to_credit 过滤器定制（如改为 floor）。
+ *
+ * @param float $amount 货币金额（需 > 0）
+ * @return int 积分数（amount <= 0 时返回 0）
+ */
+function mlshop_currency_to_credit($amount)
+{
+    $amount = (float) $amount;
+    if ($amount <= 0) {
+        return 0;
+    }
+    $credit = (int) ceil($amount * mlshop_get_credit_rate());
+    return (int) apply_filters('mlshop_currency_to_credit', $credit, $amount);
+}
+
+/**
+ * 积分 → 货币金额（两位小数四舍五入）。
+ *
+ * 用于自定义充值金额计算等场景，与 mlshop_currency_to_credit 共用同一汇率。
+ *
+ * @param float $points 积分数（需 > 0）
+ * @return float 货币金额（points <= 0 时返回 0.0）
+ */
+function mlshop_credit_to_currency($points)
+{
+    $points = (float) $points;
+    if ($points <= 0) {
+        return 0.0;
+    }
+    $price = round($points / mlshop_get_credit_rate(), 2);
+    return (float) apply_filters('mlshop_credit_to_currency', $price, $points);
+}
+
+/**
  * 订单状态枚举（slug => 显示名）。
  *
  * 物流第二批重构：标签映射单一来源 = MLSHOP_Order::get_status_labels()

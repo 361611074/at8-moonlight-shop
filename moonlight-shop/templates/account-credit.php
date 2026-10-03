@@ -24,11 +24,19 @@ if (!defined('ABSPATH')) {
         <h3 class="mlshop-credit-section-title"><?php esc_html_e('积分充值', 'moonlight-shop'); ?></h3>
         <form class="mlshop-recharge-form" method="post">
             <div class="mlshop-recharge-packages">
-                <?php foreach ($packages as $i => $pkg) : ?>
+                <?php foreach ($packages as $i => $pkg) :
+                    $pkg_rate = $pkg['price'] > 0 ? round($pkg['credit'] / $pkg['price'], 2) : 0;
+                    ?>
                     <label class="mlshop-recharge-package">
                         <input type="radio" name="mlshop_recharge_pkg" value="<?php echo (int) $i; ?>" <?php checked(0, $i); ?>>
                         <span class="mlshop-recharge-pkg-credit"><?php echo esc_html($pkg['credit']); ?> <?php echo esc_html($credit_name); ?></span>
                         <span class="mlshop-recharge-pkg-price"><?php echo esc_html($symbol . number_format($pkg['price'], 2)); ?></span>
+                        <?php if ($pkg_rate > 0 && $pkg_rate !== (float) $rate) : ?>
+                            <span class="mlshop-recharge-pkg-rate"><?php
+                            /* translators: %s = 该套餐隐含汇率 */
+                            printf(esc_html__('按 %s %s / 货币单位', 'moonlight-shop'), esc_html($pkg_rate), esc_html($credit_name));
+                            ?></span>
+                        <?php endif; ?>
                     </label>
                 <?php endforeach; ?>
                 <label class="mlshop-recharge-package mlshop-recharge-package-custom">

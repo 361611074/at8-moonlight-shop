@@ -1,3 +1,50 @@
+## [3.1.0] - 2026-10-03（积分体系完善版）
+
+### Free（moonlight-shop）
+
+**积分兑换比例全局化（后台「商城設定 → 付费/会员/积分」）**
+- `credit_rate` 语义升级为**全局兑换比例**（多少积分 = 1 货币单位），不再只作用于自定义充值：
+  自定义充值金额、积分支付订单换算、商品/付费内容积分价自动换算三处统一走该比例；
+- 新增开关 `credit_pay_enabled`（允许订单使用积分支付）与 `credit_auto_price`（积分价自动换算）。
+
+**积分支付网关（第 8 网关，id = `credit`）**
+- 订单可全额用积分支付：所需积分 = 订单金额 × 比例（向上取整，商家不吃亏）；
+- 安全语义与余额网关一致：终态幂等（重复回调不二次扣分）+ 原子扣减（并发不扣成负数）；
+- 实际扣减量落订单 meta `_mlshop_credit_spent`，退款 / 已付款后取消由状态机
+  （`maybe_reverse_funds`）按该值原路返还积分，与充值回收两条账目互不串扰；
+- 充值订单禁用积分支付（防「用积分买积分」套利），游客不可用；
+- 结算页显示当前积分余额与兑换比例提示。
+
+**积分价自动换算（商品 / 付费内容）**
+- 未手填积分价（`credit_price` / `credit_price_gold` / `credit_price_diamond`）时，
+  按「货币档价 × 兑换比例」自动换算（会员档位价同样联动）；手填值始终优先；
+- 修改比例后全站自动积分价即时生效，无需逐个商品调整。
+
+**积分价 / 换算助手函数（含过滤器）**
+- `mlshop_currency_to_credit()` / `mlshop_credit_to_currency()`：
+  双向换算 + `mlshop_currency_to_credit` / `mlshop_credit_to_currency` 过滤器；
+- `mlshop_credit_pay_enabled()` / `mlshop_credit_auto_price_enabled()` 开关读取。
+
+**管理员手动调整积分（参考成熟主题交互自行实现）**
+- 用户资料页新增「积分管理」区块（仅 `manage_options` 可见）：方向（增加/扣减）+ 正数金额 +
+  必填备注，流水留痕（含操作者登录名）；扣减不足时拒绝，绝不产生负余额。
+
+**修复**
+- 充值订单退款回收积分读错 meta 键（`_mlshop_credit` → `_mlshop_credit_amount`）：
+  修复后充值退款才能真正收回已入账积分（此前静默失效）；
+- `default_gateway` 补注册 sanitize（此前表单值未清洗直接落库）；
+- `gateway_label_zh` 补 `credit` / `wechat` 中文标签。
+
+**清理与测试**
+- `uninstall.php` 补清理积分相关 option 与用户积分账本 usermeta（`mlshop_credit_balance`
+  / `mlshop_credit_ledger` / `_mlshop_balance`）；
+- 测试：+44 项断言（换算助手 / 自动积分价 / 积分网关全流程 / 退款回补 / 充值回收修复回归），
+  全量 801 项全绿；tests/run-user.php 补 `add_shortcode` 等缺失桩（存量 harness 缺陷）。
+
+### 兼容性
+- WordPress 6.0+ / PHP 7.4+；无 DB 结构变更，升级即用。已保存过「前台公開支付方式」的站点
+  需在设置中手动勾选「积分支付」才会对前台公开。
+
 ## [3.0.1] - 2026-09-30（线上事故修复）
 
 ### 修复（严重 / 线上事故）

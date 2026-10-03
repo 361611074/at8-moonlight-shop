@@ -33,6 +33,11 @@ class MLSHOP_Credit_UI
         // 订单付款后入账积分（線上付款走 paid；貨到付款走 completed；grant_recharge 内部幂等保护）
         add_action('mlshop_order_paid', array($this, 'grant_recharge'), 30);
         add_action('mlshop_order_completed', array($this, 'grant_recharge'), 30);
+        // 管理员在用户资料页手动调整积分（仅 manage_options 可见可存）
+        add_action('show_user_profile', array($this, 'render_admin_adjust'));
+        add_action('edit_user_profile', array($this, 'render_admin_adjust'));
+        add_action('personal_options_update', array($this, 'save_admin_adjust'));
+        add_action('edit_user_profile_update', array($this, 'save_admin_adjust'));
     }
 
     /**
@@ -67,11 +72,11 @@ class MLSHOP_Credit_UI
         $symbol   = mlshop_get_option('currency_symbol', 'HK$');
         $credit_name = mlshop_get_option('credit_name', '积分');
 
-        // 充值可用网关（排除余额支付，避免用余额买余额的循环）
+        // 充值可用网关（排除余额支付避免用余额买余额；排除积分支付避免用积分买积分的循环套利）
         $gateways = array();
         if (class_exists('MLSHOP_Payment')) {
             foreach (MLSHOP_Payment::get_instance()->get_gateways() as $g) {
-                if ('balance' === $g->get_id()) {
+                if (in_array($g->get_id(), array('balance', 'credit'), true)) {
                     continue;
                 }
                 $gateways[] = $g;
@@ -116,10 +121,7 @@ class MLSHOP_Credit_UI
             }
         } else {
             $credit = (float) (isset($_POST['custom_credit']) ? $_POST['custom_credit'] : 0);
-            $rate   = mlshop_get_credit_rate();
-            if ($rate > 0) {
-                $price = round($credit / $rate, 2);
-            }
+            $price  = mlshop_credit_to_currency($credit);
         }
 
         if ($credit <= 0) {
@@ -132,6 +134,9 @@ class MLSHOP_Credit_UI
         $gateway_id = isset($_POST['gateway']) ? sanitize_key($_POST['gateway']) : '';
         if ('balance' === $gateway_id) {
             mlshop_send_json(false, __('充值不可使用余额支付。', 'moonlight-shop'));
+        }
+        if ('credit' === $gateway_id) {
+            mlshop_send_json(false, __('充值不可使用积分支付。', 'moonlight-shop'));
         }
         $gateway = MLSHOP_Payment::get_instance()->get_gateway($gateway_id);
         if (!$gateway) {
@@ -173,5 +178,84 @@ class MLSHOP_Credit_UI
             MLSHOP_Credit::add($user_id, $credit, sprintf(__('充值到账（订单 #%s）', 'moonlight-shop'), $order_id));
             update_post_meta($order_id, '_mlshop_recharge_granted', current_time('mysql'));
         }
+    }
+
+    /**
+     * 用户资料页「手动调整积分」（仅 manage_options 用户可见）。
+     *
+     * 方向由下拉决定（增加 / 扣减），金额恒为正数——避免正负号歧义与误输负数；
+     * 备注必填，进积分流水（后台可审计）。余额不足扣减时直接拒绝，不产生负余额。
+     */
+    public function render_admin_adjust($user)
+    {
+        if (!current_user_can('manage_options') || !class_exists('MLSHOP_Credit')) {
+            return;
+        }
+        $balance     = MLSHOP_Credit::get_balance($user->ID);
+        $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
+        ?>
+        <h2><?php echo esc_html(sprintf(__('%s 管理', 'moonlight-shop'), $credit_name)); ?></h2>
+        <table class="form-table">
+            <tr>
+                <th><?php echo esc_html(sprintf(__('当前%s余额', 'moonlight-shop'), $credit_name)); ?></th>
+                <td><strong><?php echo esc_html($balance); ?></strong></td>
+            </tr>
+            <tr>
+                <th><label for="mlshop_credit_adjust"><?php esc_html_e('手动调整', 'moonlight-shop'); ?></label></th>
+                <td>
+                    <select id="mlshop_credit_adjust_dir" name="mlshop_credit_adjust_dir">
+                        <option value="add"><?php esc_html_e('增加', 'moonlight-shop'); ?></option>
+                        <option value="deduct"><?php esc_html_e('扣减', 'moonlight-shop'); ?></option>
+                    </select>
+                    <input type="number" id="mlshop_credit_adjust" name="mlshop_credit_adjust" min="0" step="0.01" class="small-text" placeholder="0">
+                    <span class="description"><?php echo esc_html($credit_name); ?></span>
+                    <p class="description"><?php esc_html_e('留空 = 不调整。调整会记入用户积分流水（含操作备注），扣减不会使余额变为负数。', 'moonlight-shop'); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="mlshop_credit_adjust_note"><?php esc_html_e('调整备注', 'moonlight-shop'); ?></label></th>
+                <td>
+                    <input type="text" id="mlshop_credit_adjust_note" name="mlshop_credit_adjust_note" class="regular-text" maxlength="190">
+                    <p class="description"><?php esc_html_e('必填（仅在填写了调整数额时），如：活动奖励 / 客服补偿 / 违规扣回。', 'moonlight-shop'); ?></p>
+                </td>
+            </tr>
+        </table>
+        <?php
+    }
+
+    /**
+     * 保存「手动调整积分」表单（profile 相关钩子会对本人资料页也触发，
+     * 这里统一以 manage_options 做硬闸，保证只有管理员能调整任何用户）。
+     */
+    public function save_admin_adjust($user_id)
+    {
+        if (!current_user_can('manage_options') || !class_exists('MLSHOP_Credit')) {
+            return false;
+        }
+        // 无意提交（未展开该区块的常规资料保存）直接跳过
+        $raw = isset($_POST['mlshop_credit_adjust']) ? wp_unslash($_POST['mlshop_credit_adjust']) : '';
+        if (!isset($_POST['mlshop_credit_adjust_dir']) && '' === trim((string) $raw)) {
+            return false;
+        }
+        check_admin_referer('update-user_' . $user_id);
+
+        $amount = (float) $raw;
+        if ($amount <= 0) {
+            return false;
+        }
+        $dir  = ('deduct' === ($_POST['mlshop_credit_adjust_dir'] ?? '')) ? 'deduct' : 'add';
+        $note = sanitize_text_field(wp_unslash($_POST['mlshop_credit_adjust_note'] ?? ''));
+        if ('' === $note) {
+            // 拒绝无备注的调整：资料页本身没有报错通道，静默跳过并留系统日志痕迹
+            error_log(sprintf('[moonlight-shop] credit adjust skipped for user #%d: empty note', $user_id));
+            return false;
+        }
+        $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
+        if ('deduct' === $dir) {
+            MLSHOP_Credit::spend($user_id, $amount, sprintf(__('管理员扣减：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
+        } else {
+            MLSHOP_Credit::add($user_id, $amount, sprintf(__('管理员增加：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
+        }
+        return true;
     }
 }

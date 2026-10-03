@@ -70,6 +70,11 @@ class MLSHOP_Payment
             new MLSHOP_Gateway_Alipay(),
             new MLSHOP_Gateway_WeChat(),
         );
+        // 积分支付：受「付费/会员/积分 → 允许订单使用积分支付」总开关控制，
+        // 再叠加 mlshop_payment_gateways filter 与前台公开白名单的双重过滤。
+        if (mlshop_credit_pay_enabled() && class_exists('MLSHOP_Credit')) {
+            $gateways[] = new MLSHOP_Gateway_Credit();
+        }
         $gateways = apply_filters('mlshop_payment_gateways', $gateways);
         $stored   = get_option('mlshop_enabled_gateways', null);
         if (null === $stored) {
@@ -96,7 +101,7 @@ class MLSHOP_Payment
     public function get_enabled_gateway_ids()
     {
         $stored = get_option('mlshop_enabled_gateways', null);
-        $builtin = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
+        $builtin = array('cod', 'balance', 'credit', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
         if (null === $stored) {
             return $builtin;
         }
@@ -211,6 +216,10 @@ class MLSHOP_Payment
         // 余额支付依赖用户钱包，游客不可用
         if ($is_guest && 'balance' === $gateway_id) {
             mlshop_send_json(false, __('余额支付需登录后使用。', 'moonlight-shop'));
+        }
+        // 积分支付同样依赖登录态与积分账本，游客不可用
+        if ($is_guest && 'credit' === $gateway_id) {
+            mlshop_send_json(false, __('积分支付需登录后使用。', 'moonlight-shop'));
         }
 
         $coupon_code = isset($_POST['coupon_code']) ? sanitize_text_field($_POST['coupon_code']) : '';

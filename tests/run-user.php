@@ -41,6 +41,16 @@ if (!function_exists('register_activation_hook')) {
 if (!function_exists('register_deactivation_hook')) {
     function register_deactivation_hook($file, $cb) {}
 }
+if (!function_exists('add_shortcode')) {
+    // 商城主文件顶层 License_Bridge::boot() 会注册前台短代码
+    function add_shortcode($tag, $cb) { $GLOBALS['__test_shortcodes'][(string) $tag] = $cb; }
+}
+if (!function_exists('is_admin')) {
+    function is_admin() { return false; }
+}
+if (!function_exists('wp_doing_ajax')) {
+    function wp_doing_ajax() { return false; }
+}
 
 /* ---------- 2) 商城主文件：MLUC_ 自动加载器（includes/user/）+ merged helpers ----------
  * v3.0.1 起加载器改在 plugins_loaded 注册（事故修复），测试进程需手动触发，

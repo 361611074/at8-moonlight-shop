@@ -13,11 +13,26 @@
 | `paypal` | PayPal | 合并两实现（商城 approve 流 + 用户中心 Smart Buttons 流，按场景分发） | Free | ✅（v2 `/payments-captures/{id}/refund`） |
 | `stripe` | Stripe | 合并两实现（Checkout Session 唯一路径） | Free | ✅（Refund API） |
 | `balance` | 余额 | 商城保留 | Free | 原路回补 |
-| `credit` | 积分 | 商城保留（充值/解锁场景） | Free | 原路回补 |
+| `credit` | 积分 | 商城（v3.1.0 起为完整订单网关；充值/解锁场景沿用 `MLSHOP_Credit`） | Free | 原路回补（状态机按 `_mlshop_credit_spent` 返还） |
 | `cod` | 货到付款 | 商城保留 | Free | —（退款=标记） |
 | `manual` | 线下转账 | 合并 | Free | 标记 |
 
 > 支付与 License 解耦（计划书第五十一节）：购买 Pro 的订单是普通订单（gateway=任意），支付成功事件 → License 服务监听 `moonlight_order_paid` 授予——支付层不认识 License。
+
+### 积分支付网关（v3.1.0）
+
+- **兑换比例单一来源**：`mlshop_get_credit_rate()`（option `credit_rate`，语义「多少积分 = 1 货币单位」）；
+  双向换算助手 `mlshop_currency_to_credit()`（ceil）/ `mlshop_credit_to_currency()`（round 2dp），
+  分别提供 `mlshop_currency_to_credit` / `mlshop_credit_to_currency` 过滤器。
+- **下单扣减**：所需积分 = 订单金额 × 比例（ceil）；`MLSHOP_Credit::spend()` 原子扣减（余额充足才扣），
+  实扣量写订单 meta `_mlshop_credit_spent`，随后 `mark_paid($order_id, 'credit')`。
+- **终态幂等**：订单已 paid/processing/completed/refunded 时不重复扣分（与余额网关同口径）。
+- **退款/取消回补**：状态机 `maybe_reverse_funds()` 读 `_mlshop_credit_spent` 全额返还积分；
+  与充值订单的积分回收（`_mlshop_credit_amount`）为两条独立账目。
+- **禁用面**：充值订单禁用积分支付（防套利）；游客订单禁用；总开关 `credit_pay_enabled` +
+  「前台公開支付方式」白名单双重控制。
+- **积分价联动**：付费内容未手填 `credit_price*` 时，`paywall_credit_price()` 按
+  货币档价 × 比例自动换算（开关 `credit_auto_price`，手填始终优先）。
 
 ## 二、网关接口（v2）
 

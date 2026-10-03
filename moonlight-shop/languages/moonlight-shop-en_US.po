@@ -5,6 +5,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "%1$s不足，本次需 %2$s，当前余额 %3$s。"
+msgstr ""
+
 msgid "%d 分钟前"
 msgstr "%d minutes ago"
 
@@ -22,6 +25,15 @@ msgstr "%s Upgrade"
 
 msgid "%s 您好，感謝您的訂購！"
 msgstr "%s Hello, thank you for your order!"
+
+msgid "%s 管理"
+msgstr ""
+
+msgid "%s支付"
+msgstr ""
+
+msgid "%s支付需登录后使用。"
+msgstr ""
 
 msgid "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
 msgstr ""
@@ -173,6 +185,12 @@ msgstr "[Order Confirmation] #%s Received — Awaiting Payment"
 msgid "【訂單確認】#{order_number} 付款完成"
 msgstr "[Order Confirmation] #{order_number} Paid"
 
+msgid "一键将站内全部 WooCommerce 商品（当前 %d 个已发布）迁入月光商城：标题/内容/图片/分类/标签/价格/库存/SKU 自动映射；可重复执行，已迁入的商品更新而非重建。"
+msgstr ""
+
+msgid "一键迁入全部商品"
+msgstr ""
+
 msgid "上一张"
 msgstr "Previous image"
 
@@ -234,6 +252,9 @@ msgid "中国邮政"
 msgstr ""
 
 msgid "中通快递"
+msgstr ""
+
+msgid "主色"
 msgstr ""
 
 msgid "买过指定商品的客户"
@@ -395,6 +416,9 @@ msgstr "Pay with Balance"
 msgid "余额支付需登录后使用。"
 msgstr ""
 
+msgid "作用于全部「加入购物车 / 选择套餐」按钮（商品卡片、相关商品、详情页），改完保存刷新前台即见。"
+msgstr ""
+
 msgid "佣金"
 msgstr "Commission"
 
@@ -409,6 +433,9 @@ msgstr "Pay with your PayPal account or credit card."
 
 msgid "使用次数上限"
 msgstr "Usage limit"
+
+msgid "使用账户%s按比例支付（%s %s = 1 货币单位）。"
+msgstr ""
 
 msgid "使用账户余额支付（需站点开通余额功能）。"
 msgstr "Pay with your account balance (site balance feature required)."
@@ -452,8 +479,14 @@ msgstr "Note (optional)"
 msgid "允許訪客購買"
 msgstr ""
 
+msgid "允许订单使用积分支付"
+msgstr ""
+
 msgid "充值不可使用余额支付。"
 msgstr "Top-ups cannot be paid with balance."
+
+msgid "充值不可使用积分支付。"
+msgstr ""
 
 msgid "充值到账（订单 #%s）"
 msgstr "Top-up credited (Order #%s)"
@@ -465,6 +498,9 @@ msgid "充值积分"
 msgstr "Top up credits"
 
 msgid "充值积分已消费，无法退款"
+msgstr ""
+
+msgid "充值订单不可使用积分支付。"
 msgstr ""
 
 msgid "充值金额无效。"
@@ -481,6 +517,9 @@ msgstr "Send a test to your own admin email to preview."
 
 msgid "免費"
 msgstr "Free"
+
+msgid "全局兑换比例：多少积分 = 1 个货币单位。例：10 表示 10 积分 = 1 元。同时作用于：自定义充值金额、积分支付订单换算、以及未手填积分价的商品/付费内容自动换算（见下方开关）。"
+msgstr ""
 
 msgid "全部"
 msgstr "All"
@@ -593,8 +632,14 @@ msgstr ""
 msgid "剩余 %d 次"
 msgstr ""
 
+msgid "加入中提示"
+msgstr ""
+
 msgid "加入购物车"
 msgstr "Add to Cart"
+
+msgid "加购按钮"
+msgstr ""
 
 msgid "勾选后仅指定会员等级可用，不选则所有用户。"
 msgstr "If checked, only selected member levels can use it; otherwise all users."
@@ -833,7 +878,13 @@ msgstr "Invalid after-sales type."
 msgid "商品"
 msgstr "Product"
 
+msgid "商品/付费内容未手填积分价时，按「货币价 × 兑换比例」自动换算（向上取整）"
+msgstr ""
+
 msgid "商品「%1$s」卡密库存不足，仅剩 %2$d 条，请及时补充（进入后台 → 商城 → 卡密库存 导入新批次）。"
+msgstr ""
+
+msgid "商品一键迁入（WooCommerce → 月光商城）"
 msgstr ""
 
 msgid "商品不存在。"
@@ -1052,6 +1103,9 @@ msgstr "Flat shipping rate"
 msgid "固定金额减免"
 msgstr "Fixed amount discount"
 
+msgid "圆角"
+msgstr ""
+
 msgid "圆通速递"
 msgstr ""
 
@@ -1109,6 +1163,9 @@ msgstr ""
 msgid "基本設定"
 msgstr "General"
 
+msgid "增加"
+msgstr ""
+
 msgid "增加数量"
 msgstr "Increase"
 
@@ -1126,6 +1183,12 @@ msgstr "Failed"
 
 msgid "失败信息"
 msgstr "Failure message"
+
+msgid "失败明细："
+msgstr ""
+
+msgid "套餐按钮（预留）"
+msgstr ""
 
 msgid "如有优惠码请在此输入"
 msgstr "Enter a coupon code if you have one"
@@ -1229,8 +1292,14 @@ msgstr ""
 msgid "已创建"
 msgstr ""
 
+msgid "已加入"
+msgstr ""
+
 msgid "已加入 ✓"
 msgstr "Added ✓"
+
+msgid "已加入提示"
+msgstr ""
 
 msgid "已加入收藏。"
 msgstr "Added to favorites."
@@ -1358,6 +1427,12 @@ msgstr "Start bulk send"
 msgid "异常"
 msgstr ""
 
+msgid "当前%1$s余额：%2$s（%3$s %1$s = 1 货币单位）"
+msgstr ""
+
+msgid "当前%s余额"
+msgstr ""
+
 msgid "当前商品（循环中）"
 msgstr "Current product (in loop)"
 
@@ -1452,6 +1527,9 @@ msgid "微信支付請求簽名失敗，請檢查商戶私鑰。"
 msgstr ""
 
 msgid "微信退款失敗（未返回退款單號）。"
+msgstr ""
+
+msgid "必填（仅在填写了调整数额时），如：活动奖励 / 客服补偿 / 违规扣回。"
 msgstr ""
 
 msgid "快捷入口"
@@ -1559,8 +1637,14 @@ msgstr "All product list pages (categories, search, Elementor grids) share the t
 msgid "所选地址不存在，请重新选择。"
 msgstr ""
 
+msgid "手动调整"
+msgstr ""
+
 msgid "手动输入邮箱"
 msgstr "Enter emails manually"
+
+msgid "手填过积分价（含会员档）的商品仍以手填值优先。修改兑换比例后，所有自动换算的商品积分价即时生效，无需逐个调整。"
+msgstr ""
 
 msgid "手工发货"
 msgstr ""
@@ -1577,10 +1661,16 @@ msgstr ""
 msgid "手机端列数（≤520px）"
 msgstr "Mobile columns (≤520px)"
 
+msgid "扣减"
+msgstr ""
+
 msgid "扣减余额失败，请稍后重试。"
 msgstr "Failed to deduct balance. Please try again later."
 
 msgid "执行退款"
+msgstr ""
+
+msgid "扫描商品"
 msgstr ""
 
 msgid "扫码 / 线下付款"
@@ -1615,6 +1705,9 @@ msgstr "Assign member levels"
 
 msgid "按 %s %s / 1 货币单位计算"
 msgstr "Calculated at %s %s per 1 currency unit"
+
+msgid "按 %s %s / 货币单位"
+msgstr ""
 
 msgid "按件（首件 %s / 續件 %s）"
 msgstr ""
@@ -1778,6 +1871,9 @@ msgstr "Payment module unavailable."
 msgid "支付网关"
 msgstr "Payment Gateway"
 
+msgid "支付订单 #%1$s（%2$s %3$s）"
+msgstr ""
+
 msgid "支付金额与订单不符，已记录待人工核对。"
 msgstr ""
 
@@ -1807,6 +1903,9 @@ msgstr ""
 
 msgid "收藏"
 msgstr "Favorites"
+
+msgid "收藏按钮"
+msgstr ""
 
 msgid "收藏是空白的。"
 msgstr "Your favorites list is empty."
@@ -1838,6 +1937,9 @@ msgstr "Quantity"
 msgid "文件不存在。"
 msgstr "File not found."
 
+msgid "文字大小"
+msgstr ""
+
 msgid "新商品"
 msgstr "New product"
 
@@ -1854,6 +1956,9 @@ msgid "新增 / 編輯收貨地址"
 msgstr ""
 
 msgid "新增卡密（每行一条，保存后加密入库存池，明文不落库）"
+msgstr ""
+
+msgid "新建"
 msgstr ""
 
 msgid "新建优惠券"
@@ -1982,6 +2087,9 @@ msgstr ""
 msgid "更多信息"
 msgstr "Additional information"
 
+msgid "更新"
+msgstr ""
+
 msgid "更新商品分类"
 msgstr "Update product category"
 
@@ -2017,6 +2125,9 @@ msgstr "Latest products"
 
 msgid "最近 30 天"
 msgstr "Last 30 days"
+
+msgid "最近一次迁移状态"
+msgstr ""
 
 msgid "最高价格"
 msgstr "Max price"
@@ -2056,6 +2167,9 @@ msgstr "Auto-cancel unpaid orders (minutes)"
 
 msgid "未检测到 WooCommerce 商品标签（product_tag），无可同步数据。"
 msgstr "No WooCommerce product tags (product_tag) found; nothing to sync."
+
+msgid "未检测到 WooCommerce，无需迁移。"
+msgstr ""
 
 msgid "未检测到会员等级，留空表示全部用户。"
 msgstr "No member levels detected; leave empty for all users."
@@ -2174,6 +2288,9 @@ msgstr "Permission denied."
 msgid "權限不足或校验失敗。"
 msgstr "Permission denied or verification failed."
 
+msgid "正在加入…"
+msgstr ""
+
 msgid "正在跳轉至 PayPal…"
 msgstr "Redirecting to PayPal…"
 
@@ -2203,6 +2320,9 @@ msgstr ""
 
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
 msgstr "One package per line, format: credits|amount (e.g. 100|10). Leave empty for defaults."
+
+msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。注意：套餐为独立定价（可做充值优惠），不随上方兑换比例自动变化。"
+msgstr ""
 
 msgid "每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。"
 msgstr ""
@@ -2393,11 +2513,17 @@ msgstr ""
 msgid "电子邮箱"
 msgstr ""
 
+msgid "留空 = 不调整。调整会记入用户积分流水（含操作备注），扣减不会使余额变为负数。"
+msgstr ""
+
 msgid "留空 = 全额（%s %s）"
 msgstr ""
 
 msgid "留空使用內建主題。支持佔位符 {order_number}（訂單號）。"
 msgstr "Leave empty for the built-in template. Supports the {order_number} placeholder."
+
+msgid "留空使用默认值。加购按钮 / 加入中 / 已加入提示全站生效（含商品卡片、详情页、相关商品）；刷新前台即见。"
+msgstr ""
 
 msgid "留空時取訂單首件商品標題"
 msgstr ""
@@ -2477,6 +2603,9 @@ msgstr "Insufficient credits: need %s %s, current balance %s."
 msgid "积分价格未设置。"
 msgstr "Credit price not set."
 
+msgid "积分价自动换算"
+msgstr ""
+
 msgid "积分余额"
 msgstr "Credit Balance"
 
@@ -2486,8 +2615,17 @@ msgstr "Credit Top-up"
 msgid "积分充值套餐"
 msgstr "Credit top-up packages"
 
+msgid "积分兑换比例"
+msgstr ""
+
 msgid "积分名称"
 msgstr "Credits name"
+
+msgid "积分支付"
+msgstr ""
+
+msgid "积分支付需登录后使用。"
+msgstr ""
 
 msgid "积分流水"
 msgstr "Credit transactions"
@@ -2531,6 +2669,12 @@ msgstr "Filter the order list"
 msgid "签收后自动完成（天）"
 msgstr ""
 
+msgid "管理员增加：%1$s（by %2$s）"
+msgstr ""
+
+msgid "管理员扣减：%1$s（by %2$s）"
+msgstr ""
+
 msgid "簽名驗證未通過。"
 msgstr "Signature verification failed."
 
@@ -2554,6 +2698,9 @@ msgstr "Offline transfer"
 
 msgid "结算"
 msgstr "Checkout"
+
+msgid "结算页提供「积分支付」方式，按上方比例全额扣除积分（需在「前台公開支付方式」同时勾选）"
+msgstr ""
 
 msgid "编辑优惠券"
 msgstr "Edit coupon"
@@ -2720,6 +2867,9 @@ msgstr "Order #%d refund: top-up credits reversed"
 msgid "订单 #%d 退款回补余额"
 msgstr "Order #%d refund: balance restored"
 
+msgid "订单 #%d 退款返还积分"
+msgstr ""
+
 msgid "订单「已签收」超过该天数且用户未确认收货时，自动转为「已完成」。0 = 不自动完成（仅用户手动确认）。"
 msgstr ""
 
@@ -2798,6 +2948,9 @@ msgstr "Order archives"
 msgid "订单总数"
 msgstr "Total orders"
 
+msgid "订单所需积分 = 订单金额 × 比例（向上取整）。余额不足时无法提交，支持积分+其他支付方式的订单分别独立。充值订单不可用积分支付。"
+msgstr ""
+
 msgid "订单模块不可用。"
 msgstr "Order module unavailable."
 
@@ -2830,6 +2983,9 @@ msgstr "Order settings"
 
 msgid "订单金额"
 msgstr "Order amount"
+
+msgid "订单金额无效，无法使用积分支付。"
+msgstr ""
 
 msgid "订单金额无效，无法退款。"
 msgstr ""
@@ -3008,6 +3164,9 @@ msgstr ""
 msgid "请选择该省份下有效的城市。"
 msgstr ""
 
+msgid "调整备注"
+msgstr ""
+
 msgid "调整每张商品卡之间的空隙。"
 msgstr "Adjust the spacing between product cards."
 
@@ -3047,7 +3206,13 @@ msgstr "Item No."
 msgid "购买后 %d%s 内有效，逾期需重新购买"
 msgstr "Valid for %d%s after purchase; repurchase required after expiry"
 
+msgid "购买按钮样式"
+msgstr ""
+
 msgid "购买数量必须大于 0。"
+msgstr ""
+
+msgid "购买文案"
 msgstr ""
 
 msgid "购物车"
@@ -3078,6 +3243,9 @@ msgid "超过该时长仍未付款的订单将自动取消并回滚库存。0 �
 msgstr "Orders unpaid after this period are cancelled automatically and stock is rolled back. 0 disables auto-cancel. Even without a server cron, orders expire lazily when viewed."
 
 msgid "跳轉至支付寶完成付款（僅支持人民幣 CNY 計價訂單）。"
+msgstr ""
+
+msgid "跳过"
 msgstr ""
 
 msgid "输入框占位"
@@ -3163,6 +3331,12 @@ msgstr "Select product"
 
 msgid "选择商品相册"
 msgstr "Select product gallery"
+
+msgid "选择套餐"
+msgstr ""
+
+msgid "选择授权套餐"
+msgstr ""
 
 msgid "选择支付方式"
 msgstr "Select Payment Method"

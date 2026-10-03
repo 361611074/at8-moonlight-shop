@@ -146,6 +146,10 @@ class MLSHOP_Admin
             'pay_popup_default_title' => array('type' => 'string',  'sanitize' => 'sanitize_text_field'),
             'recharge_packages'       => array('type' => 'string',  'sanitize' => 'sanitize_textarea_field'),
             'credit_rate'             => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
+            // 积分支付网关 / 积分价自动换算总开关（credit_rate 为全局兑换比例）
+            'credit_pay_enabled'      => array('type' => 'integer', 'sanitize' => 'absint'),
+            'credit_auto_price'       => array('type' => 'integer', 'sanitize' => 'absint'),
+            'default_gateway'         => array('type' => 'string',  'sanitize' => 'sanitize_key'),
             'order_expire_minutes'    => array('type' => 'integer', 'sanitize' => 'absint'),
             'shipping_enabled'        => array('type' => 'integer', 'sanitize' => 'absint'),
             'shipping_free_threshold' => array('type' => 'number',  'sanitize' => 'mlshop_sanitize_float'),
@@ -215,7 +219,7 @@ class MLSHOP_Admin
         register_setting($group, 'mlshop_enabled_gateways', array(
             'type'              => 'array',
             'sanitize_callback' => array($this, 'sanitize_enabled_gateways'),
-            'default'           => array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat'),
+            'default'           => array('cod', 'balance', 'credit', 'manual', 'stripe', 'paypal', 'alipay', 'wechat'),
         ));
 
         // 運費模板（数组存储；表单提交的是逐行文本，由 sanitize 回调解析为结构化数组）
@@ -806,14 +810,30 @@ class MLSHOP_Admin
                         <th><label for="mlshop_recharge_packages"><?php esc_html_e('积分充值套餐', 'moonlight-shop'); ?></label></th>
                         <td>
                             <textarea id="mlshop_recharge_packages" name="mlshop_recharge_packages" rows="4" class="large-text code mlshop-admin-packages"><?php echo esc_textarea(mlshop_get_option('recharge_packages', '')); ?></textarea>
-                            <p class="description"><?php esc_html_e('每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。', 'moonlight-shop'); ?></p>
+                            <p class="description"><?php esc_html_e('每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。注意：套餐为独立定价（可做充值优惠），不随上方兑换比例自动变化。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mlshop_credit_rate"><?php esc_html_e('自定义充值汇率（积分/货币单位）', 'moonlight-shop'); ?></label></th>
+                        <th><label for="mlshop_credit_rate"><?php esc_html_e('积分兑换比例', 'moonlight-shop'); ?></label></th>
                         <td>
                             <input type="text" id="mlshop_credit_rate" name="mlshop_credit_rate" value="<?php echo esc_attr(mlshop_get_option('credit_rate', 10)); ?>" class="small-text">
-                            <p class="description"><?php esc_html_e('用户填自定义积分数时，金额 = 积分数 ÷ 此汇率。例：10 表示 1 元得 10 积分。', 'moonlight-shop'); ?></p>
+                            <p class="description"><?php esc_html_e('全局兑换比例：多少积分 = 1 个货币单位。例：10 表示 10 积分 = 1 元。同时作用于：自定义充值金额、积分支付订单换算、以及未手填积分价的商品/付费内容自动换算（见下方开关）。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('允许订单使用积分支付', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_credit_pay_enabled" value="0">
+                            <label><input type="checkbox" name="mlshop_credit_pay_enabled" value="1" <?php checked((int) mlshop_get_option('credit_pay_enabled', 1), 1); ?>> <?php esc_html_e('结算页提供「积分支付」方式，按上方比例全额扣除积分（需在「前台公開支付方式」同时勾选）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('订单所需积分 = 订单金额 × 比例（向上取整）。余额不足时无法提交，支持积分+其他支付方式的订单分别独立。充值订单不可用积分支付。', 'moonlight-shop'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('积分价自动换算', 'moonlight-shop'); ?></th>
+                        <td>
+                            <input type="hidden" name="mlshop_credit_auto_price" value="0">
+                            <label><input type="checkbox" name="mlshop_credit_auto_price" value="1" <?php checked((int) mlshop_get_option('credit_auto_price', 1), 1); ?>> <?php esc_html_e('商品/付费内容未手填积分价时，按「货币价 × 兑换比例」自动换算（向上取整）', 'moonlight-shop'); ?></label>
+                            <p class="description"><?php esc_html_e('手填过积分价（含会员档）的商品仍以手填值优先。修改兑换比例后，所有自动换算的商品积分价即时生效，无需逐个调整。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                 </table>
@@ -1022,7 +1042,7 @@ class MLSHOP_Admin
                 $enabled = get_option('mlshop_enabled_gateways', null);
                 if (!is_array($enabled)) {
                     // 第一次进入设置页或尚未保存：默认全部内建网关为启用。
-                    $enabled = array('cod', 'balance', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
+                    $enabled = array('cod', 'balance', 'credit', 'manual', 'stripe', 'paypal', 'alipay', 'wechat');
                 }
                 // 用支付管理器拉出全量候选（含第三方扩展），便于管理员按需开启。
                 $all_gateways = array();
@@ -1034,6 +1054,7 @@ class MLSHOP_Admin
                         array(
                             new MLSHOP_Gateway_COD(),
                             new MLSHOP_Gateway_Balance(),
+                            new MLSHOP_Gateway_Credit(),
                             new MLSHOP_Gateway_Manual(),
                             new MLSHOP_Gateway_Stripe(),
                             new MLSHOP_Gateway_PayPal(),

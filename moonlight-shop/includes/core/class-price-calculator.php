@@ -104,6 +104,13 @@ class Moonlight_Price_Calculator
 
     /**
      * 付费内容积分价（会员等级价）。
+     *
+     * 定价优先级：
+     *  1) 手填积分价（credit_price / credit_price_gold / credit_price_diamond，
+     *     任一档 > 0 即视为手填，沿用 tier_price 档位回退）；
+     *  2) 「积分价自动换算」开启时，按货币档价 × 兑换比例向上取整
+     *     （修改全局 credit_rate 后所有自动价即时生效）；
+     *  3) 两者皆无 → 0（调用方按「积分价格未设置」拒绝购买）。
      */
     public static function paywall_credit_price($post_id, $user_id = 0)
     {
@@ -112,7 +119,20 @@ class Moonlight_Price_Calculator
         $sell    = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price', 0);
         $gold    = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price_gold', 0);
         $diamond = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'credit_price_diamond', 0);
-        return self::tier_price($sell, $gold, $diamond, $level);
+        if ($sell > 0 || $gold > 0 || $diamond > 0) {
+            return self::tier_price($sell, $gold, $diamond, $level);
+        }
+
+        if (!function_exists('mlshop_credit_auto_price_enabled') || !mlshop_credit_auto_price_enabled()) {
+            return 0.0;
+        }
+        $money_sell    = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_sell', 0);
+        $money_gold    = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_gold', 0);
+        $money_diamond = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'price_diamond', 0);
+        if ($money_sell <= 0 && $money_gold <= 0 && $money_diamond <= 0) {
+            return 0.0;
+        }
+        return (float) mlshop_currency_to_credit(self::tier_price($money_sell, $money_gold, $money_diamond, $level));
     }
 
     /**

@@ -88,6 +88,23 @@ class MLUC_Checkin
             mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-user-center'));
         }
 
+        // 并发防护：每用户命名锁（GET_LOCK 立取不等待），双击 / 并发请求只有一个能进入发奖段。
+        // 锁不可用（返回 NULL，如非 MySQL 环境）时优雅降级为无锁行为。
+        global $wpdb;
+        $lock_name = 'mluc_checkin_' . $user_id;
+        $lock      = $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $lock_name));
+        if ('0' === (string) $lock) {
+            mluc_send_json(false, __('签到正在处理中，请勿重复提交。', 'moonlight-user-center'));
+        }
+        $locked = ('1' === (string) $lock);
+
+        if (self::checked_today($user_id)) {
+            if ($locked) {
+                $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
+            }
+            mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-user-center'));
+        }
+
         $yesterday  = gmdate('Y-m-d', current_time('timestamp') - DAY_IN_SECONDS);
         $last       = (string) get_user_meta($user_id, self::META_DATE, true);
         $streak     = ($last === $yesterday) ? ((int) get_user_meta($user_id, self::META_STREAK, true) + 1) : 1;
@@ -100,12 +117,19 @@ class MLUC_Checkin
             $award += $extra;
         }
         if ($award <= 0) {
+            if ($locked) {
+                $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
+            }
             mluc_send_json(false, __('签到奖励配置无效，请联系管理员。', 'moonlight-user-center'));
         }
 
         update_user_meta($user_id, self::META_DATE, $today);
         update_user_meta($user_id, self::META_STREAK, $streak);
         $balance = MLUC_Credit::add($user_id, $award, sprintf(__('每日签到（连续 %1$d 天）', 'moonlight-user-center'), $streak));
+
+        if ($locked) {
+            $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
+        }
 
         do_action('mluc_checkin', $user_id, $award, $streak);
 

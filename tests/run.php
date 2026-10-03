@@ -41,6 +41,8 @@ require __DIR__ . '/../moonlight-shop/includes/core/class-rest.php';
 // REST checkout 依赖支付管理器 + 全部内建网关（get_gateways 逐个实例化）
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-cod.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-balance.php';
+require __DIR__ . '/../moonlight-shop/includes/class-gateway-credit.php';
+require __DIR__ . '/../moonlight-shop/includes/class-credit.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-manual.php';
 require __DIR__ . '/../moonlight-shop/includes/class-gateway-alipay.php';
 require __DIR__ . '/../moonlight-shop/includes/class-payment.php';
@@ -2201,6 +2203,82 @@ check('不并入类未混入（payments/paywall/purchases/paypal/stripe/gateway/
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-gateway-manual.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-activator.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-account-orders.php'));
+
+echo "== Credit helpers（积分换算助手） ==\n";
+__test_set_option('credit_rate', 3);
+check('currency->credit rounds up (ceil)', mlshop_currency_to_credit(1.01) === 4);
+check('currency->credit exact stays exact', mlshop_currency_to_credit(2.0) === 6);
+check('currency->credit zero amount -> 0', mlshop_currency_to_credit(0) === 0);
+check('credit->currency two decimals', mlshop_credit_to_currency(30) === 10.0);
+check('credit->currency rounding to 2dp', mlshop_credit_to_currency(10) === 3.33);
+check('credit->currency zero -> 0.0', mlshop_credit_to_currency(0) === 0.0);
+__test_set_option('credit_rate', 0);
+check('invalid rate falls back to 10 (currency->credit)', mlshop_currency_to_credit(2.0) === 20);
+check('invalid rate falls back to 10 (credit->currency)', mlshop_credit_to_currency(50) === 5.0);
+__test_set_option('credit_rate', 10);
+
+echo "== Credit auto price（积分价自动换算） ==\n";
+MLSHOP_Product_Pay_Meta::$data[60] = array('price_sell' => 100, 'price_gold' => 0, 'price_diamond' => 0);
+check('auto price = money price x rate', Moonlight_Price_Calculator::paywall_credit_price(60, 7) === 1000.0);
+check('auto price follows member tier', Moonlight_Price_Calculator::paywall_credit_price(60, 8) === 1000.0);
+MLSHOP_Product_Pay_Meta::$data[61] = array('price_sell' => 100, 'credit_price' => 50);
+check('hand-filled credit price wins over auto', Moonlight_Price_Calculator::paywall_credit_price(61, 7) === 50.0);
+MLSHOP_Product_Pay_Meta::$data[62] = array('price_sell' => 100, 'price_diamond' => 80);
+check('auto tier price from diamond money price', Moonlight_Price_Calculator::paywall_credit_price(62, 7) === 800.0);
+__test_set_option('credit_auto_price', 0);
+check('auto price switch off -> 0', Moonlight_Price_Calculator::paywall_credit_price(60, 7) === 0.0);
+__test_set_option('credit_auto_price', 1);
+MLSHOP_Product_Pay_Meta::$data[63] = array();
+check('no prices at all -> 0 (purchase refused)', Moonlight_Price_Calculator::paywall_credit_price(63, 7) === 0.0);
+
+echo "== Credit ledger（积分账本） ==\n";
+$GLOBALS['__test_user_id'] = 42;
+check('balance starts at 0', MLSHOP_Credit::get_balance(42) === 0.0);
+MLSHOP_Credit::add(42, 300, 'test add');
+check('add credits updates balance', MLSHOP_Credit::get_balance(42) === 300.0);
+check('spend more than balance returns false', MLSHOP_Credit::spend(42, 400, 'overdraft') === false);
+check('overdraft does not change balance', MLSHOP_Credit::get_balance(42) === 300.0);
+check('ledger has entries', count(MLSHOP_Credit::get_ledger(42, 10)) >= 1);
+
+echo "== Credit gateway（积分支付网关） ==\n";
+$cgw = new MLSHOP_Gateway_Credit();
+check('gateway id is credit', $cgw->get_id() === 'credit');
+$gpo = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_author' => 42));
+update_post_meta($gpo, '_mlshop_user_id', 42);
+update_post_meta($gpo, '_mlshop_total', 50.0);
+update_post_meta($gpo, '_mlshop_status', 'pending');
+// 余额不足（50 元 x 10 = 500 积分，只有 300）
+MLSHOP_Credit::spend(42, 0, 'noop'); // noop keep 300
+$insufficient = $cgw->process_payment($gpo);
+check('insufficient balance rejected', false === $insufficient['success']);
+check('insufficient: order still pending', 'pending' === MLSHOP_Order::get_status($gpo));
+check('insufficient: balance untouched', MLSHOP_Credit::get_balance(42) === 300.0);
+// 余额充足：600 积分支付 500，剩 100
+MLSHOP_Credit::add(42, 300, 'test topup');
+$res = $cgw->process_payment($gpo);
+check('payment succeeds with enough credits', !empty($res['success']) && 'paid' === $res['status']);
+check('order marked paid with credit gateway', 'credit' === get_post_meta($gpo, '_mlshop_payment_gateway', true));
+check('spent points recorded on order', (float) get_post_meta($gpo, '_mlshop_credit_spent', true) === 500.0);
+check('balance deducted to 100', MLSHOP_Credit::get_balance(42) === 100.0);
+// 幂等：重复调用不再扣减
+$again = $cgw->process_payment($gpo);
+check('idempotent replay does not double-spend', !empty($again['success']) && MLSHOP_Credit::get_balance(42) === 100.0);
+// 退款：原路返还积分
+MLSHOP_Order::mark_refunded($gpo);
+check('refund sets status refunded', 'refunded' === MLSHOP_Order::get_status($gpo));
+check('refund returns spent credits', MLSHOP_Credit::get_balance(42) === 600.0);
+check('refund reversal is idempotent', true === (bool) get_post_meta($gpo, '_mlshop_funds_reversed', true));
+
+echo "== Recharge refund recall（充值退款回收修复回归） ==\n";
+MLSHOP_Credit::add(42, 100, 'recharge granted');
+$rc = MLSHOP_Order::create_recharge(42, 100.0, 10.0, 'alipay');
+MLSHOP_Order::mark_paid($rc, 'alipay', 'alipay-txn-1');
+update_post_meta($rc, '_mlshop_recharge_granted', current_time('mysql'));
+$before = MLSHOP_Credit::get_balance(42);
+MLSHOP_Order::mark_refunded($rc);
+check('recharge recall deducts granted credits', MLSHOP_Credit::get_balance(42) === $before - 100.0);
+check('recharge recall leaves no short marker', '' === (string) get_post_meta($rc, '_mlshop_recharge_revoke_short', true));
+$GLOBALS['__test_user_id'] = 0;
 
 echo "== Phase A：并入模块用例（子进程 run-user.php） ==\n";
 // Windows 中文用户目录下，绝对路径经 cmd 代码页转码会乱码（Could not open input file）；

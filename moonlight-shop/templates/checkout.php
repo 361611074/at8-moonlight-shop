@@ -162,6 +162,26 @@ $is_guest        = !empty($is_guest);
     <h3><?php esc_html_e('选择支付方式', 'moonlight-shop'); ?></h3>
     <form class="mlshop-checkout-form" data-action="place_order">
         <p class="mlshop-msg" role="alert"></p>
+        <?php
+        // 积分余额提示：仅在积分支付网关实际对前台公开时展示（白名单/开关均生效）。
+        $mlshop_has_credit_gw = false;
+        foreach ((array) $gateways as $mlshop_gw) {
+            if ('credit' === $mlshop_gw->get_id()) {
+                $mlshop_has_credit_gw = true;
+                break;
+            }
+        }
+        ?>
+        <?php if ($mlshop_has_credit_gw && !$is_guest) : ?>
+            <p class="mlshop-credit-balance-hint" data-credit-gateway="credit">
+                <?php
+                $credit_name  = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
+                $credit_bal   = MLSHOP_Credit::get_balance();
+                /* translators: 1: 积分名, 2: 当前余额, 3: 兑换比例 */
+                echo esc_html(sprintf(__('当前%1$s余额：%2$s（%3$s %1$s = 1 货币单位）', 'moonlight-shop'), $credit_name, $credit_bal, mlshop_get_credit_rate()));
+                ?>
+            </p>
+        <?php endif; ?>
         <?php foreach ($gateways as $g) : ?>
             <label class="mlshop-gateway">
                 <input type="radio" name="gateway" value="<?php echo esc_attr($g->get_id()); ?>" <?php checked($g->get_id(), $default_gateway); ?>>

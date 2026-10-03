@@ -4,7 +4,7 @@ Contributors: 漫步白月光
 Tags: shop, ecommerce, cart, checkout, digital, download, cardkey, elementor, astra
 Requires at least: 5.8
 Tested up to: 6.6
-Stable tag: 3.0.1
+Stable tag: 3.1.0
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -21,6 +21,7 @@ Author URI: https://www.at8.fun/
 * 会话购物车（游客可用，Cookie 存储）
 * 结算流程：订单创建 + 可扩展支付网关
 * 支付网关：支付宝 / 微信（预留）、PayPal、Stripe、余额支付、积分支付、货到付款、扫码/线下付款
+* 积分体系：全局兑换比例后台可配（充值 / 订单积分支付 / 商品积分价自动换算三处联动）、积分退款原路回补、管理员后台手动调整
 * 虚拟商品：支付后自动生成安全下载链接（限时）
 * 卡密商品：加密批次库存池，售出后自动分配并扣减库存
 * 运费模板（固定 / 按件计费、满额包邮、到店自提）

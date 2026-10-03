@@ -85,6 +85,22 @@ $wpdb->query(
     "DELETE FROM {$wpdb->usermeta} WHERE meta_key = 'moonlight_addresses'"
 );
 
+// 5.5) 积分体系：积分/付费配置 option + 用户积分账本（余额、流水）。
+//      与余额账本（_mlshop_balance）一并清除，保证卸载后无残留用户资产数据。
+$credit_single_keys = array(
+    'pay_enabled', 'credit_name', 'pay_popup_default_title',
+    'recharge_packages', 'credit_rate', 'credit_pay_enabled', 'credit_auto_price',
+    'default_gateway', 'guest_checkout_enabled', 'guest_order_rate_limit',
+    'order_expire_minutes',
+);
+foreach ($credit_single_keys as $k) {
+    delete_option('mlshop_' . $k);
+}
+$wpdb->query(
+    "DELETE FROM {$wpdb->usermeta}
+     WHERE meta_key IN ('mlshop_credit_balance', 'mlshop_credit_ledger', '_mlshop_balance')"
+);
+
 // 6) 物流第二批：Provider 配置 / 自动查询 / 签收自动完成 option + 发货单 CPT（连带 _mlship_* meta）。
 $shipping_single_keys = array(
     'shipping_provider', 'shipping_kuaidi100_key', 'shipping_kuaidi100_customer',
