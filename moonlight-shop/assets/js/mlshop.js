@@ -71,26 +71,44 @@
         var MLSHOP_MOBILE_BP = 1024;
 
         // 找出移动端汉堡菜单按钮（不同主题类名不一，逐个探测且要求真实可见）
+        // 顺序很关键：优先匹配「按钮本身」而不是它的外层容器。
+        // Astra 的实际结构是
+        //   <button class="menu-toggle main-header-menu-toggle ast-mobile-menu-trigger-minimal">
+        //     <span class="mobile-menu-toggle-icon">…</span>
+        // </button>
+        // 若先匹配到 .ast-mobile-menu-wrap 这类容器，其 rect 含额外 padding，
+        // 算出来的中线会偏高，导致图标与汉堡不在同一水平线上。
         function mlshop_find_burger() {
             var sels = [
+                'button.menu-toggle',
+                '.main-header-menu-toggle',
+                '.ast-mobile-menu-trigger-minimal',
+                '.mobile-menu-toggle-icon',
                 '.ast-mobile-menu-wrap',
                 '.ast-mobile-menu',
                 '.ast-mobile-menu-col',
-                '.menu-toggle',
-                '[class*="mobile-menu-toggle"]',
                 'button[aria-label*="menu" i]',
                 '.site-header-toggle'
             ];
+            var fallback = null;
             for (var i = 0; i < sels.length; i++) {
                 var el = document.querySelector(sels[i]);
-                if (el) {
-                    var r = el.getBoundingClientRect();
-                    if (r.width > 0 && r.height > 0) {
+                if (!el) {
+                    continue;
+                }
+                var r = el.getBoundingClientRect();
+                if (r.width > 0 && r.height > 0) {
+                    // 按钮优先；容器类只作兜底（避免匹配到宽度为 0 的隐藏节点）
+                    var isButton = ('BUTTON' === el.tagName) || (sels[i].indexOf('toggle') > -1);
+                    if (isButton) {
                         return r;
+                    }
+                    if (!fallback) {
+                        fallback = r;
                     }
                 }
             }
-            return null;
+            return fallback;
         }
 
         // 让悬浮按钮组与汉堡按钮同一条水平线，并贴在它左侧
