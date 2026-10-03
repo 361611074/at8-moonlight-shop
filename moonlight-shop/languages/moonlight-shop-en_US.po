@@ -3891,3 +3891,6 @@ msgid "e.g. 9123 4567"
 msgstr "e.g. 9123 4567"
 msgid "log in"
 msgstr "log in"
+
+msgid "Quick Sign Up (Email Only)"
+msgstr "Quick Sign Up (Email Only)"

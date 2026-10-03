@@ -2099,3 +2099,6 @@ msgid "（解密失败）"
 msgstr "（解密失败）"
 msgid "，滿 %s 免郵"
 msgstr "，满 %s 免邮"
+
+msgid "Quick Sign Up (Email Only)"
+msgstr "快速注册（只需电邮）"

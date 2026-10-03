@@ -48,7 +48,7 @@ $redirect_to = isset($_GET['redirect_to']) ? esc_url_raw($_GET['redirect_to']) :
         <a href="<?php echo esc_url(mluc_get_lostpassword_url()); ?>"><?php echo esc_html(mluc_ui_label('lg_forgot', __('Forgot password?', 'moonlight-user-center'))); ?></a>
         <?php if (get_option('users_can_register')) : ?>
             <span class="mluc-sep">·</span>
-            <a href="<?php echo esc_url(add_query_arg('mluc_view', 'register', $base)); ?>"><?php echo esc_html(mluc_ui_label('lg_register', __('Register now', 'moonlight-user-center'))); ?></a>
+            <a href="<?php echo esc_url(add_query_arg('mluc_view', 'register', $base)); ?>"><?php echo esc_html(mluc_ui_label('lg_register', __('Quick Sign Up (Email Only)', 'moonlight-user-center'))); ?></a>
         <?php endif; ?>
     </p>
 </div>
