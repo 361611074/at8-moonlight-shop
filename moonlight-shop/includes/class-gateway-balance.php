@@ -53,7 +53,15 @@ class MLSHOP_Gateway_Balance extends MLSHOP_Gateway
             );
         }
 
-        MLSHOP_Order::mark_paid($order_id, 'balance');
+        $paid = MLSHOP_Order::mark_paid($order_id, 'balance');
+        if (is_wp_error($paid)) {
+            // 完单失败（如订单恰被过期取消）：立刻回补余额，保证「扣了钱必开通」。
+            mlshop_atomic_increment_user_meta($user_id, '_mlshop_balance', $total);
+            return array(
+                'success' => false,
+                'message' => $paid->get_error_message(),
+            );
+        }
         return array(
             'success'  => true,
             'message'  => __('支付成功，订单已生效。', 'moonlight-shop'),

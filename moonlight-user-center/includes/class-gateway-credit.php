@@ -49,7 +49,9 @@ class MLUC_Gateway_Credit implements MLUC_Payment_Gateway_Interface
         if ($price <= 0) {
             return 0;
         }
-        return (int) ceil($price * mluc_get_credit_rate());
+        // 先按 6 位小数收敛浮点积再取整，防止 1.10×100 之类的整数换算被
+        // 浮点误差（110.000…01 → ceil 111）多扣 1 积分。
+        return (int) ceil(round($price * mluc_get_credit_rate(), 6));
     }
 
     public function process_payment($order_id)

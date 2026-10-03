@@ -105,7 +105,16 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
         // 记录实际扣减量：退款 / 取消时状态机按该值原路返还积分。
         update_post_meta($order_id, '_mlshop_credit_spent', $points);
 
-        MLSHOP_Order::mark_paid($order_id, 'credit');
+        $paid = MLSHOP_Order::mark_paid($order_id, 'credit');
+        if (is_wp_error($paid)) {
+            // 完单失败（如订单恰被过期取消）：立刻回补积分，保证「扣了分必开通」。
+            delete_post_meta($order_id, '_mlshop_credit_spent');
+            MLSHOP_Credit::add($user_id, $points, sprintf(__('订单 #%1$s 支付失败回补', 'moonlight-shop'), $order_id));
+            return array(
+                'success' => false,
+                'message' => $paid->get_error_message(),
+            );
+        }
         return array(
             'success'  => true,
             'message'  => __('支付成功，订单已生效。', 'moonlight-shop'),

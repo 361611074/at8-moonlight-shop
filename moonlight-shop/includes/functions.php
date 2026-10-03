@@ -315,7 +315,9 @@ function mlshop_currency_to_credit($amount)
     if ($amount <= 0) {
         return 0;
     }
-    $credit = (int) ceil($amount * mlshop_get_credit_rate());
+    // 先按 6 位小数收敛浮点积（如 1.10×100 = 110.000…01），再向上取整，
+    // 避免整数结果的换算被浮点误差顶成「多 1 积分」。
+    $credit = (int) ceil(round($amount * mlshop_get_credit_rate(), 6));
     return (int) apply_filters('mlshop_currency_to_credit', $credit, $amount);
 }
 

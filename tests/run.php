@@ -2280,6 +2280,46 @@ check('recharge recall deducts granted credits', MLSHOP_Credit::get_balance(42) 
 check('recharge recall leaves no short marker', '' === (string) get_post_meta($rc, '_mlshop_recharge_revoke_short', true));
 $GLOBALS['__test_user_id'] = 0;
 
+echo "== Credit float-ceil regression（浮点换算回归） ==\n";
+__test_set_option('credit_rate', 100);
+check('1.10 × 100 = 110（浮点误差不再顶成 111）', mlshop_currency_to_credit(1.10) === 110);
+check('0.07 × 100 = 7（不再 8）', mlshop_currency_to_credit(0.07) === 7);
+__test_set_option('credit_rate', 12.5);
+check('0.56 × 12.5 = 7', mlshop_currency_to_credit(0.56) === 7);
+__test_set_option('credit_rate', 10);
+
+echo "== Gateway mark_paid-failure refund（完单失败回补） ==\n";
+// 用户 42 当前积分 600（上一区块结算值）。已取消订单上支付 → 扣分后完单失败 → 自动回补。
+$GLOBALS['__test_user_id'] = 42;
+MLSHOP_Credit::add(42, 500, 'topup fail-path'); // 600 -> 1100
+$fo = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_author' => 42));
+update_post_meta($fo, '_mlshop_user_id', 42);
+update_post_meta($fo, '_mlshop_total', 30.0);
+update_post_meta($fo, '_mlshop_status', 'pending');
+MLSHOP_Order::mark_cancelled($fo);
+$gres = (new MLSHOP_Gateway_Credit())->process_payment($fo);
+check('已取消订单支付失败', empty($gres['success']));
+check('积分在完单失败后自动回补（1100）', MLSHOP_Credit::get_balance(42) === 1100.0);
+check('失败路径不残留扣减记录', '' === (string) get_post_meta($fo, '_mlshop_credit_spent', true));
+
+// 余额网关同语义：扣 20 → 完单失败 → 回补 20
+update_user_meta(42, '_mlshop_balance', 50.0);
+$bo = wp_insert_post(array('post_type' => 'mlshop_order', 'post_status' => 'mlshop_pending', 'post_author' => 42));
+update_post_meta($bo, '_mlshop_user_id', 42);
+update_post_meta($bo, '_mlshop_total', 20.0);
+update_post_meta($bo, '_mlshop_status', 'pending');
+MLSHOP_Order::mark_cancelled($bo);
+$bres = (new MLSHOP_Gateway_Balance())->process_payment($bo);
+check('余额网关对已取消订单支付失败', empty($bres['success']));
+check('余额在完单失败后自动回补（50）', (float) get_user_meta(42, '_mlshop_balance', true) === 50.0);
+$GLOBALS['__test_user_id'] = 0;
+
+echo "== 双插件同装共存（商城先加载顺序，回归 Cannot redeclare 致命） ==\n";
+require __DIR__ . '/../moonlight-user-center/includes/functions.php';
+check('会员中心函数加载无致命，积分助手可用', function_exists('mluc_credit_enabled') && function_exists('mluc_atomic_increment_user_meta'));
+check('共用 mluc_* 未被重定义（商城版生效）', mluc_get_option('nothing_here', 'sentinel') === 'sentinel');
+check('会员中心 functions.php 共用函数带 function_exists 守卫', false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-user-center/includes/functions.php'), "if (!function_exists('mluc_get_option'))"));
+
 echo "== Phase A：并入模块用例（子进程 run-user.php） ==\n";
 // Windows 中文用户目录下，绝对路径经 cmd 代码页转码会乱码（Could not open input file）；
 // 优先转为相对当前工作目录的 ASCII 相对路径传给子进程。

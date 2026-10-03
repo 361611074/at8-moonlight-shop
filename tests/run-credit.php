@@ -60,10 +60,44 @@ class WP_Error {
 function is_wp_error($t) { return $t instanceof WP_Error; }
 // mluc_get_option / mluc_ui_label 由被测 functions.php 提供（ui_labels 留空 → 回退默认文案）。
 
+/* ---------- 模拟用户旅程补充桩（AJAX 层 + postmeta 单值行模型） ---------- */
+function add_filter($h, $c = null, $p = 10, $a = 1) { return true; }
+function sanitize_key($v) { return preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $v)); }
+function is_user_logged_in() { return 0 !== get_current_user_id(); }
+function check_ajax_referer($a = -1, $q = false, $d = true) { return true; }
+function date_i18n($f, $ts = null) { return date($f, $ts ?: time()); }
+function clean_post_cache($id) {}
+function get_transient($k) { return $GLOBALS['__test_transients'][$k] ?? false; }
+function set_transient($k, $v, $t = 0) { $GLOBALS['__test_transients'][$k] = $v; return true; }
+if (!class_exists('WP_Send_Json_Exception')) {
+    class WP_Send_Json_Exception extends Exception
+    {
+        public $payload;
+        public function __construct($payload, $status_code = 200) { parent::__construct('wp_send_json'); $this->payload = $payload; }
+    }
+}
+function wp_send_json($response, $status_code = 200) { throw new WP_Send_Json_Exception($response, $status_code); }
+$GLOBALS['__test_transients'] = array();
+$GLOBALS['__test_posts'] = array();     // [id] => ['post_type' => ..]
+$GLOBALS['__test_postmeta'] = array();  // [id][key] => value
+function wp_insert_post($args, $wp_error = false)
+{
+    static $next = 1000;
+    $id = $next++;
+    $GLOBALS['__test_posts'][$id] = array('post_type' => isset($args['post_type']) ? $args['post_type'] : 'post');
+    return $id;
+}
+function get_post($id) { return isset($GLOBALS['__test_posts'][(int) $id]) ? (object) $GLOBALS['__test_posts'][(int) $id] : null; }
+function get_post_type($id) { $p = get_post($id); return $p ? $p->post_type : ''; }
+function get_post_meta($id, $key, $single = true) { return isset($GLOBALS['__test_postmeta'][(int) $id][$key]) ? $GLOBALS['__test_postmeta'][(int) $id][$key] : ''; }
+function update_post_meta($id, $key, $value) { $GLOBALS['__test_postmeta'][(int) $id][$key] = $value; return true; }
+function delete_post_meta($id, $key) { unset($GLOBALS['__test_postmeta'][(int) $id][$key]); return true; }
+
 /* ---------- 假 $wpdb：仅实现原子账本用到的 usermeta 路径 ---------- */
 class Fake_WPDB_Usermeta
 {
     public $usermeta = 'wp_usermeta';
+    public $postmeta = 'wp_postmeta';
     public function prepare($sql, ...$args)
     {
         $sql = str_replace('%d', '%u', $sql);
@@ -84,6 +118,10 @@ class Fake_WPDB_Usermeta
     }
     public function get_var($sql)
     {
+        // 订单号查重 / postmeta SELECT：行模型中无既有订单号，恒无冲突。
+        if (false !== strpos($sql, 'wp_postmeta')) {
+            return null;
+        }
         if (false !== strpos($sql, 'COUNT(*)')) {
             return (string) count($this->match($sql));
         }
@@ -107,6 +145,21 @@ class Fake_WPDB_Usermeta
     }
     public function query($sql)
     {
+        // complete_order 的原子完单抢占：UPDATE wp_postmeta SET meta_value='paid'
+        // WHERE post_id=N AND meta_key='_mluc_pay_status' AND meta_value='pending'。
+        if (0 === strpos($sql, 'UPDATE') && false !== strpos($sql, 'wp_postmeta')) {
+            if (preg_match("/UPDATE\s+wp_postmeta\s+SET\s+meta_value\s*=\s*'([^']*)'\s+WHERE\s+post_id\s*=\s*(\d+)\s+AND\s+meta_key\s*=\s*'([^']*)'\s+AND\s+meta_value\s*=\s*'([^']*)'/i", $sql, $m)) {
+                $pid = (int) $m[2];
+                $key = $m[3];
+                $cur = isset($GLOBALS['__test_postmeta'][$pid][$key]) ? (string) $GLOBALS['__test_postmeta'][$pid][$key] : '';
+                if ($cur === $m[4]) {
+                    $GLOBALS['__test_postmeta'][$pid][$key] = $m[1];
+                    return 1;
+                }
+                return 0;
+            }
+            return 0;
+        }
         if (0 === strpos($sql, 'INSERT INTO')) {
             // 形态：INSERT INTO wp_usermeta (user_id, meta_key, meta_value) VALUES (7, 'key', 100.000000)
             if (!preg_match("/VALUES\s*\(\s*(\d+)\s*,\s*'([^']*)'\s*,\s*'?([^')]+)'?\s*\)/i", $sql, $m)) {
@@ -146,7 +199,15 @@ require ABSPATH . '../moonlight-user-center/includes/class-wallet.php';
 require ABSPATH . '../moonlight-user-center/includes/class-credit.php';
 require ABSPATH . '../moonlight-user-center/includes/class-checkin.php';
 require ABSPATH . '../moonlight-user-center/includes/class-payment-gateway-interface.php';
+require ABSPATH . '../moonlight-user-center/includes/class-payment-log.php';
 require ABSPATH . '../moonlight-user-center/includes/class-payments.php';
+require ABSPATH . '../moonlight-user-center/includes/class-payment-manager.php';
+require ABSPATH . '../moonlight-user-center/includes/class-gateway-manual.php';
+require ABSPATH . '../moonlight-user-center/includes/class-gateway-paypal.php';
+require ABSPATH . '../moonlight-user-center/includes/class-gateway-stripe.php';
+require ABSPATH . '../moonlight-user-center/includes/class-gateway-alipay.php';
+require ABSPATH . '../moonlight-user-center/includes/class-gateway-balance.php';
+require ABSPATH . '../moonlight-user-center/includes/class-credit-ui.php';
 
 /* ==========================================================================
  * 套餐解析 / 比例守卫 / 换算
@@ -239,6 +300,102 @@ check('断签 3 天 → 展示连续天数归零', 0 === MLUC_Checkin::get_strea
 // 已签到判定。
 update_user_meta(7, MLUC_Checkin::META_DATE, $today);
 check('今日已签到判定', true === MLUC_Checkin::checked_today(7));
+
+/* ==========================================================================
+ * 模拟用户全流程（AJAX 层）：签到 → 充值 → 兑换 → 积分支付
+ * ========================================================================== */
+
+if (!class_exists('MLUC_Membership')) {
+    class MLUC_Membership
+    {
+        public static function get_levels() { return array('gold' => array('label' => 'Gold')); }
+        public static function get_instance() { return new self(); }
+        public function grant_level($uid, $level) { $GLOBALS['__test_granted'][] = array($uid, $level); return true; }
+    }
+}
+$GLOBALS['__test_granted'] = array();
+
+function __sim_ajax($handler, array $post)
+{
+    $_POST = $post;
+    try {
+        call_user_func($handler);
+        return array('success' => false, 'message' => 'no-json', 'data' => array());
+    } catch (WP_Send_Json_Exception $e) {
+        return $e->payload;
+    } finally {
+        $_POST = array();
+    }
+}
+
+echo "== 模拟用户：每日签到（AJAX 全流程） ==\n";
+$GLOBALS['__test_usermeta'] = array();
+$GLOBALS['__test_options']['mluc_options'] = array(
+    'credit_enabled' => 1, 'checkin_enabled' => 1,
+    'checkin_base' => 5, 'checkin_every' => 7, 'checkin_extra' => 20,
+);
+$__r = __sim_ajax(array(MLUC_Checkin::get_instance(), 'ajax_checkin'), array('nonce' => 'x'));
+check('首次签到成功且奖励 5', true === $__r['success'] && 5 === (int) $__r['data']['award'] && 1 === (int) $__r['data']['streak']);
+check('签到到账（余额 5）', 5.0 === MLUC_Credit::get_balance(1));
+$__r = __sim_ajax(array(MLUC_Checkin::get_instance(), 'ajax_checkin'), array('nonce' => 'x'));
+check('当日重复签到被拒绝', false === $__r['success']);
+check('重复签到未重复发奖', 5.0 === MLUC_Credit::get_balance(1));
+
+echo "== 模拟用户：积分充值（套餐 → 线下转账 → 确认收款 → 入账） ==\n";
+$GLOBALS['__test_options']['mluc_options'] += array('manual_enabled' => 1, 'pay_currency_code' => 'USD', 'pay_currency_symbol' => '$');
+$__r = __sim_ajax(array(MLUC_Credit_UI::get_instance(), 'ajax_create_recharge'), array('package' => '0', 'gateway' => 'manual', 'nonce' => 'x'));
+check('套餐充值下单成功（100 积分 = 10 元）', true === $__r['success'] && isset($__r['data']['order_id']));
+$__order = (int) $__r['data']['order_id'];
+check('充值订单初始 pending', 'pending' === (string) get_post_meta($__order, '_mluc_pay_status', true));
+check('线上网关（manual）未入账前余额不变', 5.0 === MLUC_Credit::get_balance(1));
+check('确认收款 complete_order 成功', true === MLUC_Payments::complete_order($__order, 'TXN-1', 'manual'));
+check('重复确认被拒绝（mluc_dup）', is_wp_error(MLUC_Payments::complete_order($__order, 'TXN-1', 'manual')));
+MLUC_Credit_UI::get_instance()->grant_recharge($__order, 1, 'recharge');
+check('充值 100 积分到账（5 + 100 = 105）', 105.0 === MLUC_Credit::get_balance(1));
+MLUC_Credit_UI::get_instance()->grant_recharge($__order, 1, 'recharge');
+check('重复入账被幂等拦截', 105.0 === MLUC_Credit::get_balance(1));
+
+echo "== 模拟用户：积分兑换余额（AJAX） ==\n";
+$GLOBALS['__test_options']['mluc_options'] += array('balance_enabled' => 1, 'credit_exchange_enabled' => 1, 'credit_exchange_rate' => 100, 'credit_exchange_min' => 100);
+$__r = __sim_ajax(array(MLUC_Credit_UI::get_instance(), 'ajax_exchange_credit'), array('points' => '50', 'nonce' => 'x'));
+check('低于最低兑换量被拒绝', false === $__r['success']);
+$__r = __sim_ajax(array(MLUC_Credit_UI::get_instance(), 'ajax_exchange_credit'), array('points' => '300', 'nonce' => 'x'));
+check('积分不足兑换被拒绝', false === $__r['success']);
+check('拒绝后积分未变动', 105.0 === MLUC_Credit::get_balance(1));
+$__r = __sim_ajax(array(MLUC_Credit_UI::get_instance(), 'ajax_exchange_credit'), array('points' => '100', 'nonce' => 'x'));
+check('兑换成功：100 积分 = 1.00 余额', true === $__r['success'] && 5.0 === MLUC_Credit::get_balance(1) && 1.0 === MLUC_Wallet::get_balance(1));
+
+echo "== 模拟用户：积分支付网关（换算 / 拒绝 / 支付 / 退款） ==\n";
+$GLOBALS['__test_options']['mluc_options'] += array('credit_rate' => 10);
+// 浮点换算回归：1.10 × 10 曾被浮点误差顶成 12。
+$__fo = wp_insert_post(array('post_type' => MLUC_Payments::CPT, 'post_status' => 'publish'));
+update_post_meta($__fo, '_mluc_pay_price', 1.10);
+update_post_meta($__fo, '_mluc_pay_type', 'membership');
+update_post_meta($__fo, '_mluc_pay_level', 'gold');
+update_post_meta($__fo, '_mluc_pay_user', 1);
+update_post_meta($__fo, '_mluc_pay_status', 'pending');
+check('订单应付积分 = 11（1.10 × 10，浮点回归）', 11 === MLUC_Gateway_Credit::order_cost($__fo));
+// 充值订单拒绝积分支付
+$__rc = wp_insert_post(array('post_type' => MLUC_Payments::CPT, 'post_status' => 'publish'));
+update_post_meta($__rc, '_mluc_pay_price', 10.0);
+update_post_meta($__rc, '_mluc_pay_type', 'recharge');
+update_post_meta($__rc, '_mluc_pay_credit', 100.0);
+update_post_meta($__rc, '_mluc_pay_user', 1);
+update_post_meta($__rc, '_mluc_pay_status', 'pending');
+check('充值订单拒绝积分支付（防循环套利）', is_wp_error((new MLUC_Gateway_Credit())->process_payment($__rc)));
+// 余额不足
+check('积分不足支付被拒绝', is_wp_error((new MLUC_Gateway_Credit())->process_payment($__fo)));
+check('拒绝后订单仍 pending', 'pending' === (string) get_post_meta($__fo, '_mluc_pay_status', true));
+check('拒绝后积分未扣减', 5.0 === MLUC_Credit::get_balance(1));
+// 充足：价格改 2.50 → 应付 25，余额 5 + 20 = 25
+update_post_meta($__fo, '_mluc_pay_price', 2.50);
+MLUC_Credit::add(1, 20, 'topup');
+$__res = (new MLUC_Gateway_Credit())->process_payment($__fo);
+check('积分支付成功（扣 25 到 0）', is_array($__res) && 'credit' === $__res['flow'] && 0.0 === MLUC_Credit::get_balance(1));
+check('订单转 paid 并记录扣减积分', 'paid' === (string) get_post_meta($__fo, '_mluc_pay_status', true) && 25 === (int) get_post_meta($__fo, '_mluc_pay_points', true));
+check('query_payment 返回 paid', 'paid' === (new MLUC_Gateway_Credit())->query_payment($__fo));
+// 退款：按订单扣减数回补
+check('积分退款回补 25', true === (new MLUC_Gateway_Credit())->refund($__fo) && 25.0 === MLUC_Credit::get_balance(1));
 
 echo ($fail ? "CREDIT-FAIL($fail)\n" : "CREDIT-OK\n");
 exit($fail ? 1 : 0);
