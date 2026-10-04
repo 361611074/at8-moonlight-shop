@@ -383,6 +383,29 @@ class Moonlight_Card_Stock
     }
 
     /**
+     * 取某商品全部卡密的 SHA-256 指纹集合（跨批次）。
+     *
+     * 供 Moonlight_Card_Generator 生成前查重：view_rows() 是 protected，
+     * 外部类无法直接取加密记录，故在此开一个只读出口（仅返回指纹，不含明文）。
+     *
+     * @param int $product_id
+     * @return array<string,bool>
+     */
+    public static function fingerprints($product_id)
+    {
+        $out = array();
+        foreach (static::find_all_batches((int) $product_id) as $b) {
+            foreach (static::view_rows((int) $b['ID'], 0) as $row) {
+                $rec = json_decode((string) $row['meta_value'], true);
+                if (is_array($rec) && isset($rec['h'])) {
+                    $out[(string) $rec['h']] = true;
+                }
+            }
+        }
+        return $out;
+    }
+
+    /**
      * 掩码：明文前 4 位 + **** + 后 4 位；过短明文（<12 字符）整体打码避免泄漏。
      *
      * @param string $plain

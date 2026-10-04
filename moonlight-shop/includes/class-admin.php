@@ -1710,6 +1710,16 @@ class MLSHOP_Admin
             $this->handle_card_import($page_url); // 失败也 redirect（统一走通知），不返回。
         }
 
+        // ---- 自动生成（POST → PRG 跳转）----
+        if (isset($_POST['mlshop_card_generate'])) {
+            check_admin_referer('mlshop_card_generate');
+            $gen = $this->handle_card_generate($page_url);
+            if (is_array($gen) && !empty($gen['batch_id'])) {
+                $product_id  = (int) $gen['product_id'];
+                $view_batch  = (int) $gen['batch_id'];
+            }
+        }
+
         // ---- 单条「查看完整」（POST + nonce + 二次确认字段 confirm=1）----
         $reveal_plain = '';
         $reveal_error = '';
@@ -1770,6 +1780,60 @@ class MLSHOP_Admin
                         <p><?php echo esc_html($reveal_error); ?></p>
                     <?php endif; ?>
                 </div>
+            <?php endif; ?>
+
+            <?php if ($product_id) : ?>
+                <h2 class="mlshop-card-title"><?php esc_html_e('自动生成卡密', 'moonlight-shop'); ?></h2>
+                <p class="description"><?php esc_html_e('按规则批量生成卡密并直接入池（加密存储，明文不落库）。生成后可在下方批次列表查看或导出。', 'moonlight-shop'); ?></p>
+                <form method="post" action="<?php echo esc_url($page_url); ?>">
+                    <?php wp_nonce_field('mlshop_card_generate'); ?>
+                    <input type="hidden" name="mlshop_card_generate" value="1">
+                    <input type="hidden" name="product_id" value="<?php echo (int) $product_id; ?>">
+                    <table class="form-table">
+                        <tr>
+                            <th><?php esc_html_e('生成数量', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="number" name="mlshop_card_gen_count" value="50" min="1" max="2000" class="small-text" required>
+                                <span class="description"><?php esc_html_e('1 – 2000 张。', 'moonlight-shop'); ?></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('卡密长度', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="number" name="mlshop_card_gen_length" value="16" min="8" max="64" class="small-text" required>
+                                <span class="description"><?php esc_html_e('8 – 64 位，不含前缀。', 'moonlight-shop'); ?></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('字符集', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="text" name="mlshop_card_gen_charset" value="" class="regular-text" placeholder="<?php esc_attr_e('留空用默认（大写字母 + 数字，已剔除 0/O/1/I/l）', 'moonlight-shop'); ?>">
+                                <p class="description"><?php esc_html_e('可自定义，但 0/O/1/I/l 会被自动剔除（客服沟通易混淆）。可用字符需 ≥ 8 种。', 'moonlight-shop'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('前缀', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="text" name="mlshop_card_gen_prefix" value="" class="regular-text" maxlength="16" placeholder="<?php esc_attr_e('可选，如 VIP-', 'moonlight-shop'); ?>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('批次名', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="text" name="mlshop_card_gen_batch_name" value="" class="regular-text" placeholder="<?php esc_attr_e('留空自动命名（如 自动生成 2026-01-01 12:00（50 张））', 'moonlight-shop'); ?>">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><?php esc_html_e('有效期', 'moonlight-shop'); ?></th>
+                            <td>
+                                <input type="number" name="mlshop_card_gen_expires_days" value="0" min="0" class="small-text"> <?php esc_html_e('天（0 = 永不过期）', 'moonlight-shop'); ?>
+                            </td>
+                        </tr>
+                    </table>
+                    <p>
+                        <button type="submit" class="button button-primary"><?php esc_html_e('生成并入池', 'moonlight-shop'); ?></button>
+                    </p>
+                </form>
             <?php endif; ?>
 
             <?php if ($product_id) : ?>
@@ -1965,6 +2029,54 @@ class MLSHOP_Admin
             $this->card_notice(true, $msg, $redirect);
         }
         $this->card_notice(false, __('没有导入任何新卡密（可能全部与库存池中已有卡密重复）。', 'moonlight-shop'), $redirect);
+    }
+
+    /**
+     * 自动生成 POST 处理：校验 → Moonlight_Card_Generator::generate() → PRG 跳转。
+     *
+     * @param string $page_url 回跳地址。
+     * @return array|null 生成成功时返回摘要（供页面展开批次），失败返回 null。
+     */
+    private function handle_card_generate($page_url)
+    {
+        $pid      = isset($_POST['product_id']) ? absint($_POST['product_id']) : 0;
+        $count    = isset($_POST['mlshop_card_gen_count']) ? absint($_POST['mlshop_card_gen_count']) : 0;
+        $length   = isset($_POST['mlshop_card_gen_length']) ? absint($_POST['mlshop_card_gen_length']) : 0;
+        $charset  = isset($_POST['mlshop_card_gen_charset']) ? sanitize_text_field(wp_unslash($_POST['mlshop_card_gen_charset'])) : '';
+        $prefix   = isset($_POST['mlshop_card_gen_prefix']) ? sanitize_text_field(wp_unslash($_POST['mlshop_card_gen_prefix'])) : '';
+        $name     = isset($_POST['mlshop_card_gen_batch_name']) ? sanitize_text_field(wp_unslash($_POST['mlshop_card_gen_batch_name'])) : '';
+        $days     = isset($_POST['mlshop_card_gen_expires_days']) ? absint($_POST['mlshop_card_gen_expires_days']) : 0;
+
+        $redirect = add_query_arg('product_id', $pid, $page_url);
+        if (!$pid || !get_post($pid)) {
+            $this->card_notice(false, __('请选择有效商品后再生成。', 'moonlight-shop'), $redirect);
+            return null;
+        }
+
+        $expires = $days > 0 ? time() + $days * DAY_IN_SECONDS : 0;
+        $res     = Moonlight_Card_Generator::generate($pid, $count, $length, $charset, $prefix, $name, $expires);
+
+        if (is_wp_error($res)) {
+            $this->card_notice(false, $res->get_error_message(), $redirect);
+            return null;
+        }
+        if (!is_array($res) || empty($res['batch_id'])) {
+            $this->card_notice(false, __('生成失败，未知错误。', 'moonlight-shop'), $redirect);
+            return null;
+        }
+
+        $msg = sprintf(
+            /* translators: 1: 生成数量 2: 批次 ID 3: 长度 4: 字符集 */
+            __('已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字符集 %4$s。', 'moonlight-shop'),
+            (int) $res['generated'],
+            (int) $res['batch_id'],
+            (int) $res['length'],
+            $res['charset']
+        );
+        $this->card_notice(true, $msg, $redirect);
+
+        $res['product_id'] = $pid;
+        return $res;
     }
 
     /**

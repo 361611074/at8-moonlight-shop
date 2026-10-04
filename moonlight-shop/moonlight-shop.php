@@ -231,6 +231,8 @@ add_action('plugins_loaded', function () {
 
     // 卡密库存服务（加密批次模型）：注册批次 CPT 等钩子
     Moonlight_Card_Stock::init();
+    // 卡密自动生成（后台「卡密库存」页一键批量生成，走同一加密批次入库）
+    Moonlight_Card_Generator::init();
 
     MLSHOP_Product::get_instance();
     MLSHOP_Product_Pay_Meta::get_instance();
