@@ -1806,7 +1806,7 @@ msgstr "未授权"
 msgid "未检测到 WooCommerce，无需迁移。"
 msgstr "未检测到 WooCommerce，无需迁移。"
 msgid "未激活"
-msgstr "未激活"
+msgstr "未启动"
 msgid "未知操作。"
 msgstr "未知操作。"
 msgid "未通过二次确认（confirm），已取消查看。"
@@ -2281,3 +2281,30 @@ msgstr "一键汇出 Excel，便于对帐与交税。"
 
 msgid "按付费可购买行为方式"
 msgstr "按付费可购买行为方式"
+
+msgid "当前 Pro 授权"
+msgstr "当前 Pro 授权"
+
+msgid "已激活"
+msgstr "已启动"
+
+msgid "到期时间"
+msgstr "到期时间"
+
+msgid "查看授权详情"
+msgstr "查看授权详情"
+
+msgid "购买并激活 Pro"
+msgstr "购买并启动 Pro"
+
+msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+msgstr "大多数站点无需任何设定：安装 Pro 外挂后，用订单里的授权码启动即可。"
+
+msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
+msgstr "进阶设定（仅当你在本站销售 Pro 授权时才需要）"
+
+msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+msgstr "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。一般卖教材的站点请留空。"
+
+msgid "未配置（不影响其他功能）"
+msgstr "未设定（不影响其他功能）"

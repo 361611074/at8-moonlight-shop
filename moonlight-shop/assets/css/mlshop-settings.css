@@ -1024,3 +1024,169 @@ body.post-type-mlshop_order .mlshop-order-meta {
     color: #1d2327;
     font-weight: 600;
 }
+
+/* ==========================================================================
+   授权状态卡（激活状态 + 到期时间）
+   ========================================================================== */
+.mlshop-lic-state {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 0 0 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+.mlshop-lic-state-on {
+    border-color: #b7dfc0;
+    background: #f4fbf6;
+}
+
+.mlshop-lic-state-off {
+    border-color: #f0d9a8;
+    background: #fdfbf3;
+}
+
+.mlshop-lic-state-left {
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.mlshop-lic-state-label {
+    font-size: 12px;
+    color: #646970;
+    margin: 0 0 4px;
+}
+
+.mlshop-lic-state-value {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.mlshop-lic-state-off .mlshop-lic-state-value strong {
+    color: #996800;
+}
+
+.mlshop-lic-state-on .mlshop-lic-state-value strong {
+    color: #007017;
+}
+
+.mlshop-lic-tag {
+    display: inline-block;
+    padding: 1px 9px;
+    border-radius: 20px;
+    background: #e8f5ea;
+    border: 1px solid #b7dfc0;
+    color: #007017;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.mlshop-lic-expire {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #50575e;
+}
+
+.mlshop-lic-expire span {
+    color: #1d2327;
+    font-weight: 600;
+}
+
+.mlshop-lic-state-actions {
+    flex: 0 0 auto;
+}
+
+.mlshop-lic-state-actions .button {
+    height: 32px;
+    line-height: 30px;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.mlshop-lic-state-actions .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.mlshop-lic-state-actions .button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+.mlshop-lic-tip {
+    margin: 0 0 14px;
+    font-size: 12px;
+}
+
+/* 高级设置：默认收起 */
+.mlshop-lic-advanced {
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-radius: 10px;
+    padding: 0 20px;
+    margin: 4px 0 6px;
+}
+
+.mlshop-lic-advanced > summary {
+    cursor: pointer;
+    padding: 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #50575e;
+    list-style: none;
+}
+
+.mlshop-lic-advanced > summary::-webkit-details-marker {
+    display: none;
+}
+
+.mlshop-lic-advanced > summary::before {
+    content: "▸";
+    display: inline-block;
+    margin-right: 8px;
+    color: #8c8f94;
+    transition: transform .15s ease;
+}
+
+.mlshop-lic-advanced[open] > summary::before {
+    transform: rotate(90deg);
+}
+
+.mlshop-lic-advanced > summary:hover {
+    color: #2271b1;
+}
+
+.mlshop-lic-advanced .description {
+    margin: 0 0 10px;
+    font-size: 12px;
+    color: #646970;
+    line-height: 1.6;
+}
+
+.mlshop-lic-advanced .form-table {
+    margin: 0 0 14px;
+    border-top: 1px solid #f0f2f4;
+    padding-top: 8px;
+}
+
+.mlshop-lic-advanced .form-table th {
+    width: 170px;
+    padding-left: 0;
+}
+
+.mlshop-lic-ok {
+    color: #007017;
+    font-weight: 600;
+}
+
+.mlshop-lic-none {
+    color: #8c8f94;
+}

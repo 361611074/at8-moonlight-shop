@@ -611,41 +611,110 @@ class MLSHOP_License_Bridge
      *
      * @return void
      */
+    /**
+     * 授权中心区块（渲染进商城设置页）。
+     *
+     * 面向客户方的原则：**大多数站点不需要任何配置**。
+     * 「授权中心地址 / 管理密钥」只在「本站要销售 Pro 授权、由授权中心代发」时才用得上，
+     * 因此默认收起、藏进高级设置，并写清用途，不让普通站长一进来就面对两个必填框。
+     * 顶部先给「当前授权状态 + 到期时间」，并指向 Pro 插件自带的激活页。
+     *
+     * @return void
+     */
     public static function render_settings_section()
     {
         $server = get_option(self::OPT_SERVER, '');
         $secret = get_option(self::OPT_SECRET, '');
+
+        // ---- 当前 Pro 授权状态（只读展示，激活动作在 Pro 插件的授权页完成）----
+        $pro_installed = class_exists('MLPRO_License_Client');
+        $pro_active    = $pro_installed && MLPRO_License_Client::is_active();
+        $expires       = '';
+        $plan          = '';
+        if ($pro_active && class_exists('MLPRO_License_Client')) {
+            if (method_exists('MLPRO_License_Client', 'get_expires')) {
+                $expires = (string) MLPRO_License_Client::get_expires();
+            }
+            if (method_exists('MLPRO_License_Client', 'get_plan')) {
+                $plan = (string) MLPRO_License_Client::get_plan();
+            }
+            if ('' === $expires) {
+                $expires = __('永久有效', 'moonlight-shop');
+            }
+        }
         ?>
-        <table class="form-table">
-            <tr>
-                <th><label for="mlshop_at8lic_server"><?php esc_html_e('授权中心地址', 'moonlight-shop'); ?></label></th>
-                <td>
-                    <input type="url" id="mlshop_at8lic_server" name="<?php echo esc_attr(self::OPT_SERVER); ?>"
-                           value="<?php echo esc_attr($server); ?>" class="regular-text" placeholder="https://at8.fun">
-                    <p class="description"><?php esc_html_e('你的授权签发站点地址（在授权中心「设置」页查看）。', 'moonlight-shop'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th><label for="mlshop_at8lic_secret"><?php esc_html_e('管理密钥', 'moonlight-shop'); ?></label></th>
-                <td>
-                    <input type="password" id="mlshop_at8lic_secret" name="<?php echo esc_attr(self::OPT_SECRET); ?>"
-                           value="<?php echo esc_attr($secret); ?>" class="regular-text" autocomplete="off">
-                    <p class="description"><?php esc_html_e('用于商城付款后自动签发授权码；请与授权中心一致。', 'moonlight-shop'); ?></p>
-                </td>
-            </tr>
-            <tr>
-                <th><?php esc_html_e('连接状态', 'moonlight-shop'); ?></th>
-                <td>
-                    <?php if ($server && $secret) : ?>
-                        <span style="color:#00a32a;font-weight:600;"><?php esc_html_e('已配置', 'moonlight-shop'); ?></span>
-                        <p class="description"><?php esc_html_e('商城付款成功后会自动向授权中心请求签发授权码。', 'moonlight-shop'); ?></p>
+        <div class="mlshop-lic-state mlshop-lic-state-<?php echo $pro_active ? 'on' : 'off'; ?>">
+            <div class="mlshop-lic-state-left">
+                <div class="mlshop-lic-state-label"><?php esc_html_e('当前 Pro 授权', 'moonlight-shop'); ?></div>
+                <div class="mlshop-lic-state-value">
+                    <?php if ($pro_active) : ?>
+                        <strong><?php esc_html_e('已激活', 'moonlight-shop'); ?></strong>
+                        <?php if ('' !== $plan) : ?>
+                            <span class="mlshop-lic-tag"><?php echo esc_html($plan); ?></span>
+                        <?php endif; ?>
                     <?php else : ?>
-                        <span style="color:#d63638;"><?php esc_html_e('未配置', 'moonlight-shop'); ?></span>
-                        <p class="description"><?php esc_html_e('未配置时不会自动签发授权码（不影响其他商城功能）。', 'moonlight-shop'); ?></p>
+                        <strong><?php esc_html_e('未激活', 'moonlight-shop'); ?></strong>
                     <?php endif; ?>
-                </td>
-            </tr>
-        </table>
+                </div>
+                <?php if ($pro_active && '' !== $expires) : ?>
+                    <div class="mlshop-lic-expire">
+                        <?php esc_html_e('到期时间', 'moonlight-shop'); ?>：
+                        <span><?php echo esc_html($expires); ?></span>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div class="mlshop-lic-state-actions">
+                <?php if ($pro_active) : ?>
+                    <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('查看授权详情', 'moonlight-shop'); ?></a>
+                <?php elseif ($pro_installed) : ?>
+                    <a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('激活 Pro', 'moonlight-shop'); ?></a>
+                <?php else : ?>
+                    <a class="button button-primary" href="https://www.at8.fun/product/moonlight-shop/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('购买并激活 Pro', 'moonlight-shop'); ?></a>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php if (!$pro_active) : ?>
+            <p class="description mlshop-lic-tip">
+                <?php esc_html_e('大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。', 'moonlight-shop'); ?>
+            </p>
+        <?php endif; ?>
+
+        <details class="mlshop-lic-advanced">
+            <summary><?php esc_html_e('高级设置（仅当你在本站销售 Pro 授权时才需要）', 'moonlight-shop'); ?></summary>
+            <p class="description">
+                <?php esc_html_e('仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。', 'moonlight-shop'); ?>
+            </p>
+            <table class="form-table">
+                <tr>
+                    <th><label for="mlshop_at8lic_server"><?php esc_html_e('授权中心地址', 'moonlight-shop'); ?></label></th>
+                    <td>
+                        <input type="url" id="mlshop_at8lic_server" name="<?php echo esc_attr(self::OPT_SERVER); ?>"
+                               value="<?php echo esc_attr($server); ?>" class="regular-text" placeholder="https://www.at8.fun">
+                        <p class="description"><?php esc_html_e('你的授权签发站点地址（在授权中心「设置」页查看）。', 'moonlight-shop'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><label for="mlshop_at8lic_secret"><?php esc_html_e('管理密钥', 'moonlight-shop'); ?></label></th>
+                    <td>
+                        <input type="password" id="mlshop_at8lic_secret" name="<?php echo esc_attr(self::OPT_SECRET); ?>"
+                               value="<?php echo esc_attr($secret); ?>" class="regular-text" autocomplete="off">
+                        <p class="description"><?php esc_html_e('用于商城付款后自动签发授权码；请与授权中心一致。', 'moonlight-shop'); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th><?php esc_html_e('连接状态', 'moonlight-shop'); ?></th>
+                    <td>
+                        <?php if ($server && $secret) : ?>
+                            <span class="mlshop-lic-ok"><?php esc_html_e('已配置', 'moonlight-shop'); ?></span>
+                            <p class="description"><?php esc_html_e('商城付款成功后会自动向授权中心请求签发授权码。', 'moonlight-shop'); ?></p>
+                        <?php else : ?>
+                            <span class="mlshop-lic-none"><?php esc_html_e('未配置（不影响其他功能）', 'moonlight-shop'); ?></span>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+            </table>
+        </details>
         <?php
     }
 

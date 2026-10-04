@@ -1220,17 +1220,19 @@ class MLSHOP_Admin
                         <li><strong><?php esc_html_e('卡密管理', 'moonlight-shop'); ?></strong> — <?php esc_html_e('批次產生 / 匯入卡密，支援餘額、會員、積分三種兌換類型，餘額自動入帳。', 'moonlight-shop'); ?></li>
                         <li><strong><?php esc_html_e('Webhook 出站通知', 'moonlight-shop'); ?></strong> — <?php esc_html_e('訂單付款、取消、退款即時推送到你的系統，對接 ERP / 自動發卡 / 財務。', 'moonlight-shop'); ?></li>
                         <li><strong><?php esc_html_e('高級統計', 'moonlight-shop'); ?></strong> — <?php esc_html_e('銷售額趨勢、熱銷排行、會員增長與轉換率，經營決策有依據。', 'moonlight-shop'); ?></li>
-                        <li><strong><?php esc_html_e('訂單匯出', 'moonlight-shop'); ?></strong> — <?php esc_html_e('一鍵匯出 Excel，便于對帳與交稅。', 'moonlight-shop'); ?></li>
+                        <li><strong><?php esc_html_e('訂單匯出', 'moonlight-shop'); ?></strong> — <?php esc_html_e('一鍵匯出 Excel，便於對帳與交稅。', 'moonlight-shop'); ?></li>
                     </ul>
                 </div>
                 <?php
-                // 支付成功后自动为哪几个会员等级颁发 Pro License（原属会员与账户的 License/Pro 区，
-                // 授权中心地址已统一到上面，这里只保留等级映射，避免两处配置同一件事）
-                $mluc_settings = (class_exists('MLUC_Settings') && method_exists('MLUC_Settings', 'get_instance'))
-                    ? MLUC_Settings::get_instance() : null;
-                if ($mluc_settings && method_exists($mluc_settings, 'render_license_levels_only')) {
-                    echo '<h3 style="margin:20px 0 6px;font-size:14px;">' . esc_html__('會員等級自動頒發', 'moonlight-shop') . '</h3>';
-                    $mluc_settings->render_license_levels_only();
+                // 「支付成功后自动为哪几个会员等级颁发 Pro License」原在此处暴露给客户。
+                // 它属于站点运营方的内部规则（买哪个会员等级就发几张 Pro 授权），
+                // 客户既不需要知道也不该修改，故默认移出客户设置页；
+                // 确有需要时用过滤器 mlshop_license_levels_field 挂回。
+                if (has_filter('mlshop_license_levels_field')) {
+                    echo '<h3 style="margin:22px 0 8px;font-size:14px;font-weight:600;">' . esc_html__('會員等級自動頒發', 'moonlight-shop') . '</h3>';
+                    echo '<table class="form-table"><tr><td>';
+                    do_action('mlshop_license_levels_field');
+                    echo '</td></tr></table>';
                 }
                 ?>
 

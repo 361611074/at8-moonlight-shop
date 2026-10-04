@@ -672,7 +672,7 @@ msgid "永久會員"
 msgstr "Lifetime Member"
 
 msgid "永久有效"
-msgstr "Lifetime access"
+msgstr "永久有效"
 
 msgid "注册"
 msgstr "Register"
@@ -1576,3 +1576,33 @@ msgstr "一键导出 Excel，便于对账与交税。"
 
 msgid "按付费可购买行为方式"
 msgstr "按付费可购买行为方式"
+
+msgid "当前 Pro 授权"
+msgstr "当前 Pro 授权"
+
+msgid "已激活"
+msgstr "已激活"
+
+msgid "未激活"
+msgstr "未激活"
+
+msgid "到期时间"
+msgstr "到期时间"
+
+msgid "查看授权详情"
+msgstr "查看授权详情"
+
+msgid "购买并激活 Pro"
+msgstr "购买并激活 Pro"
+
+msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+msgstr "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+
+msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
+msgstr "高级设置（仅当你在本站销售 Pro 授权时才需要）"
+
+msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+msgstr "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+
+msgid "未配置（不影响其他功能）"
+msgstr "未配置（不影响其他功能）"

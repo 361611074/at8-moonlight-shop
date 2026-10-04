@@ -4204,7 +4204,7 @@ msgstr "未安裝（Free 功能不受影響）"
 msgid "未授权"
 msgstr "未授權"
 msgid "未激活"
-msgstr "未激活"
+msgstr "未啟動"
 msgid "未知操作。"
 msgstr "未知操作。"
 msgid "未能获取第三方用户标识。"
@@ -4569,3 +4569,30 @@ msgstr "一鍵匯出 Excel，便於對帳與交税。"
 
 msgid "按付费可购买行为方式"
 msgstr "按付費可購買行為方式"
+
+msgid "当前 Pro 授权"
+msgstr "當前 Pro 授權"
+
+msgid "已激活"
+msgstr "已啟動"
+
+msgid "到期时间"
+msgstr "到期時間"
+
+msgid "查看授权详情"
+msgstr "查看授權詳情"
+
+msgid "购买并激活 Pro"
+msgstr "購買並啟動 Pro"
+
+msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+msgstr "大多數站點無需任何設定：安裝 Pro 外掛後，用訂單裡的授權碼啟動即可。"
+
+msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
+msgstr "進階設定（僅當你在本站銷售 Pro 授權時才需要）"
+
+msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+msgstr "僅當你打算在自己的商城裡上架 Pro 授權商品、由授權中心自動發碼時才填。一般賣教材的站點請留空。"
+
+msgid "未配置（不影响其他功能）"
+msgstr "未設定（不影響其他功能）"
