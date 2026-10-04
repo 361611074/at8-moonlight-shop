@@ -1207,13 +1207,6 @@ class MLSHOP_Admin
                             );
                             ?>
                         </span>
-                        <?php if ($mlshop_pro_active) : ?>
-                            <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('管理授權', 'moonlight-shop'); ?></a>
-                        <?php elseif ($mlshop_pro_installed) : ?>
-                            <a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('啟動 Pro', 'moonlight-shop'); ?></a>
-                        <?php else : ?>
-                            <a class="button button-primary" href="https://www.at8.fun/product/moonlight-shop/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('前往購買 Pro', 'moonlight-shop'); ?></a>
-                        <?php endif; ?>
                     </div>
                     <p class="mlshop-license-upgrade-lead"><?php esc_html_e('免費版已能完整賣貨。升級 Pro 後，多出這些站內能力：', 'moonlight-shop'); ?></p>
                     <ul class="mlshop-license-upgrade-list">
