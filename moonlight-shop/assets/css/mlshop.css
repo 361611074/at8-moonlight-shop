@@ -1835,3 +1835,70 @@
 @media (max-width: 480px) {
     .mlshop-header-mobile-float { gap: 2px; }
 }
+
+/* ==========================================================================
+   后台「卡密管理」页（对齐子比 zibll 的布局）
+   ========================================================================== */
+.mlshop-cc-tabs {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    vertical-align: middle;
+}
+
+.mlshop-cc-tab {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0 16px;
+    height: 34px;
+    line-height: 34px;
+    background: #f0f1f3;
+    color: #4a4f57;
+    border-radius: 0;
+    cursor: pointer;
+    border: 1px solid #dcdcde;
+    border-left-width: 0;
+    box-shadow: none;
+    text-indent: 0;
+    white-space: nowrap;
+}
+
+.mlshop-cc-tab:first-child {
+    border-left-width: 1px;
+}
+
+.mlshop-cc-tab:hover {
+    background: #e8e9eb;
+    color: #1d2327;
+}
+
+.mlshop-cc-tab.is-active {
+    background: #2271b1;
+    border-color: #2271b1;
+    color: #fff;
+}
+
+.mlshop-cc-tab input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    margin: 0;
+    pointer-events: none;
+}
+
+.mlshop-cc-panel {
+    margin-top: 12px;
+}
+
+.mlshop-cc-panel table.form-table th {
+    width: 160px;
+    padding-left: 0;
+}
+
+.mlshop-cc-panel table.form-table td label {
+    vertical-align: middle;
+}
