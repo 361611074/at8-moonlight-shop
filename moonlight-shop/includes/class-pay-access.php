@@ -688,7 +688,17 @@ class MLSHOP_Pay_Access
                     $price, mlshop_get_option('credit_name', __('积分', 'moonlight-shop')), MLSHOP_Credit::get_balance($user_id)
                 ));
             }
-            MLSHOP_Credit::spend($user_id, $price, sprintf(__('解锁内容 #%d', 'moonlight-shop'), $post_id));
+            // 审计 H1：spend 的返回值必须检查——can_spend 预检与原子扣减之间是并发窗口，
+            // 预检通过而实扣失败（被并发请求抢先扣走）时绝不能发货。
+            // 反向双击场景由 is_unlocked 幂等重载兜底（两次实扣、一次交付有损可接受面），
+            // 但「零扣分交付」绝不允许。
+            $remaining = MLSHOP_Credit::spend($user_id, $price, sprintf(__('解锁内容 #%d', 'moonlight-shop'), $post_id));
+            if (false === $remaining) {
+                mlshop_send_json(false, sprintf(
+                    __('积分不足，需要 %s %s，当前余额 %s。', 'moonlight-shop'),
+                    $price, mlshop_get_option('credit_name', __('积分', 'moonlight-shop')), MLSHOP_Credit::get_balance($user_id)
+                ));
+            }
             self::grant_unlock($post_id, $user_id, self::get_unlock_expire($post_id));
             mlshop_send_json(true, __('已使用积分解锁，正在刷新…', 'moonlight-shop'), array('reload' => true));
         }
@@ -733,18 +743,20 @@ class MLSHOP_Pay_Access
      */
     public function grant_paywall_order($order_id)
     {
-        // 幂等：避免 paid 與 completed 雙重觸發導致重複計銷量
-        if (get_post_meta($order_id, '_mlshop_paywall_granted', true)) {
-            return;
-        }
         $pw = (int) get_post_meta($order_id, '_mlshop_paywall_post', true);
         if (!$pw) {
+            return;
+        }
+        // 幂等（审计 C2）：add_post_meta(unique) 原子抢占授予标记——并发 paid/completed
+        // 双触发（回跳 × webhook）时只有一个进程授予，避免销量双计与重复交付钩子。
+        if (!add_post_meta($order_id, '_mlshop_paywall_granted', current_time('mysql'), true)) {
             return;
         }
         $user_id = (int) get_post_meta($order_id, '_mlshop_user_id', true);
         if ($user_id) {
             self::grant_unlock($pw, $user_id, self::get_unlock_expire($pw));
-            update_post_meta($order_id, '_mlshop_paywall_granted', current_time('mysql'));
+        } else {
+            delete_post_meta($order_id, '_mlshop_paywall_granted'); // 游客订单无授予对象，标记放行后续人工流程
         }
     }
 }

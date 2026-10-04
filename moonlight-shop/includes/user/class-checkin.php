@@ -97,6 +97,14 @@ class MLUC_Checkin
             mluc_send_json(false, __('签到正在处理中，请勿重复提交。', 'moonlight-user-center'));
         }
         $locked = ('1' === (string) $lock);
+        if ($locked) {
+            // 审计 L1：php_fatal / 超时导致提前退出时锁通常随连接释放，但持久连接
+            // 场景会滞留。注册 shutdown 兜底释放——正常路径的显式 RELEASE 不受影响
+            //（对已释放的锁重复 RELEASE 仅返回 0，无副作用）。
+            register_shutdown_function(function () use ($wpdb, $lock_name) {
+                $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
+            });
+        }
 
         if (self::checked_today($user_id)) {
             if ($locked) {

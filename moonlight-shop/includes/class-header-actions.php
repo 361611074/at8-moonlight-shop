@@ -206,8 +206,9 @@ class MLSHOP_Header_Actions
         if ($page_id && get_post($page_id)) {
             return;
         }
+        // 审计 M-1：按 slug 找回前校验内容确属本插件短代码（防 slug 抢占劫持入口）。
         $existing = get_page_by_path('favorites');
-        if ($existing) {
+        if ($existing && false !== strpos((string) $existing->post_content, '[mlshop_favorites]')) {
             $page_id = $existing->ID;
         } else {
             $created = wp_insert_post(array(

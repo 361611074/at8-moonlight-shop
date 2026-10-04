@@ -1230,14 +1230,25 @@ class MLSHOP_Order
             );
         }
 
-        // 库存回滚：pending/processing/待发货 取消或失败，或已付款后退款。
+        // 库存回滚：pending/processing/待发货/已付款 取消或失败，或已付款后退款。
         // awaiting_shipment 取消 = 货未出库，回滚库存；shipped 之后取消属异常件，
         // 库存不自动回滚（由管理员走 refunded 处理退货入库）。
-        if (in_array($new, array('cancelled', 'failed'), true) && in_array($current, array('pending', 'processing', 'awaiting_shipment'), true)) {
+        // 审计 M3：paid → cancelled 此前只回资金不回库存（与 refunded 不对称），
+        // 现已把 paid 纳入 cancelled 的回滚来源——资金回退与库存回滚同步发生。
+        if (in_array($new, array('cancelled', 'failed'), true) && in_array($current, array('pending', 'processing', 'awaiting_shipment', 'paid'), true)) {
             self::restore_stock($order_id);
         }
         if ('refunded' === $new && in_array($current, array('paid', 'processing', 'awaiting_shipment', 'shipped', 'delivered', 'completed'), true)) {
             self::restore_stock($order_id);
+        }
+
+        // 审计 M2：failed → pending 重开此前不重新持有库存（failed 时已回滚），
+        // 后续退款会再回滚一次 → 库存凭空多出。重开时原子重新扣减，库存不足则拒绝重开。
+        if ('failed' === $current && 'pending' === $new) {
+            $rehold = self::rehold_stock($order_id);
+            if (is_wp_error($rehold)) {
+                return $rehold;
+            }
         }
 
         // 资金回退：退款 / 已付款后取消时，余额支付回补钱包、充值订单回收已发积分
@@ -1326,6 +1337,12 @@ class MLSHOP_Order
      */
     private static function restore_stock($order_id)
     {
+        // 审计 H2：抢占式幂等——并发退款/取消只有一个进入回补段（旧写法是裸原子累加，
+        // 双并发会双倍回库存）。失败→pending 重开会删除该标记（见 rehold_stock），
+        // 保证后续退款仍可回滚。
+        if (!add_post_meta($order_id, '_mlshop_stock_restored', current_time('mysql'), true)) {
+            return;
+        }
         $items = get_post_meta($order_id, '_mlshop_items', true);
         if (!is_array($items)) {
             return;
@@ -1350,6 +1367,54 @@ class MLSHOP_Order
     }
 
     /**
+     * failed → pending 重开时重新持有库存（restore_stock 的逆操作）。
+     *
+     * 逐项原子扣减；任一项库存不足即回滚本轮已扣减的项并拒绝重开，
+     * 避免出现「部分持货」的中间态。成功后清除 _mlshop_stock_restored 标记，
+     * 使订单后续退款/取消时 restore_stock 能再次生效。
+     *
+     * @return true|WP_Error
+     */
+    private static function rehold_stock($order_id)
+    {
+        $items = get_post_meta($order_id, '_mlshop_items', true);
+        if (!is_array($items)) {
+            return true;
+        }
+        $held = array();
+        foreach ($items as $item) {
+            if (empty($item['id'])) {
+                continue;
+            }
+            $pid = (int) $item['id'];
+            if (get_post_type($pid) !== 'mlshop_product') {
+                continue;
+            }
+            if ('cardkey' === get_post_meta($pid, '_mlshop_type', true)) {
+                continue; // 卡密库存由交付時管理
+            }
+            $raw = get_post_meta($pid, '_mlshop_stock', true);
+            if ('' === $raw || (int) $raw < 0) {
+                continue; // 不限量
+            }
+            if (mlshop_atomic_decrement_post_meta($pid, '_mlshop_stock', (int) $item['qty'])) {
+                $held[] = array($pid, (int) $item['qty']);
+                continue;
+            }
+            // 库存不足：回滚本轮已扣减的项，拒绝重开
+            foreach ($held as $h) {
+                mlshop_atomic_increment_post_meta($h[0], '_mlshop_stock', $h[1]);
+            }
+            return new WP_Error(
+                'mlshop_rehold_stock',
+                sprintf(__('商品 #%d 库存不足，无法重新打开订单。', 'moonlight-shop'), $pid)
+            );
+        }
+        delete_post_meta($order_id, '_mlshop_stock_restored');
+        return true;
+    }
+
+    /**
      * 退款 / 已付款后取消时回退资金（幂等），防止资损：
      *  - 余额支付订单：把已扣钱包余额回补到同一账本 _mlshop_balance
      *    （修复审计 H1「双账本串账」：余额扣的是 _mlshop_balance，
@@ -1359,44 +1424,59 @@ class MLSHOP_Order
      */
     private static function maybe_reverse_funds($order_id)
     {
-        if (get_post_meta($order_id, '_mlshop_funds_reversed', true)) {
-            return;
-        }
+        // 审计 C2/H2/H3 修复：回补权经 add_post_meta(unique) 原子抢占——并发的
+        // 退款 / 取消 / 网关补偿只有一个能进入回补段。关键细节：**仅在确有资金
+        // 可回补时才抢旗标**——pending 空单取消若也抢旗标，会把随后网关补偿
+        // （扣了钱但完单失败）挡在门外，造成资金丢失。
         $uid     = (int) get_post_meta($order_id, '_mlshop_user_id', true);
         $type    = get_post_meta($order_id, '_mlshop_type', true);
         $gateway = get_post_meta($order_id, '_mlshop_payment_gateway', true);
 
-        if ('balance' === $gateway && $uid > 0 && get_post_meta($order_id, '_mlshop_payment_id', true)) {
-            $total = (float) get_post_meta($order_id, '_mlshop_total', true);
-            if ($total > 0) {
-                // 回补到余额钱包本身（原子累加），与扣款账本一致
-                mlshop_atomic_increment_user_meta($uid, '_mlshop_balance', $total);
+        $balance_paid = 0.0;
+        if ('balance' === $gateway && $uid > 0) {
+            // 以扣款凭据 `_mlshop_balance_spent`（网关扣款成功时写入）为准。
+            // 旧版只认 `_mlshop_payment_id`，而余额网关 mark_paid 从不传交易号 →
+            // 凭据永远为空 → 退款/取消时钱包从不回补（审计 C1，用户静默损失货款）。
+            // 兼容旧数据：`_mlshop_payment_id` 有值仍视为已扣款（按订单总额回补）。
+            $balance_paid = (float) get_post_meta($order_id, '_mlshop_balance_spent', true);
+            if ($balance_paid <= 0 && get_post_meta($order_id, '_mlshop_payment_id', true)) {
+                $balance_paid = (float) get_post_meta($order_id, '_mlshop_total', true);
             }
         }
+        $recharge_recall = ('recharge' === $type && $uid > 0 && get_post_meta($order_id, '_mlshop_recharge_granted', true))
+            ? (float) get_post_meta($order_id, '_mlshop_credit_amount', true)
+            : 0.0;
+        $credit_return = ('credit' === $gateway && $uid > 0)
+            ? (float) get_post_meta($order_id, '_mlshop_credit_spent', true)
+            : 0.0;
 
-        if ('recharge' === $type && $uid > 0 && get_post_meta($order_id, '_mlshop_recharge_granted', true)) {
+        if ($balance_paid <= 0 && $recharge_recall <= 0 && $credit_return <= 0) {
+            return; // 无任何资金动过：不抢旗标、不回补
+        }
+        if (!add_post_meta($order_id, '_mlshop_funds_reversed', current_time('mysql'), true)) {
+            return; // 并发的退款/取消/补偿已处理
+        }
+
+        if ($balance_paid > 0) {
+            // 回补到余额钱包本身（原子累加），与扣款账本一致
+            mlshop_atomic_increment_user_meta($uid, '_mlshop_balance', $balance_paid);
+        }
+
+        if ($recharge_recall > 0) {
             // 修复：读取键与写入键一致（create_recharge 写入 _mlshop_credit_amount，
             // 此处曾误读 _mlshop_credit 导致充值退款永远收不回积分）。
-            $credit = (float) get_post_meta($order_id, '_mlshop_credit_amount', true);
-            if ($credit > 0) {
-                $remaining = MLSHOP_Credit::spend($uid, $credit, sprintf(__('订单 #%d 退款回收充值积分', 'moonlight-shop'), $order_id));
-                if (false === $remaining) {
-                    update_post_meta($order_id, '_mlshop_recharge_revoke_short', $credit);
-                }
+            $remaining = MLSHOP_Credit::spend($uid, $recharge_recall, sprintf(__('订单 #%d 退款回收充值积分', 'moonlight-shop'), $order_id));
+            if (false === $remaining) {
+                update_post_meta($order_id, '_mlshop_recharge_revoke_short', $recharge_recall);
             }
         }
 
         // 积分支付订单：按实际扣减量原路返还积分（退款 / 已付款后取消均触发）。
         // 与充值回收相互独立：充值订单没有 _mlshop_credit_spent，积分支付订单
         // 没有 _mlshop_recharge_granted，两条账目不会互相串扰。
-        if ('credit' === $gateway && $uid > 0) {
-            $points = (float) get_post_meta($order_id, '_mlshop_credit_spent', true);
-            if ($points > 0 && class_exists('MLSHOP_Credit')) {
-                MLSHOP_Credit::add($uid, $points, sprintf(__('订单 #%d 退款返还积分', 'moonlight-shop'), $order_id));
-            }
+        if ($credit_return > 0 && class_exists('MLSHOP_Credit')) {
+            MLSHOP_Credit::add($uid, $credit_return, sprintf(__('订单 #%d 退款返还积分', 'moonlight-shop'), $order_id));
         }
-
-        update_post_meta($order_id, '_mlshop_funds_reversed', '1');
     }
 
     /**

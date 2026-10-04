@@ -136,13 +136,15 @@ class MLSHOP_Membership_UI
         if (!$level || !class_exists('MLUC_Membership')) {
             return;
         }
-        if (get_post_meta($order_id, '_mlshop_membership_granted', true)) {
+        // 幂等（审计 C2）：add_post_meta(unique) 原子抢占授予权——并发支付回调
+        // 双触发 mlshop_order_paid 时（回跳 × webhook 重投），旧「读标记→授予→写标记」
+        // 会双开会员。抢到标记才授予。
+        if (!add_post_meta($order_id, '_mlshop_membership_granted', current_time('mysql'), true)) {
             return;
         }
         $user_id = (int) get_post_meta($order_id, '_mlshop_user_id', true);
         $validity = (int) MLUC_Membership::get_level_validity($level);
         $expires = $validity > 0 ? (int) (current_time('timestamp') + $validity * DAY_IN_SECONDS) : 0;
         MLUC_Membership::set_user_level($user_id, $level, $expires);
-        update_post_meta($order_id, '_mlshop_membership_granted', current_time('mysql'));
     }
 }

@@ -32,6 +32,26 @@ class MLUC_Page_Sync
     }
 
     /**
+     * 按 slug 找回页面前校验该页确属本插件（内容含对应短代码）。
+     *
+     * 审计 M-1：slug 可被任何可发页面的角色预先抢占（如编辑发一个 slug=account
+     * 的钓鱼页），无条件按 slug 绑定会把 /account/ /login/ 等可信入口指向攻击者
+     * 内容。校验不通过时不复用，直接新建（wp_insert_post 自动加 -2 后缀避让）。
+     *
+     * @param string $slug      目标 slug
+     * @param string $shortcode 页面应包含的本插件短代码
+     * @return WP_Post|null
+     */
+    private static function reclaim_by_slug($slug, $shortcode)
+    {
+        $existing = get_page_by_path($slug);
+        if ($existing && false !== strpos((string) $existing->post_content, $shortcode)) {
+            return $existing;
+        }
+        return null;
+    }
+
+    /**
      * 补齐缺失页面并修正失效的页面 ID 配置。
      *
      * @return array 变更摘要
@@ -55,8 +75,8 @@ class MLUC_Page_Sync
                 continue;
             }
 
-            // 配置缺失或指向已删除页面：先按 slug 找回，找不到再新建。
-            $existing = get_page_by_path($slug);
+            // 配置缺失或指向已删除页面：先按 slug 找回（须确属本插件页面），找不到再新建。
+            $existing = self::reclaim_by_slug($slug, $shortcode);
             if ($existing) {
                 $options[$key] = (int) $existing->ID;
                 $changed = true;
@@ -104,7 +124,8 @@ class MLUC_Page_Sync
             if ($page_id && get_post($page_id) && 'page' === get_post($page_id)->post_type) {
                 continue;
             }
-            $existing = get_page_by_path($cfg[0]);
+            // 同样防 slug 抢占：找回前校验内容确属本插件短代码
+            $existing = self::reclaim_by_slug($cfg[0], $cfg[1]);
             if ($existing) {
                 $options[$key] = (int) $existing->ID;
                 $changed = true;

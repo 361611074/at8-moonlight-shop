@@ -83,6 +83,11 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
             );
         }
 
+        // 先落扣减凭据再动钱（审计 M4）：spend 成功后进程被杀（FPM OOM/超时）时，
+        // 旧顺序「扣钱 → 写凭据」会留下已扣分但无凭据的死账（退款永不回补）。
+        // 凭据先行后任何崩溃点都有据可查；spend 失败时立即清除凭据。
+        update_post_meta($order_id, '_mlshop_credit_spent', $points);
+
         // 原子扣减：由 SQL 条件保证余额充足才扣，并发请求不会双双通过校验。
         $remaining = MLSHOP_Credit::spend(
             $user_id,
@@ -90,6 +95,7 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
             sprintf(__('支付订单 #%1$s（%2$s %3$s）', 'moonlight-shop'), $order_id, $points, $credit_name)
         );
         if (false === $remaining) {
+            delete_post_meta($order_id, '_mlshop_credit_spent');
             $balance = MLSHOP_Credit::get_balance($user_id);
             return array(
                 'success' => false,
@@ -102,14 +108,15 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
             );
         }
 
-        // 记录实际扣减量：退款 / 取消时状态机按该值原路返还积分。
-        update_post_meta($order_id, '_mlshop_credit_spent', $points);
-
         $paid = MLSHOP_Order::mark_paid($order_id, 'credit');
         if (is_wp_error($paid)) {
             // 完单失败（如订单恰被过期取消）：立刻回补积分，保证「扣了分必开通」。
+            // 审计 H3：与状态机回补抢同一旗标（maybe_reverse_funds）——并发取消
+            // 已先行按 _mlshop_credit_spent 回补时此处跳过，杜绝双倍返还。
             delete_post_meta($order_id, '_mlshop_credit_spent');
-            MLSHOP_Credit::add($user_id, $points, sprintf(__('订单 #%1$s 支付失败回补', 'moonlight-shop'), $order_id));
+            if (add_post_meta($order_id, '_mlshop_funds_reversed', 'gateway-comp', true)) {
+                MLSHOP_Credit::add($user_id, $points, sprintf(__('订单 #%1$s 支付失败回补', 'moonlight-shop'), $order_id));
+            }
             return array(
                 'success' => false,
                 'message' => $paid->get_error_message(),

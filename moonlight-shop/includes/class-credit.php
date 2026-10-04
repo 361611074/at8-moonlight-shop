@@ -110,6 +110,13 @@ class MLSHOP_Credit
 
     private static function log($user_id, $delta, $balance, $note)
     {
+        // 审计 M1：ledger 是「读数组 → 追加 → 整体覆盖写」，余额本身原子但流水
+        // 在并发下会被后写者覆盖（丢审计行）。以每用户命名锁串行化该段；
+        // 锁不可用（GET_LOCK 返回 NULL）时优雅降级为无锁写入（丢流水好过阻塞付款）。
+        global $wpdb;
+        $lock_name = 'mlshop_credit_ledger_' . $user_id;
+        $lock      = $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 1)', $lock_name));
+        $locked    = ('1' === (string) $lock);
         $ledger = get_user_meta($user_id, self::LEDGER, true);
         if (!is_array($ledger)) {
             $ledger = array();
@@ -124,5 +131,8 @@ class MLSHOP_Credit
             $ledger = array_slice($ledger, -200);
         }
         update_user_meta($user_id, self::LEDGER, $ledger);
+        if ($locked) {
+            $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
+        }
     }
 }

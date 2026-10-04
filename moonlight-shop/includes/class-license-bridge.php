@@ -697,9 +697,12 @@ class MLSHOP_License_Bridge
                 <tr>
                     <th><label for="mlshop_at8lic_secret"><?php esc_html_e('管理密钥', 'moonlight-shop'); ?></label></th>
                     <td>
+                        <!-- 审计 L-2：密钥不回显（留空 = 保持原值），与商城其它 secret 字段同策略 -->
                         <input type="password" id="mlshop_at8lic_secret" name="<?php echo esc_attr(self::OPT_SECRET); ?>"
-                               value="<?php echo esc_attr($secret); ?>" class="regular-text" autocomplete="off">
-                        <p class="description"><?php esc_html_e('用于商城付款后自动签发授权码；请与授权中心一致。', 'moonlight-shop'); ?></p>
+                               value="" class="regular-text" autocomplete="new-password">
+                        <p class="description">
+                            <?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret($secret))); ?>
+                        </p>
                     </td>
                 </tr>
                 <tr>
@@ -720,13 +723,21 @@ class MLSHOP_License_Bridge
 
     public function settings()
     {
-        register_setting('mlshop_at8lic', self::OPT_SERVER, array('type' => 'string', 'sanitize_callback' => 'esc_url_raw'));
-        register_setting('mlshop_at8lic', self::OPT_SECRET, array('type' => 'string', 'sanitize_callback' => array($this, 'sanitize_secret')));
+        // 审计 L-3：区块渲染在「商城设置」表单（settings_fields('mlshop_settings_group')）里，
+        // 两个 option 必须注册进同一 option_page 白名单组，否则提交被 options.php
+        // 静默丢弃、配置永远存不上（旧注册组 mlshop_at8lic 无表单承载，已废弃）。
+        register_setting('mlshop_settings_group', self::OPT_SERVER, array('type' => 'string', 'sanitize_callback' => 'esc_url_raw'));
+        register_setting('mlshop_settings_group', self::OPT_SECRET, array('type' => 'string', 'sanitize_callback' => array($this, 'sanitize_secret')));
     }
 
     public function sanitize_secret($v)
     {
-        return preg_replace('/[^A-Za-z0-9]/', '', (string) $v);
+        // 审计 L-2：设置页不回显密钥 → 空提交 = 保持原值（否则每次保存设置页都会清空密钥）。
+        $v = trim((string) $v);
+        if ('' === $v) {
+            return (string) get_option(self::OPT_SECRET, '');
+        }
+        return preg_replace('/[^A-Za-z0-9]/', '', $v);
     }
 
     public function page()
@@ -791,7 +802,9 @@ class MLSHOP_License_Bridge
         if (!isset($_POST['mlshop_at8lic_nonce']) || !wp_verify_nonce(sanitize_key($_POST['mlshop_at8lic_nonce']), 'mlshop_at8lic_meta')) {
             return;
         }
-        if (!current_user_can('manage_product_terms') && !current_user_can('edit_posts')) {
+        // 审计 L-1：改为对象级能力校验（edit_post），持有基础 edit_posts 的
+        // contributor/author 不再能通过检查。
+        if (!current_user_can('edit_post', $post_id)) {
             return;
         }
         if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {

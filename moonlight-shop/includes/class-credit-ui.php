@@ -118,6 +118,17 @@ class MLSHOP_Credit_UI
         }
 
         $user_id = get_current_user_id();
+
+        // 审计 M5：充值下单限流（同用户 10 分钟内最多 10 单），防脚本批量灌单。
+        // transient 读改写在并发下可丢失计数（与游客下单限流同口径），此处做
+        // 门槛性质即可；需要严格计数时可挂过滤器换成 SQL 原子自增。
+        $rl_key = 'mlshop_recharge_rl_' . $user_id;
+        $hits   = (int) get_transient($rl_key);
+        if ($hits >= (int) apply_filters('mlshop_recharge_rate_limit', 10)) {
+            mlshop_send_json(false, __('操作过于频繁，请稍后再试。', 'moonlight-shop'));
+        }
+        set_transient($rl_key, $hits + 1, 10 * MINUTE_IN_SECONDS);
+
         $credit  = 0.0;
         $price   = 0.0;
 
@@ -178,16 +189,19 @@ class MLSHOP_Credit_UI
         if ('recharge' !== get_post_meta($order_id, '_mlshop_type', true)) {
             return;
         }
-        // 幂等：避免 paid 與 completed 雙重觸發導致重複入賬
-        if (get_post_meta($order_id, '_mlshop_recharge_granted', true)) {
-            return;
-        }
         $user_id = (int) get_post_meta($order_id, '_mlshop_user_id', true);
         $credit  = (float) get_post_meta($order_id, '_mlshop_credit_amount', true);
-        if ($user_id && $credit > 0 && class_exists('MLSHOP_Credit')) {
-            MLSHOP_Credit::add($user_id, $credit, sprintf(__('充值到账（订单 #%s）', 'moonlight-shop'), $order_id));
-            update_post_meta($order_id, '_mlshop_recharge_granted', current_time('mysql'));
+        if (!$user_id || $credit <= 0 || !class_exists('MLSHOP_Credit')) {
+            return;
         }
+        // 幂等（审计 C2）：paid / completed 雙重觸發 + 并发支付回调双投（微信轮询 ×
+        // 异步 notify、Stripe 回跳 × webhook 重投）会并发进入本函数。
+        // 旧写法「读标记 → 入账 → 写标记」是 check-then-act，并发下双双入账=凭空造钱。
+        // 改为 add_post_meta(unique) 原子抢占授予权：抢到才入账，失败即已被他人授予。
+        if (!add_post_meta($order_id, '_mlshop_recharge_granted', current_time('mysql'), true)) {
+            return;
+        }
+        MLSHOP_Credit::add($user_id, $credit, sprintf(__('充值到账（订单 #%s）', 'moonlight-shop'), $order_id));
     }
 
     /**
@@ -262,7 +276,16 @@ class MLSHOP_Credit_UI
         }
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
         if ('deduct' === $dir) {
-            MLSHOP_Credit::spend($user_id, $amount, sprintf(__('管理员扣减：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
+            $remaining = MLSHOP_Credit::spend($user_id, $amount, sprintf(__('管理员扣减：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
+            // 审计 L2：扣减失败（余额不足）必须让管理员看见，不能静默丢弃
+            if (false === $remaining) {
+                set_transient(
+                    'mluc_admin_notice_' . get_current_user_id(),
+                    array('success' => false, 'message' => sprintf(__('扣减失败：该用户%1$s余额不足 %2$s，未做任何调整。', 'moonlight-shop'), $credit_name, $amount)),
+                    60
+                );
+                return false;
+            }
         } else {
             MLSHOP_Credit::add($user_id, $amount, sprintf(__('管理员增加：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
         }

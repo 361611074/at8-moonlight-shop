@@ -878,7 +878,9 @@ Moonlight_Refund_Service_Test::$gateway_result = array('success' => true, 'refun
 check('process 全额成功', true === Moonlight_Refund_Service_Test::process($of, 0, '商品损坏', 7));
 check('状态 → refunded', 'refunded' === MLSHOP_Order::get_status($of));
 check('库存回滚 5+2=7', abs((float) get_post_meta($p610, '_mlshop_stock', true) - 7.0) < 0.001);
-check('资金回补幂等标记 _mlshop_funds_reversed', '1' === (string) get_post_meta($of, '_mlshop_funds_reversed', true));
+// Stripe 订单的资金退回走网关 API，站内账本无回补动作 → 不抢占内部回补旗标
+// （审计 H2 新语义：仅在确有站内资金回补时才落 _mlshop_funds_reversed）
+check('Stripe 单不落站内回补旗标（资金走网关）', '' === (string) get_post_meta($of, '_mlshop_funds_reversed', true));
 check('申请记录标 approved', 'approved' === Moonlight_Refund_Service::requests($of)[0]['status']);
 check('refunded_total = 100', abs(Moonlight_Refund_Service::refunded_total($of) - 100.0) < 0.001);
 check('processed_total = 100（与 refunded_total 分开记录）', abs((float) get_post_meta($of, '_mlshop_refund_processed_total', true) - 100.0) < 0.001);
@@ -972,7 +974,7 @@ check('balance 全额退款成功（跳过网关 API）', true === Moonlight_Ref
 check('balance 未发起任何 HTTP 调用', empty($GLOBALS['__test_http_calls']));
 check('balance 钱包回补 20+40=60（单账本 _mlshop_balance）', abs((float) get_user_meta(1, '_mlshop_balance', true) - 60.0) < 0.001);
 check('balance 状态 refunded', 'refunded' === MLSHOP_Order::get_status($o_bal));
-check('balance 记录资金回补幂等标记', '1' === (string) get_post_meta($o_bal, '_mlshop_funds_reversed', true));
+check('balance 记录资金回补幂等标记（抢占式）', '' !== (string) get_post_meta($o_bal, '_mlshop_funds_reversed', true));
 
 echo "== 售后退款：Stripe refund 参数构造 ==\n";
 __test_reset_card_env();

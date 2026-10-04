@@ -53,10 +53,20 @@ class MLSHOP_Gateway_Balance extends MLSHOP_Gateway
             );
         }
 
+        // 扣款凭据（审计 C1）：退款/取消时状态机按该值原路回补钱包。
+        // 旧版只写 _mlshop_payment_gateway 不写任何凭据 → 回补条件永假，
+        // 余额订单退款时用户静默损失全部货款。
+        update_post_meta($order_id, '_mlshop_balance_spent', $total);
+
         $paid = MLSHOP_Order::mark_paid($order_id, 'balance');
         if (is_wp_error($paid)) {
             // 完单失败（如订单恰被过期取消）：立刻回补余额，保证「扣了钱必开通」。
-            mlshop_atomic_increment_user_meta($user_id, '_mlshop_balance', $total);
+            // 审计 H3：与状态机回补抢同一旗标（maybe_reverse_funds），
+            // 并发取消已先行回补时此处跳过，杜绝双倍退款。
+            delete_post_meta($order_id, '_mlshop_balance_spent');
+            if (add_post_meta($order_id, '_mlshop_funds_reversed', 'gateway-comp', true)) {
+                mlshop_atomic_increment_user_meta($user_id, '_mlshop_balance', $total);
+            }
             return array(
                 'success' => false,
                 'message' => $paid->get_error_message(),
