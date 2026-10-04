@@ -938,3 +938,89 @@ body.post-type-mlshop_order .mlshop-order-meta {
         width: 100%;
     }
 }
+
+/* ==========================================================================
+   「授权中心」区块里的 Pro 升级说明
+   ========================================================================== */
+.mlshop-license-upgrade {
+    margin: 18px 0 0;
+    padding: 18px 20px;
+    background: #fff;
+    border: 1px solid #e3e6ea;
+    border-top: 0;
+    border-radius: 0 0 10px 10px;
+}
+
+.mlshop-license-upgrade.is-active {
+    background: #f6fbf7;
+    border-color: #c3e0c8;
+}
+
+.mlshop-license-upgrade-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 10px;
+}
+
+.mlshop-license-upgrade-title {
+    flex: 1 1 auto;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.mlshop-license-upgrade .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+    border-radius: 5px;
+    height: 32px;
+    line-height: 30px;
+}
+
+.mlshop-license-upgrade .button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+.mlshop-license-upgrade-lead {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #646970;
+}
+
+.mlshop-license-upgrade-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.mlshop-license-upgrade-list li {
+    position: relative;
+    padding: 6px 0 6px 20px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #50575e;
+    border-top: 1px solid #f0f2f4;
+}
+
+.mlshop-license-upgrade-list li:first-child {
+    border-top: 0;
+}
+
+.mlshop-license-upgrade-list li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 13px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #2271b1;
+}
+
+.mlshop-license-upgrade-list strong {
+    color: #1d2327;
+    font-weight: 600;
+}

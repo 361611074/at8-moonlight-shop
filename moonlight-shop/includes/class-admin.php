@@ -1186,10 +1186,44 @@ class MLSHOP_Admin
                 <p class="description"><?php esc_html_e('連接你的授權簽發站點：商城訂單付款成功後自動簽發 Pro 授權碼給買家。此處為唯一的授權配置入口。', 'moonlight-shop'); ?></p>
                 <?php
                 if (class_exists('MLSHOP_License_Bridge')) {
-                    MLSHOP_License_Bridge::get_instance()->render_settings_section();
+                    echo '<h3 style="margin:22px 0 8px;font-size:14px;font-weight:600;">' . esc_html__('連線資訊', 'moonlight-shop') . '</h3>';
+                    MLSHOP_License_Bridge::render_settings_section();
                 } else {
                     echo '<p class="description">' . esc_html__('授權橋接模組未載入。', 'moonlight-shop') . '</p>';
                 }
+
+                // 升级 Pro 的价值说明 + 购买链接
+                $mlshop_pro_installed = class_exists('MLPRO_License_Client');
+                $mlshop_pro_active    = $mlshop_pro_installed && MLPRO_License_Client::is_active();
+                ?>
+                <div class="mlshop-license-upgrade<?php echo $mlshop_pro_active ? ' is-active' : ''; ?>">
+                    <div class="mlshop-license-upgrade-head">
+                        <span class="mlshop-license-upgrade-title">
+                            <?php
+                            echo esc_html(
+                                $mlshop_pro_active
+                                    ? __('Moonlight Shop Pro 已啟動', 'moonlight-shop')
+                                    : __('升級 Pro 解鎖完整能力', 'moonlight-shop')
+                            );
+                            ?>
+                        </span>
+                        <?php if ($mlshop_pro_active) : ?>
+                            <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('管理授權', 'moonlight-shop'); ?></a>
+                        <?php elseif ($mlshop_pro_installed) : ?>
+                            <a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('啟動 Pro', 'moonlight-shop'); ?></a>
+                        <?php else : ?>
+                            <a class="button button-primary" href="https://www.at8.fun/product/moonlight-shop/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('前往購買 Pro', 'moonlight-shop'); ?></a>
+                        <?php endif; ?>
+                    </div>
+                    <p class="mlshop-license-upgrade-lead"><?php esc_html_e('免費版已能完整賣貨。升級 Pro 後，多出這些站內能力：', 'moonlight-shop'); ?></p>
+                    <ul class="mlshop-license-upgrade-list">
+                        <li><strong><?php esc_html_e('卡密管理', 'moonlight-shop'); ?></strong> — <?php esc_html_e('批次產生 / 匯入卡密，支援餘額、會員、積分三種兌換類型，餘額自動入帳。', 'moonlight-shop'); ?></li>
+                        <li><strong><?php esc_html_e('Webhook 出站通知', 'moonlight-shop'); ?></strong> — <?php esc_html_e('訂單付款、取消、退款即時推送到你的系統，對接 ERP / 自動發卡 / 財務。', 'moonlight-shop'); ?></li>
+                        <li><strong><?php esc_html_e('高級統計', 'moonlight-shop'); ?></strong> — <?php esc_html_e('銷售額趨勢、熱銷排行、會員增長與轉換率，經營決策有依據。', 'moonlight-shop'); ?></li>
+                        <li><strong><?php esc_html_e('訂單匯出', 'moonlight-shop'); ?></strong> — <?php esc_html_e('一鍵匯出 Excel，便于對帳與交稅。', 'moonlight-shop'); ?></li>
+                    </ul>
+                </div>
+                <?php
                 // 支付成功后自动为哪几个会员等级颁发 Pro License（原属会员与账户的 License/Pro 区，
                 // 授权中心地址已统一到上面，这里只保留等级映射，避免两处配置同一件事）
                 $mluc_settings = (class_exists('MLUC_Settings') && method_exists('MLUC_Settings', 'get_instance'))

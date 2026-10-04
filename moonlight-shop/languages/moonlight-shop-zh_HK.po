@@ -4527,3 +4527,45 @@ msgstr "授權中心"
 
 msgid "商城设置"
 msgstr "商城設定"
+
+msgid "连接信息"
+msgstr "連線資訊"
+
+msgid "升级 Pro 解锁完整能力"
+msgstr "升級 Pro 解鎖完整能力"
+
+msgid "前往购买 Pro"
+msgstr "前往購買 Pro"
+
+msgid "启动 Pro"
+msgstr "啟動 Pro"
+
+msgid "免费版已能完整卖货。升级 Pro 后，多出这些站内能力："
+msgstr "免費版已能完整賣貨。升級 Pro 後，多出這些站內能力："
+
+msgid "卡密管理"
+msgstr "卡密管理"
+
+msgid "批量生成 / 导入卡密，支持余额、会员、积分三种兑换类型，余额自动入账。"
+msgstr "批次產生 / 匯入卡密，支援餘額、會員、積分三種兑換類型，餘額自動入帳。"
+
+msgid "Webhook 出站通知"
+msgstr "Webhook 出站通知"
+
+msgid "订单付款、取消、退款即时推送到你的系统，对接 ERP / 自动发卡 / 财务。"
+msgstr "訂單付款、取消、退款即時推送到你的系統，對接 ERP / 自動發卡 / 財務。"
+
+msgid "高级统计"
+msgstr "高級統計"
+
+msgid "销售额趋势、热销排行、会员增长与转换率，经营决策有依据。"
+msgstr "銷售額趨勢、熱銷排行、會員增長與轉換率，經營決策有依據。"
+
+msgid "订单导出"
+msgstr "訂單匯出"
+
+msgid "一键导出 Excel，便于对账与交税。"
+msgstr "一鍵匯出 Excel，便於對帳與交税。"
+
+msgid "按付费可购买行为方式"
+msgstr "按付費可購買行為方式"

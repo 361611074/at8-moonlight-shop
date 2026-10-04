@@ -611,7 +611,7 @@ class MLSHOP_License_Bridge
      *
      * @return void
      */
-    public function render_settings_section()
+    public static function render_settings_section()
     {
         $server = get_option(self::OPT_SERVER, '');
         $secret = get_option(self::OPT_SECRET, '');
