@@ -28,9 +28,21 @@ class MLSHOP_Membership_UI
     {
         add_shortcode('mlshop_membership', array($this, 'shortcode_upgrade'));
         add_action('wp_ajax_mlshop_buy_membership', array($this, 'ajax_buy_membership'));
+        // 账户中心「升级会员」卡片通过该钩子取内容（includes/user/class-account.php 的
+        // do_action('mluc_membership_purchase')）。此前无人监听 → 卡片点了没反应，
+        // 会员购买流程在单插件形态下等于断的。商城是会员购买的唯一实现，这里接上。
+        add_action('mluc_membership_purchase', array($this, 'render_purchase_hook'));
         // 付款后授予会员等级（線上付款走 paid；貨到付款走 completed；已有 _mlshop_membership_granted 幂等保护）
         add_action('mlshop_order_paid', array($this, 'grant_membership'), 16);
         add_action('mlshop_order_completed', array($this, 'grant_membership'), 16);
+    }
+
+    /**
+     * 输出到钩子（账户中心会员卡片专用）。
+     */
+    public function render_purchase_hook()
+    {
+        echo $this->shortcode_upgrade(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 内部已转义
     }
 
     /**
