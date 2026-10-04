@@ -699,10 +699,10 @@ msgid "卡密已交付"
 msgstr ""
 
 msgid "卡密库存"
-msgstr ""
+msgstr "卡密库存"
 
 msgid "卡密库存预警"
-msgstr ""
+msgstr "卡密库存预警"
 
 msgid "卡密库存预警（可售 < 10）"
 msgstr ""
@@ -1677,7 +1677,7 @@ msgid "扫码 / 线下付款"
 msgstr "扫码 / 线下付款"
 
 msgid "批次列表"
-msgstr ""
+msgstr "批次列表"
 
 msgid "批次名"
 msgstr ""
@@ -1692,7 +1692,7 @@ msgid "批次状态更新失败。"
 msgstr ""
 
 msgid "批量导入卡密"
-msgstr ""
+msgstr "批次汇入"
 
 msgid "承運商名稱"
 msgstr "承运商名称"
@@ -3006,13 +3006,13 @@ msgid "设置商品主图"
 msgstr "设置商品主图"
 
 msgid "设置导航"
-msgstr "设置导航"
+msgstr "设定导览"
 
 msgid "设置订单封面图"
 msgstr "设置订单封面图"
 
 msgid "设置页导航"
-msgstr "设置页导航"
+msgstr "设定页导览"
 
 msgid "访客订单"
 msgstr ""
@@ -3962,7 +3962,7 @@ msgstr "今天已经签到过了，明天再来吧。"
 msgid "付费墙（文章付费）"
 msgstr "付费墙（文章付费）"
 msgid "会员与账户"
-msgstr "会员与账户"
+msgstr "会员与帐户"
 msgid "会员头像"
 msgstr "会员头像"
 msgid "会员头像库"
@@ -4484,3 +4484,46 @@ msgid "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字�
 msgstr "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字符集 %4$s。"
 msgid "自动生成 %1$s（%2$d 张）"
 msgstr "自动生成 %1$s（%2$d 张）"
+
+
+msgid "升级到 Moonlight Shop Pro"
+msgstr "升级到 Moonlight Shop Pro"
+
+msgid "Moonlight Shop Pro 已激活"
+msgstr "Moonlight Shop Pro 已启动"
+
+msgid "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
+msgstr "Webhook 出站通知、高级统计、订单汇出、卡密管理均已启用。"
+
+msgid "免费版已可正常卖货。升级 Pro 解锁："
+msgstr "免费版已可正常卖货。升级 Pro 解锁："
+
+msgid "Webhook（订单事件实时推送到你的系统）"
+msgstr "Webhook（订单事件即时推送到你的系统）"
+
+msgid "高级统计（销售额趋势、热销排行）"
+msgstr "高级统计（销售额趋势、热销排行）"
+
+msgid "订单导出（Excel）"
+msgstr "订单汇出（Excel）"
+
+msgid "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
+msgstr "卡密管理（批次产生 / 汇入，余额·会员·积分兑换）"
+
+msgid "管理授权"
+msgstr "管理授权"
+
+msgid "激活 Pro"
+msgstr "启动 Pro"
+
+msgid "了解并购买 Pro"
+msgstr "了解并购买 Pro"
+
+msgid "已购买？上传 Pro 插件"
+msgstr "已购买？上传 Pro 外挂"
+
+msgid "授权中心"
+msgstr "授权中心"
+
+msgid "商城设置"
+msgstr "商城设定"

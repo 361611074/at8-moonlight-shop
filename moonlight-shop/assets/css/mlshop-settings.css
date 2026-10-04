@@ -836,3 +836,105 @@ body.post-type-mlshop_order .mlshop-order-meta {
         margin-bottom: 18px;
     }
 }
+
+/* ==========================================================================
+   Pro 升级引导卡
+   ========================================================================== */
+.mlshop-pro-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: #fff;
+    border: 1px solid var(--mlshop-line, #e3e6ea);
+    border-left: 4px solid #c3c4c7;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 0 0 18px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .04);
+}
+
+.mlshop-pro-absent {
+    border-left-color: #dba617;
+    background: linear-gradient(90deg, #fcf9e8 0%, #fff 42%);
+}
+
+.mlshop-pro-inactive {
+    border-left-color: #d63638;
+    background: linear-gradient(90deg, #fcf0f1 0%, #fff 42%);
+}
+
+.mlshop-pro-active {
+    border-left-color: #00a32a;
+    background: linear-gradient(90deg, #edfaef 0%, #fff 42%);
+}
+
+.mlshop-pro-card-body {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.mlshop-pro-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    margin: 0 0 6px;
+    line-height: 1.4;
+}
+
+.mlshop-pro-card-desc {
+    font-size: 13px;
+    color: #646970;
+    line-height: 1.7;
+    margin: 0;
+}
+
+.mlshop-pro-lead {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.mlshop-pro-feat {
+    display: inline-block;
+    margin: 2px 14px 2px 0;
+    padding: 1px 8px;
+    background: #f0f6fc;
+    border: 1px solid #c5d9ed;
+    border-radius: 20px;
+    color: #1d4b73;
+    font-size: 12px;
+    line-height: 1.8;
+}
+
+.mlshop-pro-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.mlshop-pro-card-actions .button {
+    height: 32px;
+    line-height: 30px;
+    border-radius: 5px;
+    font-size: 13px;
+}
+
+.mlshop-pro-card-actions .button-primary {
+    background: #2271b1;
+    border-color: #2271b1;
+}
+
+.mlshop-pro-card-actions .button-primary:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+@media screen and (max-width: 782px) {
+    .mlshop-pro-card {
+        gap: 12px;
+    }
+    .mlshop-pro-card-actions {
+        width: 100%;
+    }
+}

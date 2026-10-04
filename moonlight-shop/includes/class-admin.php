@@ -473,6 +473,57 @@ class MLSHOP_Admin
         return array_values(array_unique($clean));
     }
 
+    /**
+     * Pro 升级引导卡。
+     *
+     * 此前只有 Pro 插件自己的 admin_notices，而且必须先装上 Pro 才看得到 ——
+     * 纯 Free 站点的站长完全不知道存在 Pro、也不知道升级能解锁什么。
+     * 这里在商城设置页顶部常驻一张卡：已装且已激活显示「已激活」；
+     * 未装 / 未激活则列出 Pro 能解锁的能力与入口。
+     */
+    private function render_pro_upgrade_card()
+    {
+        $pro_install = class_exists('MLPRO_License_Client');
+        $pro_active  = $pro_install && MLPRO_License_Client::is_active();
+        $state       = $pro_active ? 'active' : ($pro_install ? 'inactive' : 'absent');
+        ?>
+        <div class="mlshop-pro-card mlshop-pro-<?php echo esc_attr($state); ?>">
+            <div class="mlshop-pro-card-body">
+                <div class="mlshop-pro-card-title">
+                    <?php
+                    echo esc_html(
+                        $pro_active
+                            ? __('Moonlight Shop Pro 已激活', 'moonlight-shop')
+                            : __('升级到 Moonlight Shop Pro', 'moonlight-shop')
+                    );
+                    ?>
+                </div>
+                <div class="mlshop-pro-card-desc">
+                    <?php if ($pro_active) : ?>
+                        <?php esc_html_e('Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。', 'moonlight-shop'); ?>
+                    <?php else : ?>
+                        <span class="mlshop-pro-lead"><?php esc_html_e('免费版已可正常卖货。升级 Pro 解锁：', 'moonlight-shop'); ?></span>
+                        <span class="mlshop-pro-feat"><?php esc_html_e('Webhook（订单事件实时推送到你的系统）', 'moonlight-shop'); ?></span>
+                        <span class="mlshop-pro-feat"><?php esc_html_e('高级统计（销售额趋势、热销排行）', 'moonlight-shop'); ?></span>
+                        <span class="mlshop-pro-feat"><?php esc_html_e('订单导出（Excel）', 'moonlight-shop'); ?></span>
+                        <span class="mlshop-pro-feat"><?php esc_html_e('卡密管理（批量生成 / 导入，余额·会员·积分兑换）', 'moonlight-shop'); ?></span>
+                    <?php endif; ?>
+                </div>
+            </div>
+            <div class="mlshop-pro-card-actions">
+                <?php if ($pro_active) : ?>
+                    <a class="button" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('管理授权', 'moonlight-shop'); ?></a>
+                <?php elseif ($pro_install) : ?>
+                    <a class="button button-primary" href="<?php echo esc_url(admin_url('admin.php?page=mlpro-license')); ?>"><?php esc_html_e('激活 Pro', 'moonlight-shop'); ?></a>
+                <?php else : ?>
+                    <a class="button button-primary" href="https://www.at8.fun/" target="_blank" rel="noopener noreferrer"><?php esc_html_e('了解并购买 Pro', 'moonlight-shop'); ?></a>
+                    <a class="button" href="<?php echo esc_url(admin_url('plugin-install.php?tab=upload')); ?>"><?php esc_html_e('已购买？上传 Pro 插件', 'moonlight-shop'); ?></a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php
+    }
+
     public function render_settings()
     {
         if (!current_user_can('manage_options')) {
@@ -491,6 +542,7 @@ class MLSHOP_Admin
         ?>
         <div class="wrap mlshop-admin-settings mlshop-settings-layout">
             <h1><?php esc_html_e('漫步白月光電子商城 設定', 'moonlight-shop'); ?></h1>
+            <?php $this->render_pro_upgrade_card(); ?>
             <nav class="mlshop-settings-nav" aria-label="<?php esc_attr_e('设置页导航', 'moonlight-shop'); ?>">
                 <div class="mlshop-settings-nav-title"><?php esc_html_e('设置导航', 'moonlight-shop'); ?></div>
                 <ul class="mlshop-settings-nav-list">

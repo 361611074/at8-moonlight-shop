@@ -2187,9 +2187,16 @@ foreach (array('mluc.js', 'mluc-admin.js', 'mluc-pw-admin.js', 'mluc-tinymce.js'
     check("并入脚本 {$__f} 存在", file_exists(__DIR__ . '/../moonlight-shop/assets/js/' . $__f));
 }
 foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
-    check("并入语言包 moonlight-user-center-{$__loc}.po/.mo 存在",
-        file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.po")
-        && file_exists(__DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.mo"));
+    // .mo 不入库（languages/.gitignore）：只提交 .po，由部署脚本在服务器端 msgfmt 编译。
+    // 断言 .po 存在即可；.mo 若存在则顺带校验其 magic 是 PHP 能读的小端序（de 12 04 95）。
+    $__po = __DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.po";
+    $__mo = __DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.mo";
+    $__ok = file_exists($__po);
+    if ($__ok && file_exists($__mo)) {
+        $__raw = file_get_contents($__mo);
+        $__ok   = (substr($__raw, 0, 4) === "\xde\x12\x04\x95");
+    }
+    check("并入语言包 moonlight-user-center-{$__loc}.po 存在", $__ok);
 }
 // 单插件形态：不再有独立用户中心插件，改验「并入模块自带让位守卫」——
 // 引擎缺席时商城补齐 MLUC_* 常量与加载器，存在旧插件时才让位。

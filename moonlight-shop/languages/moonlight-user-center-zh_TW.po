@@ -1410,7 +1410,7 @@ msgstr "優惠碼需登錄後使用。"
 msgid "会员/付费内容已授予超过退款时限"
 msgstr "會員/付費內容已授予超過退款時限"
 msgid "会员与账户"
-msgstr "會員與賬戶"
+msgstr "會員與帳戶"
 msgid "会员升级：%s"
 msgstr "會員升級：%s"
 msgid "会员数"
@@ -2178,3 +2178,64 @@ msgid "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字�
 msgstr "已生成 %1$d 張卡密並入池（批次 #%2$d）。長度 %3$d，字符集 %4$s。"
 msgid "自动生成 %1$s（%2$d 张）"
 msgstr "自動生成 %1$s（%2$d 張）"
+
+
+msgid "升级到 Moonlight Shop Pro"
+msgstr "升級到 Moonlight Shop Pro"
+
+msgid "Moonlight Shop Pro 已激活"
+msgstr "Moonlight Shop Pro 已啟動"
+
+msgid "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
+msgstr "Webhook 出站通知、高級統計、訂單匯出、卡密管理均已啟用。"
+
+msgid "免费版已可正常卖货。升级 Pro 解锁："
+msgstr "免費版已可正常賣貨。升級 Pro 解鎖："
+
+msgid "Webhook（订单事件实时推送到你的系统）"
+msgstr "Webhook（訂單事件即時推送到你的系統）"
+
+msgid "高级统计（销售额趋势、热销排行）"
+msgstr "高級統計（銷售額趨勢、熱銷排行）"
+
+msgid "订单导出（Excel）"
+msgstr "訂單匯出（Excel）"
+
+msgid "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
+msgstr "卡密管理（批次產生 / 匯入，餘額·會員·積分兌換）"
+
+msgid "管理授权"
+msgstr "管理授權"
+
+msgid "激活 Pro"
+msgstr "啟動 Pro"
+
+msgid "了解并购买 Pro"
+msgstr "了解並購買 Pro"
+
+msgid "已购买？上传 Pro 插件"
+msgstr "已購買？上傳 Pro 外掛"
+
+msgid "设置页导航"
+msgstr "設定頁導覽"
+
+msgid "设置导航"
+msgstr "設定導覽"
+
+msgid "漫步白月光電子商城 設定"
+msgstr "漫步白月光電子商城 設定"
+
+msgid "选择商品"
+msgstr "選擇商品"
+
+msgid "批次列表"
+msgstr "批次列表"
+
+msgid "批量导入卡密"
+msgstr "批次匯入"
+
+msgid "授权中心"
+msgstr "授權中心"
+
+msgid "商城设置"
+msgstr "商城設定"
