@@ -507,6 +507,7 @@ class MLSHOP_Admin
                     <li><a href="#mlshop-sec-mail"><?php esc_html_e('郵件設置', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-stripe"><?php esc_html_e('Stripe 支付', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-headerbtns"><?php esc_html_e('頁眉按鈕', 'moonlight-shop'); ?></a></li>
+                    <li><a href="#mlshop-sec-license"><?php esc_html_e('授權中心', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-pmethods"><?php esc_html_e('前台公開支付方式', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-paypal"><?php esc_html_e('PayPal 支付', 'moonlight-shop'); ?></a></li>
                     <li><a href="#mlshop-sec-alipay"><?php esc_html_e('支付寶支付', 'moonlight-shop'); ?></a></li>
@@ -1128,6 +1129,24 @@ class MLSHOP_Admin
                 <p>
                     <a href="<?php echo esc_url(wp_nonce_url(admin_url('admin-post.php?action=mlshop_test_stripe'), 'mlshop_test_stripe')); ?>" class="button"><?php esc_html_e('測試 Stripe 連線', 'moonlight-shop'); ?></a>
                 </p>
+
+                <h2 id="mlshop-sec-license" class="mlshop-card-title"><?php esc_html_e('授權中心', 'moonlight-shop'); ?></h2>
+                <p class="description"><?php esc_html_e('連接你的授權簽發站點：商城訂單付款成功後自動簽發 Pro 授權碼給買家。此處為唯一的授權配置入口。', 'moonlight-shop'); ?></p>
+                <?php
+                if (class_exists('MLSHOP_License_Bridge')) {
+                    MLSHOP_License_Bridge::get_instance()->render_settings_section();
+                } else {
+                    echo '<p class="description">' . esc_html__('授權橋接模組未載入。', 'moonlight-shop') . '</p>';
+                }
+                // 支付成功后自动为哪几个会员等级颁发 Pro License（原属会员与账户的 License/Pro 区，
+                // 授权中心地址已统一到上面，这里只保留等级映射，避免两处配置同一件事）
+                $mluc_settings = (class_exists('MLUC_Settings') && method_exists('MLUC_Settings', 'get_instance'))
+                    ? MLUC_Settings::get_instance() : null;
+                if ($mluc_settings && method_exists($mluc_settings, 'render_license_levels_only')) {
+                    echo '<h3 style="margin:20px 0 6px;font-size:14px;">' . esc_html__('會員等級自動頒發', 'moonlight-shop') . '</h3>';
+                    $mluc_settings->render_license_levels_only();
+                }
+                ?>
 
                 <h2 id="mlshop-sec-headerbtns" class="mlshop-card-title"><?php esc_html_e('頁眉按鈕（購物車 / 收藏 / 會員）', 'moonlight-shop'); ?></h2>
                 <p class="description"><?php esc_html_e('控制頁眉右上角三顆按鈕的外觀。桌面端顯示在頁眉右欄；行動端會自動固定在漢堡選單左側（位置可單獨設定）。留空即用預設值。', 'moonlight-shop'); ?></p>

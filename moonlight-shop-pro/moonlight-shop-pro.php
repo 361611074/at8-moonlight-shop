@@ -102,6 +102,10 @@ add_action('plugins_loaded', function () {
             // Pro 统计 + 订单导出：纯后台模块。
             MLPRO_Analytics::get_instance();
             MLPRO_Order_Export::get_instance();
+            // 卡密管理（兑换卡密池：余额/会员/积分/自定义，系统生成或导入）。
+            // 属 Pro 能力，未激活时不建表、不出菜单。
+            MLPRO_Card_Codes::init();
+            MLPRO_Card_Codes_Page::boot();
         }
     } else {
         // FREE-PRO §五：未激活只注册 admin notice，不注册任何前台行为。
@@ -110,7 +114,7 @@ add_action('plugins_loaded', function () {
                 return;
             }
             echo '<div class="notice notice-warning is-dismissible"><p>' .
-                esc_html__('Moonlight Shop Pro 尚未激活，Pro 功能（Webhook / 统计 / 导出）未启用。', 'moonlight-shop-pro') .
+                esc_html__('Moonlight Shop Pro 尚未激活，Pro 功能（Webhook / 统计 / 导出 / 卡密管理）未启用。', 'moonlight-shop-pro') .
                 ' <a href="' . esc_url(admin_url('admin.php?page=mlpro-license')) . '">' .
                 esc_html__('前往「Pro 授权」页', 'moonlight-shop-pro') . '</a></p></div>';
         });

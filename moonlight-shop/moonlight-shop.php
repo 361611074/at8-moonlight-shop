@@ -233,9 +233,7 @@ add_action('plugins_loaded', function () {
     Moonlight_Card_Stock::init();
     // 卡密自动生成（后台「卡密库存」页一键批量生成，走同一加密批次入库）
     Moonlight_Card_Generator::init();
-    // 独立「卡密管理」（兑换卡密池：余额/会员/积分/自定义 + 生成或导入，对齐子比布局）
-    Moonlight_Card_Codes::init();
-    Moonlight_Card_Codes_Page::boot();
+    // 注：「卡密管理」（兑换卡密池）属 Pro 能力，随 moonlight-shop-pro 启用。
 
     MLSHOP_Product::get_instance();
     MLSHOP_Product_Pay_Meta::get_instance();

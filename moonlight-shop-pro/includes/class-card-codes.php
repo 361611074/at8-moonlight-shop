@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Moonlight_Card_Codes
+class MLPRO_Card_Codes
 {
     const DB_VERSION  = '1.0.0';
     const OPTION_KEY = 'mlshop_card_codes_db_version';

@@ -591,11 +591,62 @@ class MLSHOP_License_Bridge
              . '<a class="at8lic-currency-switch" href="' . $url . '" rel="nofollow">切换到 ' . ($usd ? 'CNY ¥' : 'USD $') . '</a></span>';
     }
 
-    /* ================= 后台：设置 + 商品映射 ================= */
+    /* ================= 后台：授权配置并入「商城设置 → 授权中心」 ================= */
 
+    /**
+     * 不再单独占一个「设置」子页面。
+     *
+     * 原先用 add_options_page() 把「AT8 授权桥接」挂在 WordPress 设置菜单下，
+     * 与「商城设置」里的授权项、以及会员中心的 License/Pro 形成三处入口，
+     * 用户不知道该在哪填地址和密钥。这里改为只提供区块内容，
+     * 由商城设置页统一承载（见 MLSHOP_Admin 的 mlshop-sec-license 区）。
+     */
     public function menu()
     {
-        add_options_page('AT8 授权桥接', 'AT8 授权桥接', 'manage_options', 'mlshop-at8lic', array($this, 'page'));
+        // 保留方法以兼容旧钩子，但不再注册独立菜单页。
+    }
+
+    /**
+     * 授权中心配置区块（渲染进商城设置页）。
+     *
+     * @return void
+     */
+    public function render_settings_section()
+    {
+        $server = get_option(self::OPT_SERVER, '');
+        $secret = get_option(self::OPT_SECRET, '');
+        ?>
+        <table class="form-table">
+            <tr>
+                <th><label for="mlshop_at8lic_server"><?php esc_html_e('授权中心地址', 'moonlight-shop'); ?></label></th>
+                <td>
+                    <input type="url" id="mlshop_at8lic_server" name="<?php echo esc_attr(self::OPT_SERVER); ?>"
+                           value="<?php echo esc_attr($server); ?>" class="regular-text" placeholder="https://at8.fun">
+                    <p class="description"><?php esc_html_e('你的授权签发站点地址（在授权中心「设置」页查看）。', 'moonlight-shop'); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><label for="mlshop_at8lic_secret"><?php esc_html_e('管理密钥', 'moonlight-shop'); ?></label></th>
+                <td>
+                    <input type="password" id="mlshop_at8lic_secret" name="<?php echo esc_attr(self::OPT_SECRET); ?>"
+                           value="<?php echo esc_attr($secret); ?>" class="regular-text" autocomplete="off">
+                    <p class="description"><?php esc_html_e('用于商城付款后自动签发授权码；请与授权中心一致。', 'moonlight-shop'); ?></p>
+                </td>
+            </tr>
+            <tr>
+                <th><?php esc_html_e('连接状态', 'moonlight-shop'); ?></th>
+                <td>
+                    <?php if ($server && $secret) : ?>
+                        <span style="color:#00a32a;font-weight:600;"><?php esc_html_e('已配置', 'moonlight-shop'); ?></span>
+                        <p class="description"><?php esc_html_e('商城付款成功后会自动向授权中心请求签发授权码。', 'moonlight-shop'); ?></p>
+                    <?php else : ?>
+                        <span style="color:#d63638;"><?php esc_html_e('未配置', 'moonlight-shop'); ?></span>
+                        <p class="description"><?php esc_html_e('未配置时不会自动签发授权码（不影响其他商城功能）。', 'moonlight-shop'); ?></p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+        </table>
+        <?php
     }
 
     public function settings()

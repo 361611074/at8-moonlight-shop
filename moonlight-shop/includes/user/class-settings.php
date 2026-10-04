@@ -197,28 +197,6 @@ class MLUC_Settings
             'mluc_membership'
         );
 
-        // 独立收款 / 在线支付 / 订单超时 —— 已在 2026-10 移除并入态的这些区块。
-        // 单插件形态下能力统一由商城提供：网关见 mlshop_enabled_gateways 与各网关
-        // 设置区，订单超时见 mlshop_order_expire_minutes。此前并入模块仍渲染这些
-        // 表单，但对应网关类并未随迁，客户看到的是「填了也不生效」的死配置。
-        // 独立用户中心插件单独安装时（MLUC_LEGACY_ACTIVE）本文件不参与加载，
-        // 其自带设置页保持原样，不受影响。
-
-        // License / Pro
-        add_settings_section(
-            'mluc_license',
-            __('License / Pro', 'moonlight-user-center'),
-            '__return_false',
-            'mluc-settings'
-        );
-        add_settings_field(
-            'mluc_license',
-            __('授权设置', 'moonlight-user-center'),
-            array($this, 'render_license_field'),
-            'mluc-settings',
-            'mluc_license'
-        );
-
         // 邮件通知
         add_settings_section(
             'mluc_email',
@@ -906,22 +884,19 @@ class MLUC_Settings
     }
 
     /**
-     * License / Pro 设置：远程 License Server + 支付自动颁发等级。
+     * 支付成功自动颁发 License 的会员等级（唯一保留项）。
+     *
+     * 原本与「License Server 地址」同处会员与账户的 License/Pro 区；
+     * 授权中心地址已统一到「商城设置 → 授权中心」，此处只留等级映射。
      */
-    public function render_license_field()
+    public function render_license_levels_only()
     {
-        $server      = mluc_get_option('license_server_url', '');
         $auto_levels = (array) mluc_get_option('license_auto_levels', array());
         ?>
         <p>
-            <label for="mluc_lic_server"><strong><?php esc_html_e('License Server 地址（可选）', 'moonlight-user-center'); ?></strong></label><br>
-            <input type="url" id="mluc_lic_server" class="large-text code" name="mluc_options[license_server_url]" value="<?php echo esc_attr($server); ?>" placeholder="https://license.example.com">
-            <span class="description"><?php echo esc_html__('留空 = 本地验证模式（License 存本站）。配置后走远程验证：结果缓存 12 小时；网络失败进入 7 天宽限期，期间 Pro 功能照常，绝不因 Server 故障影响 Free 功能。', 'moonlight-user-center'); ?></span>
-        </p>
-        <p>
             <label for="mluc_lic_auto"><strong><?php esc_html_e('支付成功自动颁发 License 的会员等级', 'moonlight-user-center'); ?></strong></label><br>
             <input type="text" id="mluc_lic_auto" class="regular-text code" name="mluc_options[license_auto_levels_csv]" value="<?php echo esc_attr(implode(',', $auto_levels)); ?>" placeholder="monthly,gold">
-            <span class="description"><?php echo esc_html__('填等级标识（后台「会员等级定义」中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 moonlight-user-center-pro License（到期时长跟随等级有效期）。', 'moonlight-user-center'); ?></span>
+            <span class="description"><?php echo esc_html__('填等级标识（会员等级定义中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 Pro License（到期时长跟随等级有效期）。', 'moonlight-user-center'); ?></span>
         </p>
         <?php
     }

@@ -15,7 +15,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-class Moonlight_Card_Codes_Page
+class MLPRO_Card_Codes_Page
 {
     const SLUG = 'mlshop-card-codes';
 
@@ -89,7 +89,7 @@ class Moonlight_Card_Codes_Page
             if (count($lines) > 5000) {
                 wp_die(esc_html__('单次最多导入 5000 行。', 'moonlight-shop'), 400);
             }
-            $res = Moonlight_Card_Codes::import(array(
+            $res = MLPRO_Card_Codes::import(array(
                 'type'       => $type,
                 'batch'      => $batch,
                 'face_value' => $face,
@@ -97,7 +97,7 @@ class Moonlight_Card_Codes_Page
                 'lines'      => $lines,
             ));
         } else {
-            $res = Moonlight_Card_Codes::generate(array(
+            $res = MLPRO_Card_Codes::generate(array(
                 'type'       => $type,
                 'count'      => isset($_POST['card_count']) ? absint($_POST['card_count']) : 0,
                 'batch'      => $batch,
@@ -136,7 +136,7 @@ class Moonlight_Card_Codes_Page
         check_admin_referer('mlshop_card_codes_delete');
         $batch = isset($_GET['batch']) ? sanitize_text_field(wp_unslash($_GET['batch'])) : '';
         $type  = isset($_GET['type']) ? sanitize_key(wp_unslash($_GET['type'])) : '';
-        $n     = Moonlight_Card_Codes::delete_batch($batch, $type);
+        $n     = MLPRO_Card_Codes::delete_batch($batch, $type);
         wp_safe_redirect($this->base_url(array(
             'type'      => $type,
             'mlshop_msg' => rawurlencode(sprintf(__('已删除标识「%s」下 %d 条卡密。', 'moonlight-shop'), $batch, $n)),
@@ -152,7 +152,7 @@ class Moonlight_Card_Codes_Page
         check_admin_referer('mlshop_card_codes_export');
         $batch = isset($_GET['batch']) ? sanitize_text_field(wp_unslash($_GET['batch'])) : '';
         $type  = isset($_GET['type']) ? sanitize_key(wp_unslash($_GET['type'])) : '';
-        $rows  = Moonlight_Card_Codes::list_codes(array('batch' => $batch, 'type' => $type, 'limit' => 5000));
+        $rows  = MLPRO_Card_Codes::list_codes(array('batch' => $batch, 'type' => $type, 'limit' => 5000));
 
         $name = 'cards_' . sanitize_file_name($batch) . '_' . date('YmdHis') . '.csv';
         nocache_headers();
@@ -175,16 +175,16 @@ class Moonlight_Card_Codes_Page
         if (!current_user_can('manage_options')) {
             return;
         }
-        $types = Moonlight_Card_Codes::types();
+        $types = MLPRO_Card_Codes::types();
         $cur_type = isset($_GET['type']) ? sanitize_key(wp_unslash($_GET['type'])) : 'balance';
         if (!isset($types[$cur_type])) {
             $cur_type = 'balance';
         }
         $msg   = isset($_GET['mlshop_msg']) ? sanitize_text_field(wp_unslash($_GET['mlshop_msg'])) : '';
-        $stats = Moonlight_Card_Codes::stats();
+        $stats = MLPRO_Card_Codes::stats();
 
         // 表单默认值（首次进入给子比同款示例值）
-        $batch_default = Moonlight_Card_Codes::make_tag();
+        $batch_default = MLPRO_Card_Codes::make_tag();
         ?>
         <div class="wrap mlshop-admin-settings">
             <h1><?php esc_html_e('卡密管理', 'moonlight-shop'); ?></h1>
@@ -324,7 +324,7 @@ class Moonlight_Card_Codes_Page
                 </thead>
                 <tbody>
                     <?php foreach ($types as $key => $t) : ?>
-                        <?php $s = Moonlight_Card_Codes::stats($key); ?>
+                        <?php $s = MLPRO_Card_Codes::stats($key); ?>
                         <tr<?php echo $key === $cur_type ? ' class="mlshop-cc-active-row"' : ''; ?>>
                             <td><?php echo esc_html($t['label']); ?></td>
                             <td><?php echo (int) $s['total']; ?></td>
@@ -337,7 +337,7 @@ class Moonlight_Card_Codes_Page
 
             <!-- 批次列表 -->
             <h2 class="mlshop-card-title"><?php esc_html_e('卡密标识（批次）', 'moonlight-shop'); ?></h2>
-            <?php $batches = Moonlight_Card_Codes::batches(); ?>
+            <?php $batches = MLPRO_Card_Codes::batches(); ?>
             <?php if (empty($batches)) : ?>
                 <p class="description"><?php esc_html_e('还没有卡密批次，用上面的表单生成或导入一批。', 'moonlight-shop'); ?></p>
             <?php else : ?>
@@ -378,7 +378,7 @@ class Moonlight_Card_Codes_Page
             <?php
             $view_batch = isset($_GET['batch']) ? sanitize_text_field(wp_unslash($_GET['batch'])) : '';
             if ($view_batch) :
-                $rows = Moonlight_Card_Codes::list_codes(array('batch' => $view_batch, 'type' => $cur_type, 'limit' => 200));
+                $rows = MLPRO_Card_Codes::list_codes(array('batch' => $view_batch, 'type' => $cur_type, 'limit' => 200));
                 ?>
                 <h2 class="mlshop-card-title"><?php echo esc_html(sprintf(__('标识「%s」的卡密', 'moonlight-shop'), $view_batch)); ?></h2>
                 <?php if (empty($rows)) : ?>

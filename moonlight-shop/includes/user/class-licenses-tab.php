@@ -46,6 +46,10 @@ class MLUC_Licenses_Tab
      */
     public function register_admin_menu()
     {
+        // 不再单独占一个后台菜单：授权相关配置已统一到「商城设置 → 授权中心」，
+        // 这里只保留 render() 供该区块调用（如需列出当前用户的授权）。
+        return;
+        // @phpstan-ignore-next.codePath.unreachable
         if (!$this->is_available()) {
             return;
         }
