@@ -149,12 +149,25 @@ class MLUC_Membership
                     'description' => isset($lv['description']) ? (string) $lv['description'] : (isset(self::$levels[$key]['description']) ? self::$levels[$key]['description'] : ''),
                 );
             }
-            // 兜底：未提供 description 的等级用工厂默认（首次启用插件或新等级默认文案）
-            foreach ($levels as $k => $lv) {
-                if ((!isset($lv['description']) || '' === (string) $lv['description']) && isset(self::$levels[$k]['description'])) {
-                    $levels[$k]['description'] = self::$levels[$k]['description'];
-                }
+        // 兜底：未提供 description 的等级用工厂默认（首次启用插件或新等级默认文案）
+        foreach ($levels as $k => $lv) {
+            if ((!isset($lv['description']) || '' === (string) $lv['description']) && isset(self::$levels[$k]['description'])) {
+                $levels[$k]['description'] = self::$levels[$k]['description'];
             }
+        }
+        // 等级描述过一遍 gettext：内置默认描述是英文裸字符串，后台自定义的描述保持原样
+        // （用户自己填的文案不该被翻译）。仅翻译与内置默认完全一致的那些。
+        $factory_desc = array();
+        foreach (self::$levels as $k => $d) {
+            if (!empty($d['description'])) {
+                $factory_desc[(string) $d['description']] = true;
+            }
+        }
+        foreach ($levels as $k => $lv) {
+            if (!empty($lv['description']) && isset($factory_desc[(string) $lv['description']])) {
+                $levels[$k]['description'] = __($lv['description'], 'moonlight-user-center');
+            }
+        }
         }
         // 普通会员（free 基座）开关：开启时补回缺失的 free；关闭时移除（未付费用户视为无等级）
         if (self::free_enabled()) {
