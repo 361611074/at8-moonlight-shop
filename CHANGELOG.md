@@ -1,3 +1,28 @@
+## [3.1.2] - 2026-10-03（单插件并入态审查修复）
+
+对「用户中心完全并入商城」后的单插件形态做全面审查（含 run.php 820 项与 run-credit.php 45 项全绿基线），发现并修复三处并入遗漏：
+
+### Free（moonlight-shop）
+
+### 修复
+- **客户分发包 Fatal 风险**：`mlshop_boot_user_modules()` 无条件 `MLUC_License_Admin::get_instance()`，
+  客户分发包已剔除 `includes/user/class-license-admin.php`（d7a96559 的双保险设计），
+  类不存在时整站 Fatal；且无条件实例化本身违背「仅授权方自用站实例化」契约。
+  现以 `MLUC_LICENSE_LOCAL_MODE` 常量 + `class_exists` 双重守卫后才实例化。
+- **每日签到并入后不可达**：`MLUC_Checkin` 随并入进入商城，但
+  `checkin_enabled` / `credit_enabled`（mluc_options）与签到奖励参数没有任何后台设置入口，
+  账户中心积分 Tab 也没有签到按钮——功能被整体锁死。现补齐：
+  - 「用户中心设置 → 积分与签到」区块（启用积分体系 / 启用签到 / 基础奖励 / 连续加成间隔与数额）；
+  - 账户中心「积分余额」Tab 顶部签到卡（连续天数 / 今日状态 / 一键签到，AJAX 入账商城积分账本并即时刷新余额）。
+- **卸载不清理并入的会员中心数据**：独立用户中心插件的 uninstall.php 随目录移除后，
+  商城卸载残留 mluc_options、`mluc_%` 用户数据（会员等级 / OAuth / 签到 / 积分钱包账本）、
+  mluc_order / mluc_license 文章与 transient。现由商城 uninstall.php 接管清理；
+  独立版用户中心插件仍在激活时（双插件共存站）全部跳过，不越权清理。
+
+### 测试
+- run.php 814 → 820 项：新增「并入态功能可达性」断言（签到设置与模板入口、
+  boot 双重守卫、uninstall 接管与共存保护）；run-user.php 198 项、run-credit.php 45 项全绿。
+
 ## [3.1.1] - 2026-10-03（模拟用户验收修复）
 
 ### Free（moonlight-shop）

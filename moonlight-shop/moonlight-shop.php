@@ -3,7 +3,7 @@
  * Plugin Name:      漫步白月光电子商城
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的电子商城系统，兼容 Astra 主题与 Elementor。支持实物 / 虚拟下载 / 卡密商品，提供购物车、结算、订单全流程；支付网关内置支付宝 / 微信（预留）、PayPal、Stripe、余额、积分、货到付款与线下转账；支持运费模板、物流轨迹查询与售后退款；与「漫步白月光用户中心」账户中心无缝集成。
- * Version:          3.1.1
+ * Version:          3.1.2
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLSHOP_VERSION', '3.1.1');
+define('MLSHOP_VERSION', '3.1.2');
 define('MLSHOP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLSHOP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLSHOP_PLUGIN_FILE', __FILE__);
@@ -187,7 +187,13 @@ function mlshop_boot_user_modules()
     MLUC_Editor_Button::get_instance();
     MLUC_Menu::get_instance();
     MLUC_License_Manager::get_instance();
-    MLUC_License_Admin::get_instance();
+    // 「License 管理」仅在授权方自用站实例化（d7a96559 契约）：类内部对菜单与
+    // 操作均有 local_mode 守卫，实例化本身也必须收口——客户分发包已剔除
+    // class-license-admin.php，类不存在时跳过，避免 Fatal；普通客户站即使类
+    // 文件被保留也不实例化，杜绝任何自助签发入口。
+    if (defined('MLUC_LICENSE_LOCAL_MODE') && class_exists('MLUC_License_Admin')) {
+        MLUC_License_Admin::get_instance();
+    }
     MLUC_Email_Notifications::get_instance();
     MLUC_System_Status::get_instance();
     // MLUC_Payment_Manager 不再启动：并入态下 UC 独立支付网关未随迁，

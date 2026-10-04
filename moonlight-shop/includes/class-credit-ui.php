@@ -83,6 +83,12 @@ class MLSHOP_Credit_UI
             }
         }
 
+        // 签到（并入模块 MLUC_Checkin，入账与商城积分同一账本；未启用时不传参）
+        $checkin_on     = class_exists('MLUC_Checkin') && MLUC_Checkin::enabled();
+        $checkin_done   = $checkin_on ? MLUC_Checkin::checked_today($user_id) : false;
+        $checkin_streak = $checkin_on ? MLUC_Checkin::get_streak($user_id) : 0;
+        $checkin_ajax   = function_exists('mluc_ajax_data') ? mluc_ajax_data() : array();
+
         mlshop_get_template('account-credit', array(
             'balance'     => $balance,
             'credit_name' => $credit_name,
@@ -91,6 +97,10 @@ class MLSHOP_Credit_UI
             'packages'    => $packages,
             'rate'        => $rate,
             'gateways'    => $gateways,
+            'checkin_on'     => $checkin_on,
+            'checkin_done'   => $checkin_done,
+            'checkin_streak' => $checkin_streak,
+            'checkin_ajax'   => $checkin_ajax,
         ));
     }
 

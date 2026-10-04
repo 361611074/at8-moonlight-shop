@@ -273,6 +273,69 @@ class MLUC_Settings
             'mluc-settings',
             'mluc_avatar'
         );
+
+        // 积分与签到（并入模块 MLUC_Checkin；积分账本 = 商城 mlshop_credit_balance）
+        add_settings_section(
+            'mluc_checkin',
+            __('积分与签到', 'moonlight-user-center'),
+            '__return_false',
+            'mluc-settings'
+        );
+        add_settings_field(
+            'mluc_checkin',
+            __('签到奖励', 'moonlight-user-center'),
+            array($this, 'render_checkin_field'),
+            'mluc-settings',
+            'mluc_checkin'
+        );
+    }
+
+    /**
+     * 积分与签到设置：积分体系总开关 + 每日签到开关与奖励参数。
+     *
+     * 签到入账走并入模块 MLUC_Checkin（账本为商城 mlshop_credit_balance）；
+     * mluc_options['credit_enabled'] 是并入层积分能力的总闸（缺省关闭）。
+     */
+    public function render_checkin_field()
+    {
+        $credit_on = !empty(mluc_get_option('credit_enabled', 0));
+        $on        = !empty(mluc_get_option('checkin_enabled', 0));
+        $base      = max(0, (int) mluc_get_option('checkin_base', 5));
+        $every     = max(0, (int) mluc_get_option('checkin_every', 7));
+        $extra     = max(0, (int) mluc_get_option('checkin_extra', 20));
+        ?>
+        <p class="description">
+            <?php esc_html_e('积分账本与商城积分（充值 / 积分支付）共用同一本账；开启后签到所得可直接用于下单。', 'moonlight-user-center'); ?>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[credit_enabled]" value="1" <?php checked($credit_on); ?>>
+                <?php esc_html_e('启用积分体系（签到入账的前提）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="mluc_options[checkin_enabled]" value="1" <?php checked($on); ?>>
+                <?php esc_html_e('启用每日签到送积分（账户中心 → 积分余额 Tab 展示签到入口）', 'moonlight-user-center'); ?>
+            </label>
+        </p>
+        <p>
+            <label><?php esc_html_e('基础奖励', 'moonlight-user-center'); ?>
+                <input type="number" name="mluc_options[checkin_base]" min="0" step="1" value="<?php echo esc_attr((string) $base); ?>" class="small-text">
+            </label>
+            <?php esc_html_e('积分 / 天', 'moonlight-user-center'); ?>
+        </p>
+        <p>
+            <label><?php esc_html_e('连续每', 'moonlight-user-center'); ?>
+                <input type="number" name="mluc_options[checkin_every]" min="0" step="1" value="<?php echo esc_attr((string) $every); ?>" class="small-text">
+            </label>
+            <?php esc_html_e('天额外加成', 'moonlight-user-center'); ?>
+            <label>
+                <input type="number" name="mluc_options[checkin_extra]" min="0" step="1" value="<?php echo esc_attr((string) $extra); ?>" class="small-text">
+            </label>
+            <?php esc_html_e('积分（间隔填 0 表示不加成）', 'moonlight-user-center'); ?>
+        </p>
+        <?php
     }
 
     /**
@@ -992,6 +1055,13 @@ class MLUC_Settings
         // 邮件通知开关
         $options['email_purchase_enabled']       = !empty($input['email_purchase_enabled']) ? 1 : 0;
         $options['email_license_reminder_enabled'] = !empty($input['email_license_reminder_enabled']) ? 1 : 0;
+
+        // 积分体系与签到奖励（并入模块 MLUC_Checkin）
+        $options['credit_enabled']  = !empty($input['credit_enabled']) ? 1 : 0;
+        $options['checkin_enabled'] = !empty($input['checkin_enabled']) ? 1 : 0;
+        $options['checkin_base']    = max(0, (int) ($input['checkin_base'] ?? 5));
+        $options['checkin_every']   = max(0, (int) ($input['checkin_every'] ?? 7));
+        $options['checkin_extra']   = max(0, (int) ($input['checkin_extra'] ?? 20));
 
         // 支付调试日志（排查用）
         $options['pay_debug_log'] = !empty($input['pay_debug_log']) ? 1 : 0;

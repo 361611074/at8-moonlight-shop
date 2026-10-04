@@ -13,8 +13,68 @@
 if (!defined('ABSPATH')) {
     exit;
 }
+$checkin_on     = !empty($checkin_on) && class_exists('MLUC_Checkin');
+$checkin_done   = !empty($checkin_done);
+$checkin_streak = isset($checkin_streak) ? (int) $checkin_streak : 0;
+$checkin_ajax   = isset($checkin_ajax) && is_array($checkin_ajax) ? $checkin_ajax : array();
 ?>
 <div class="mlshop-credit">
+    <?php if ($checkin_on) : ?>
+    <div class="mlshop-credit-checkin" id="mlshop-credit-checkin">
+        <h3 class="mlshop-credit-section-title"><?php esc_html_e('每日签到', 'moonlight-shop'); ?></h3>
+        <p class="mlshop-credit-checkin-info">
+            <span data-checkin-streak-text><?php
+            /* translators: %d = 连续签到天数 */
+            printf(esc_html__('已连续签到 %d 天', 'moonlight-shop'), $checkin_streak);
+            ?></span>
+            <button type="button" class="mlshop-btn mlshop-btn-primary" data-checkin-btn <?php disabled($checkin_done); ?>>
+                <?php echo $checkin_done ? esc_html__('今日已签到', 'moonlight-shop') : esc_html__('立即签到', 'moonlight-shop'); ?>
+            </button>
+        </p>
+        <span class="mlshop-msg mlshop-checkin-msg" role="alert"></span>
+        <script>
+        (function () {
+            var box = document.getElementById('mlshop-credit-checkin');
+            if (!box || box.dataset.bound) { return; }
+            box.dataset.bound = '1';
+            var btn = box.querySelector('[data-checkin-btn]');
+            var msg = box.querySelector('.mlshop-checkin-msg');
+            var streakEl = box.querySelector('[data-checkin-streak-text]');
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                msg.textContent = '';
+                var fd = new FormData();
+                fd.append('action', 'mluc_checkin');
+                fd.append('nonce', <?php echo wp_json_encode(isset($checkin_ajax['nonce']) ? $checkin_ajax['nonce'] : ''); ?>);
+                fetch(<?php echo wp_json_encode(isset($checkin_ajax['ajax_url']) ? $checkin_ajax['ajax_url'] : admin_url('admin-ajax.php')); ?>, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    body: fd
+                }).then(function (r) { return r.json(); }).then(function (j) {
+                    msg.textContent = j.message || '';
+                    if (j && j.success) {
+                        btn.textContent = <?php echo wp_json_encode(__('今日已签到', 'moonlight-shop')); ?>;
+                        var bal = document.querySelector('.mlshop-credit-balance-value');
+                        if (bal && j.data && typeof j.data.balance !== 'undefined') { bal.textContent = j.data.balance; }
+                        if (streakEl && j.data && typeof j.data.streak !== 'undefined') {
+                            streakEl.textContent = <?php echo wp_json_encode(__('已连续签到 %d 天', 'moonlight-shop')); ?>.replace('%d', j.data.streak);
+                        }
+                    } else if (j && j.message && -1 !== j.message.indexOf('已经签到')) {
+                        btn.textContent = <?php echo wp_json_encode(__('今日已签到', 'moonlight-shop')); ?>;
+                        btn.disabled = true;
+                    } else {
+                        btn.disabled = false;
+                    }
+                }).catch(function () {
+                    msg.textContent = <?php echo wp_json_encode(__('网络异常，请重试。', 'moonlight-shop')); ?>;
+                    btn.disabled = false;
+                });
+            });
+        })();
+        </script>
+    </div>
+    <?php endif; ?>
+
     <div class="mlshop-credit-balance">
         <span class="mlshop-credit-balance-label"><?php echo esc_html($credit_name); ?><?php esc_html_e('余额', 'moonlight-shop'); ?></span>
         <span class="mlshop-credit-balance-value"><?php echo esc_html($balance); ?></span>

@@ -2233,6 +2233,31 @@ check('UC 独立支付体系未并入（payments/paywall/paypal/stripe/gateway/a
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-activator.php')
     && !file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-account-orders.php'));
 
+echo "\n== Phase A 补：并入态功能可达性（签到设置 / 卸载接管 / 授权实例化守卫） ==\n";
+// 签到必须可在后台启用（并入后 MLUC_Settings 提供开关与奖励参数，否则功能不可达）
+$__settings_src = (string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/user/class-settings.php');
+check('设置页含「积分与签到」区块与开关字段',
+    false !== strpos($__settings_src, 'render_checkin_field')
+    && false !== strpos($__settings_src, "mluc_options[checkin_enabled]"));
+check('sanitize 处理签到奖励参数（credit_enabled / checkin_base / checkin_extra）',
+    false !== strpos($__settings_src, "\$options['checkin_enabled']")
+    && false !== strpos($__settings_src, "\$options['checkin_base']")
+    && false !== strpos($__settings_src, "\$options['checkin_extra']"));
+check('账户中心积分 Tab 含签到入口（模板 + tab_credit 传参）',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/templates/account-credit.php'), 'mluc_checkin')
+    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/class-credit-ui.php'), 'checkin_on'));
+// 客户分发包剔除 class-license-admin.php 后 boot 不得 Fatal，且实例化仅限授权方自用站
+check('boot 对 License_Admin 有常量 + class_exists 双重守卫',
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'),
+        "defined('MLUC_LICENSE_LOCAL_MODE') && class_exists('MLUC_License_Admin')"));
+// 卸载时接管并入的会员中心数据清理（独立插件卸载脚本已随目录移除），且双插件站不越权清理
+$__uninstall_src = (string) file_get_contents(__DIR__ . '/../moonlight-shop/uninstall.php');
+check('uninstall 接管 mluc 数据清理（usermeta / mluc_options / CPT / transient）',
+    false !== strpos($__uninstall_src, "meta_key LIKE 'mluc\\\\_%'")
+    && false !== strpos($__uninstall_src, "delete_option('mluc_options')"));
+check('uninstall 在独立版用户中心仍激活时不清理 mluc 数据',
+    false !== strpos($__uninstall_src, 'mluc_standalone_active'));
+
 echo "== Credit helpers（积分换算助手） ==\n";
 __test_set_option('credit_rate', 3);
 check('currency->credit rounds up (ceil)', mlshop_currency_to_credit(1.01) === 4);
