@@ -78,6 +78,12 @@ function get_option($key, $default = false) { return $GLOBALS['__test_options'][
 function update_option($key, $value) { $GLOBALS['__test_options'][$key] = $value; return true; }
 function delete_option($key) { unset($GLOBALS['__test_options'][$key]); return true; }
 function wp_generate_password($len, $special = true, $extra = true) { return substr(str_shuffle('abcdefghjkmnpqrstuvwxyz23456789ABCDEFGHJKMNPQRSTUVWXYZ'), 0, $len); }
+if (!function_exists('wp_rand')) {
+    function wp_rand($min = 0, $max = 0) { return rand($min, $max); }
+}
+if (!function_exists('wp_date')) {
+    function wp_date($format, $timestamp = null, $timezone = null) { return date($format, $timestamp ?: time()); }
+}
 // add_action / add_filter 守卫化：run-user.php 需在加载 moonlight-shop.php（先于本文件）
 // 前预定义同签名空桩，避免重复声明致命。
 if (!function_exists('add_action')) {

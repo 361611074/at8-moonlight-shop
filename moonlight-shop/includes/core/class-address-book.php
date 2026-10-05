@@ -159,6 +159,7 @@ class Moonlight_Address_Book
             if (count($list) >= self::MAX_ADDRESSES) {
                 return new WP_Error(
                     'limit',
+                    /* translators: %d: 数量 */
                     sprintf(__('最多保存 %d 个收货地址。', 'moonlight-shop'), self::MAX_ADDRESSES)
                 );
             }
@@ -287,7 +288,7 @@ class Moonlight_Address_Book
     private static function gen_id($list)
     {
         do {
-            $id = (string) time() . rand(1000, 9999);
+            $id = (string) time() . wp_rand(1000, 9999);
             $dup = false;
             foreach ($list as $addr) {
                 if (isset($addr['id']) && (string) $addr['id'] === $id) {

@@ -1047,7 +1047,7 @@ if (!mlshop_mluc_legacy_active()) {
         function mluc_get_credit_name()
         {
             $name = trim((string) mluc_get_option('credit_name', ''));
-            return '' !== $name ? $name : __('积分', 'moonlight-user-center');
+            return '' !== $name ? $name : __('积分', 'moonlight-shop');
         }
     }
 

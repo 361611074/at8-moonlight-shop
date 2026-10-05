@@ -209,6 +209,7 @@ class MLSHOP_Gateway_Stripe extends MLSHOP_Gateway
         $body = wp_remote_retrieve_body($response);
         $data = json_decode($body, true);
         if ($code < 200 || $code >= 300) {
+            /* translators: %d: 数量 */
             $msg = isset($data['error']['message']) ? $data['error']['message'] : sprintf(__('Stripe 錯誤（HTTP %d）', 'moonlight-shop'), $code);
             return new WP_Error('mlshop_stripe_api', $msg);
         }

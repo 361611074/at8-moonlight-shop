@@ -631,6 +631,7 @@ class MLSHOP_Admin
                             <p class="description">
                                 <?php
                                 printf(
+                                    /* translators: %s: 值 */
                                     esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
                                     '<code>/' . esc_html(MLSHOP_Product::get_url_slug('archive')) . '/</code>'
                                 );
@@ -645,6 +646,7 @@ class MLSHOP_Admin
                         <p class="description">
                             <?php
                             printf(
+                                /* translators: %s: 值 */
                                 esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
                                 '<code>/' . esc_html(MLSHOP_Product::get_url_slug('category')) . '/…/</code>'
                             );
@@ -659,6 +661,7 @@ class MLSHOP_Admin
                         <p class="description">
                             <?php
                             printf(
+                                /* translators: %s: 值 */
                                 esc_html__('留空自動選用。目前生效：%s', 'moonlight-shop'),
                                 '<code>/' . esc_html(MLSHOP_Product::get_url_slug('tag')) . '/</code>'
                             );
@@ -1061,6 +1064,7 @@ class MLSHOP_Admin
                         <th><?php esc_html_e('快递100 授权 Key', 'moonlight-shop'); ?></th>
                         <td>
                             <input type="password" name="mlshop_shipping_kuaidi100_key" value="" class="regular-text" autocomplete="new-password">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('shipping_kuaidi100_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1068,6 +1072,7 @@ class MLSHOP_Admin
                         <th><?php esc_html_e('快递100 Customer 编号', 'moonlight-shop'); ?></th>
                         <td>
                             <input type="password" name="mlshop_shipping_kuaidi100_customer" value="" class="regular-text" autocomplete="new-password">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。官方接口参数结构变化时，可用过滤器 moonlight_shipping_express100_request 校正请求。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('shipping_kuaidi100_customer', '')))); ?></p>
                         </td>
                     </tr>
@@ -1152,6 +1157,7 @@ class MLSHOP_Admin
                         <th><?php esc_html_e('Test Secret Key', 'moonlight-shop'); ?></th>
                         <td>
                             <input type="password" name="mlshop_stripe_test_secret" value="" class="regular-text" placeholder="sk_test_..." autocomplete="new-password">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_test_secret', '')))); ?></p>
                         </td>
                     </tr>
@@ -1163,6 +1169,7 @@ class MLSHOP_Admin
                         <th><?php esc_html_e('Live Secret Key', 'moonlight-shop'); ?></th>
                         <td>
                             <input type="password" name="mlshop_stripe_secret" value="" class="regular-text" placeholder="sk_live_..." autocomplete="new-password">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_secret', '')))); ?></p>
                         </td>
                     </tr>
@@ -1171,6 +1178,7 @@ class MLSHOP_Admin
                         <td>
                             <input type="password" name="mlshop_stripe_webhook_secret" value="" class="regular-text" placeholder="whsec_..." autocomplete="new-password">
                             <p class="description">
+                                /* translators: %s: 值 */
                                 <?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('stripe_webhook_secret', '')))); ?><br>
                                 <?php esc_html_e('在 Stripe Dashboard → Developers → Webhooks 新增端點：', 'moonlight-shop'); ?>
                                 <code style="background:#f3f4f6;padding:2px 6px;border-radius:4px;"><?php echo esc_url($webhook_url); ?></code>
@@ -1410,6 +1418,7 @@ class MLSHOP_Admin
                         <th><?php esc_html_e('Secret', 'moonlight-shop'); ?></th>
                         <td>
                             <input type="password" name="mlshop_paypal_secret" value="" class="regular-text" autocomplete="new-password">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('paypal_secret', '')))); ?></p>
                         </td>
                     </tr>
@@ -1462,6 +1471,7 @@ class MLSHOP_Admin
                         <th><label for="mlshop_alipay_private_key"><?php esc_html_e('應用私鑰', 'moonlight-shop'); ?></label></th>
                         <td>
                             <textarea id="mlshop_alipay_private_key" name="mlshop_alipay_private_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上應用私鑰（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）', 'moonlight-shop'); ?>"></textarea>
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('alipay_private_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1469,6 +1479,7 @@ class MLSHOP_Admin
                         <th><label for="mlshop_alipay_public_key"><?php esc_html_e('支付寶公鑰', 'moonlight-shop'); ?></label></th>
                         <td>
                             <textarea id="mlshop_alipay_public_key" name="mlshop_alipay_public_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上支付寶公鑰（非應用公鑰）', 'moonlight-shop'); ?>"></textarea>
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('alipay_public_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1513,6 +1524,7 @@ class MLSHOP_Admin
                         <th><label for="mlshop_wechat_private_key"><?php esc_html_e('應用私鑰', 'moonlight-shop'); ?></label></th>
                         <td>
                             <textarea id="mlshop_wechat_private_key" name="mlshop_wechat_private_key" rows="6" class="large-text code" placeholder="<?php esc_attr_e('貼上商户 API 證書私鑰 apiclient_key.pem 內容（支持 PKCS#1 / PKCS#8 / 無頭裸 base64）', 'moonlight-shop'); ?>"></textarea>
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更換請輸入新值。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_private_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1520,6 +1532,7 @@ class MLSHOP_Admin
                         <th><label for="mlshop_wechat_apiv3_key"><?php esc_html_e('APIv3 密鑰（32 位）', 'moonlight-shop'); ?></label></th>
                         <td>
                             <input type="password" id="mlshop_wechat_apiv3_key" name="mlshop_wechat_apiv3_key" value="" class="large-text" autocomplete="new-password" placeholder="<?php esc_attr_e('商戶平台設置的 APIv3 密鑰（32 位）', 'moonlight-shop'); ?>">
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；用於回調 resource（AES-256-GCM）與平台證書解密。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_apiv3_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1534,6 +1547,7 @@ class MLSHOP_Admin
                         <th><label for="mlshop_wechat_pub_key"><?php esc_html_e('微信支付公鑰', 'moonlight-shop'); ?></label></th>
                         <td>
                             <textarea id="mlshop_wechat_pub_key" name="mlshop_wechat_pub_key" rows="5" class="large-text code" placeholder="<?php esc_attr_e('貼上微信支付公鑰（非商戶證書公鑰）', 'moonlight-shop'); ?>"></textarea>
+                            /* translators: %s: 值 */
                             <p class="description"><?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改。', 'moonlight-shop'), mlshop_mask_secret(mlshop_get_option('wechat_pub_key', '')))); ?></p>
                         </td>
                     </tr>
@@ -1672,7 +1686,8 @@ class MLSHOP_Admin
                 $this->redirect_with_notice(
                     'TEST',
                     true,
-                    sprintf(__('測試郵件已發送到 %s（使用訂單 #%s 模擬，卡密已掩碼，含下載連結）。', 'moonlight-shop'), $admin_email, $orders[0]->post_title)
+                    /* translators: %1$$s: 值, %2$$s: 值 */
+                    sprintf(__('測試郵件已發送到 %1$s（使用訂單 #%2$s 模擬，卡密已掩碼，含下載連結）。', 'moonlight-shop'), $admin_email, $orders[0]->post_title)
                 );
             }
             $this->redirect_with_notice('TEST', false, __('郵件發送失敗，請檢查伺服器郵件配置（wp_mail）。', 'moonlight-shop'));
@@ -1685,6 +1700,7 @@ class MLSHOP_Admin
             . '<p style="color:#374151;">' . esc_html__('這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。', 'moonlight-shop') . '</p>'
             . '</div>';
         $ok = mlshop_send_html_mail($admin_email, $subject, $body, mlshop_get_option('from_name', $site), mlshop_get_option('from_email', ''));
+        /* translators: %s: 值 */
         $this->redirect_with_notice('TEST', $ok, $ok ? sprintf(__('測試郵件已發送到 %s。', 'moonlight-shop'), $admin_email) : __('郵件發送失敗。', 'moonlight-shop'));
     }
 
@@ -1726,6 +1742,7 @@ class MLSHOP_Admin
                 set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
                     'gateway' => 'ORDER',
                     'success' => true,
+                    /* translators: %s: 值 */
                     'message' => sprintf(__('訂單狀態已更新為「%s」。', 'moonlight-shop'), mlshop_get_order_status_label($new)),
                 ), 60);
             }
@@ -1778,6 +1795,7 @@ class MLSHOP_Admin
                 'gateway' => 'REFUND',
                 'success' => true,
                 'message' => $amount > 0
+                    /* translators: %s: 值 */
                     ? sprintf(__('已处理退款 %s。', 'moonlight-shop'), number_format($amount, 2, '.', ''))
                     : __('全额退款已处理，订单已标记为已退款。', 'moonlight-shop'),
             ), 60);
@@ -2070,6 +2088,7 @@ class MLSHOP_Admin
                         <td>
                             <textarea id="mlshop_card_keys" name="mlshop_card_keys" rows="10" class="large-text code"></textarea>
                             <p class="description">
+                                /* translators: %d: 数量 */
                                 <?php printf(esc_html__('每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。', 'moonlight-shop'), (int) self::CARD_IMPORT_MAX_LINES); ?>
                             </p>
                         </td>
@@ -2113,7 +2132,8 @@ class MLSHOP_Admin
             $this->card_notice(false, __('卡密内容为空，未导入。', 'moonlight-shop'), $redirect);
         }
         if (count($lines) > self::CARD_IMPORT_MAX_LINES) {
-            $this->card_notice(false, sprintf(__('单次最多导入 %d 行（当前 %d 行），请分批导入。', 'moonlight-shop'), self::CARD_IMPORT_MAX_LINES, count($lines)), $redirect);
+            /* translators: %1$$d: 数量, %2$$d: 数量 */
+            $this->card_notice(false, sprintf(__('单次最多导入 %1$d 行（当前 %2$d 行），请分批导入。', 'moonlight-shop'), self::CARD_IMPORT_MAX_LINES, count($lines)), $redirect);
         }
 
         $expires = $days > 0 ? time() + $days * DAY_IN_SECONDS : 0;

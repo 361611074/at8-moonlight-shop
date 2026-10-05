@@ -65,8 +65,8 @@ class MLUC_Licenses_Tab
 
         add_submenu_page(
             $parent,
-            __('我的授权', 'moonlight-user-center'),
-            __('我的授权', 'moonlight-user-center'),
+            __('我的授权', 'moonlight-shop'),
+            __('我的授权', 'moonlight-shop'),
             'manage_options',
             'mluc-licenses',
             array($this, 'render')
@@ -91,7 +91,7 @@ class MLUC_Licenses_Tab
     {
         $user_id = get_current_user_id();
         if (!$user_id) {
-            echo '<p>' . esc_html__('请先登录。', 'moonlight-user-center') . '</p>';
+            echo '<p>' . esc_html__('请先登录。', 'moonlight-shop') . '</p>';
             return;
         }
 
@@ -110,8 +110,8 @@ class MLUC_Licenses_Tab
         }
 
         if (!$licenses) {
-            echo '<p>' . esc_html__('暂无授权。前往商店查看 Pro 产品：', 'moonlight-user-center')
-               . '<a href="' . esc_url(home_url('/store/')) . '">' . esc_html__('授权商店', 'moonlight-user-center') . '</a></p>';
+            echo '<p>' . esc_html__('暂无授权。前往商店查看 Pro 产品：', 'moonlight-shop')
+               . '<a href="' . esc_url(home_url('/store/')) . '">' . esc_html__('授权商店', 'moonlight-shop') . '</a></p>';
             return;
         }
 
@@ -124,7 +124,7 @@ class MLUC_Licenses_Tab
 
             $status_color = ('active' === $license->status) ? '#00a32a' : '#b32d2e';
             $expires = (null === $license->expires_at)
-                ? esc_html__('终身', 'moonlight-user-center')
+                ? esc_html__('终身', 'moonlight-shop')
                 : esc_html(wp_date('Y-m-d', (int) $license->expires_at));
 
             echo '<div class="mluc-license-card" style="border:1px solid #ddd;border-radius:6px;padding:14px 18px;margin-bottom:14px">';
@@ -132,11 +132,11 @@ class MLUC_Licenses_Tab
             echo '<p style="margin:0 0 4px">'
                . '<span style="color:' . esc_attr($status_color) . ';font-weight:600">' . esc_html($license->status) . '</span>'
                . ' ｜ ' . esc_html($license->license_type)
-               . ' ｜ ' . esc_html__('到期', 'moonlight-user-center') . '：' . $expires
+               . ' ｜ ' . esc_html__('到期', 'moonlight-shop') . '：' . $expires
                . '</p>';
             echo '<p style="margin:0 0 4px;color:#646970">'
-               . esc_html__('授权码', 'moonlight-user-center') . '：<code>' . esc_html($license->license_key_masked) . '</code>'
-               . ' ｜ ' . esc_html__('站点额度', 'moonlight-user-center') . '：'
+               . esc_html__('授权码', 'moonlight-shop') . '：<code>' . esc_html($license->license_key_masked) . '</code>'
+               . ' ｜ ' . esc_html__('站点额度', 'moonlight-shop') . '：'
                . esc_html((string) $license->max_sites) . '</p>';
 
             // Pro 安装包下载（签名短时链接，仅授权中心同站可用）
@@ -150,7 +150,7 @@ class MLUC_Licenses_Tab
             }
             if ($download !== '') {
                 echo '<p style="margin:4px 0"><a class="button button-small" href="' . esc_url($download) . '">'
-                   . esc_html__('下载 Pro 安装包（最新版）', 'moonlight-user-center') . '</a></p>';
+                   . esc_html__('下载 Pro 安装包（最新版）', 'moonlight-shop') . '</a></p>';
             }
 
             // 绑定站点
@@ -163,7 +163,7 @@ class MLUC_Licenses_Tab
             );
 
             if ($acts) {
-                echo '<p style="margin:10px 0 4px"><strong>' . esc_html__('已绑定站点', 'moonlight-user-center') . '</strong></p>';
+                echo '<p style="margin:10px 0 4px"><strong>' . esc_html__('已绑定站点', 'moonlight-shop') . '</strong></p>';
                 echo '<table style="width:100%;border-collapse:collapse"><tbody>';
                 foreach ($acts as $act) {
                     echo '<tr>';
@@ -181,17 +181,17 @@ class MLUC_Licenses_Tab
                         $url = wp_nonce_url($base, 'mluc_unbind_' . (int) $act->id);
 
                         echo '<a href="' . esc_url($url) . '" style="color:#b32d2e"'
-                           . ' onclick="return confirm(\'' . esc_js(__('确认解绑该站点？解绑后可在新站点重新激活。', 'moonlight-user-center')) . '\');">'
-                           . esc_html__('解绑', 'moonlight-user-center') . '</a>';
+                           . ' onclick="return confirm(\'' . esc_js(__('确认解绑该站点？解绑后可在新站点重新激活。', 'moonlight-shop')) . '\');">'
+                           . esc_html__('解绑', 'moonlight-shop') . '</a>';
                     } else {
-                        echo '<span style="color:#999">' . esc_html__('开发环境', 'moonlight-user-center') . '</span>';
+                        echo '<span style="color:#999">' . esc_html__('开发环境', 'moonlight-shop') . '</span>';
                     }
 
                     echo '</td></tr>';
                 }
                 echo '</tbody></table>';
             } else {
-                echo '<p style="margin:8px 0 0;color:#646970">' . esc_html__('暂未绑定站点：在目标站点安装对应的 Pro 插件并输入授权码即可。', 'moonlight-user-center') . '</p>';
+                echo '<p style="margin:8px 0 0;color:#646970">' . esc_html__('暂未绑定站点：在目标站点安装对应的 Pro 插件并输入授权码即可。', 'moonlight-shop') . '</p>';
             }
 
             echo '</div>';
@@ -205,7 +205,7 @@ class MLUC_Licenses_Tab
             return null;
         }
         if (!isset($_GET['_wpnonce']) || !wp_verify_nonce(sanitize_text_field(wp_unslash($_GET['_wpnonce'])), 'mluc_unbind_' . (int) $_GET['mluc_unbind'])) {
-            return array('ok' => false, 'text' => __('操作已过期，请重试。', 'moonlight-user-center'));
+            return array('ok' => false, 'text' => __('操作已过期，请重试。', 'moonlight-shop'));
         }
 
         global $wpdb;
@@ -216,12 +216,12 @@ class MLUC_Licenses_Tab
             $wpdb->prepare("SELECT * FROM $table WHERE id = %d AND user_id = %d", (int) $_GET['lic'], $user_id)
         );
         if (!$license) {
-            return array('ok' => false, 'text' => __('授权不存在或无权操作。', 'moonlight-user-center'));
+            return array('ok' => false, 'text' => __('授权不存在或无权操作。', 'moonlight-shop'));
         }
 
         // 授权中心类可用（同站启用）时走其内部逻辑（含日志与换域计数）
         if (!class_exists('AT8LIC_Activations') || !class_exists('AT8LIC_Logs')) {
-            return array('ok' => false, 'text' => __('授权中心插件未启用，无法解绑。', 'moonlight-user-center'));
+            return array('ok' => false, 'text' => __('授权中心插件未启用，无法解绑。', 'moonlight-shop'));
         }
 
         $act_table = $wpdb->prefix . 'at8lic_activations';
@@ -232,12 +232,12 @@ class MLUC_Licenses_Tab
             )
         );
         if (!$act) {
-            return array('ok' => false, 'text' => __('站点绑定不存在。', 'moonlight-user-center'));
+            return array('ok' => false, 'text' => __('站点绑定不存在。', 'moonlight-shop'));
         }
 
         $done = AT8LIC_Activations::deactivate($license, $act->site_url);
         if (is_wp_error($done) || $done !== true) {
-            return array('ok' => false, 'text' => __('解绑失败，请联系管理员。', 'moonlight-user-center'));
+            return array('ok' => false, 'text' => __('解绑失败，请联系管理员。', 'moonlight-shop'));
         }
 
         AT8LIC_Logs::add('domain_change', 'ok', array(
@@ -247,6 +247,6 @@ class MLUC_Licenses_Tab
             'detail'     => array('via' => 'user_center'),
         ));
 
-        return array('ok' => true, 'text' => __('站点已解绑，可在新站点重新激活。', 'moonlight-user-center'));
+        return array('ok' => true, 'text' => __('站点已解绑，可在新站点重新激活。', 'moonlight-shop'));
     }
 }

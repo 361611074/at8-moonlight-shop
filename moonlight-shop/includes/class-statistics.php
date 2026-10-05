@@ -79,30 +79,30 @@ class MLSHOP_Statistics
         $now  = current_time('timestamp');
         switch ($preset) {
             case 'today':
-                $f = $t = date('Y-m-d', $now); break;
+                $f = $t = wp_date('Y-m-d', $now); break;
             case 'yesterday':
-                $f = $t = date('Y-m-d', $now - 86400); break;
+                $f = $t = wp_date('Y-m-d', $now - 86400); break;
             case 'this_week':
-                $f = date('Y-m-d', strtotime('monday this week', $now));
-                $t = date('Y-m-d', $now); break;
+                $f = wp_date('Y-m-d', strtotime('monday this week', $now));
+                $t = wp_date('Y-m-d', $now); break;
             case 'last_week':
-                $f = date('Y-m-d', strtotime('monday last week', $now));
-                $t = date('Y-m-d', strtotime('sunday last week', $now)); break;
+                $f = wp_date('Y-m-d', strtotime('monday last week', $now));
+                $t = wp_date('Y-m-d', strtotime('sunday last week', $now)); break;
             case 'last_month':
-                $f = date('Y-m-d', strtotime('first day of last month', $now));
-                $t = date('Y-m-d', strtotime('last day of last month', $now)); break;
+                $f = wp_date('Y-m-d', strtotime('first day of last month', $now));
+                $t = wp_date('Y-m-d', strtotime('last day of last month', $now)); break;
             case 'last_30':
-                $f = date('Y-m-d', $now - 29 * 86400);
-                $t = date('Y-m-d', $now); break;
+                $f = wp_date('Y-m-d', $now - 29 * 86400);
+                $t = wp_date('Y-m-d', $now); break;
             case 'custom':
-                $f = $from ?: date('Y-m-d', strtotime('first day of this month', $now));
-                $t = $to   ?: date('Y-m-d', $now);
+                $f = $from ?: wp_date('Y-m-d', strtotime('first day of this month', $now));
+                $t = $to   ?: wp_date('Y-m-d', $now);
                 if (strtotime($t) < strtotime($f)) { $t = $f; }
                 break;
             case 'this_month':
             default:
-                $f = date('Y-m-d', strtotime('first day of this month', $now));
-                $t = date('Y-m-d', $now);
+                $f = wp_date('Y-m-d', strtotime('first day of this month', $now));
+                $t = wp_date('Y-m-d', $now);
                 break;
         }
         return array('preset' => $preset, 'from' => $f, 'to' => $t);
@@ -138,7 +138,7 @@ class MLSHOP_Statistics
             $st   = (string) $row['status'];
             if ('' === $st) { $st = 'pending'; }
             $total = (float) $row['total'];
-            $day = $row['post_date'] ? mysql2date('Y-m-d', $row['post_date']) : '';
+            $day = $row['post_date'] ? mysql2wp_date('Y-m-d', $row['post_date']) : '';
             $uid = (int) $row['user_id'];
 
             $statuses[$st] = (isset($statuses[$st]) ? $statuses[$st] : 0) + 1;
@@ -240,8 +240,8 @@ class MLSHOP_Statistics
                  WHERE p.post_type = 'mlshop_order'
                    AND p.post_status IN ($in)
                    AND p.post_date >= %s AND p.post_date <= %s",
-                date('Y-m-d H:i:s', $from_ts),
-                date('Y-m-d H:i:s', $to_ts)
+                wp_date('Y-m-d H:i:s', $from_ts),
+                wp_date('Y-m-d H:i:s', $to_ts)
             ),
             ARRAY_A
         );
@@ -269,8 +269,8 @@ class MLSHOP_Statistics
                        AND p.post_type = 'mlshop_order'
                        AND p.post_date >= %s AND p.post_date <= %s
                      LIMIT %d OFFSET %d",
-                    date('Y-m-d H:i:s', $from_ts),
-                    date('Y-m-d H:i:s', $to_ts),
+                    wp_date('Y-m-d H:i:s', $from_ts),
+                    wp_date('Y-m-d H:i:s', $to_ts),
                     $chunk,
                     $offset
                 )
@@ -299,10 +299,10 @@ class MLSHOP_Statistics
     {
         $out = array();
         if ('month' === $granularity) {
-            $cur = strtotime(date('Y-m-01', $from_ts));
-            $end = strtotime(date('Y-m-01', $to_ts));
+            $cur = strtotime(wp_date('Y-m-01', $from_ts));
+            $end = strtotime(wp_date('Y-m-01', $to_ts));
             while ($cur <= $end) {
-                $key = date('Y-m', $cur);
+                $key = wp_date('Y-m', $cur);
                 $sum = 0.0;
                 foreach ($daily as $d => $v) {
                     if (substr($d, 0, 7) === $key) { $sum += $v; }
@@ -313,7 +313,7 @@ class MLSHOP_Statistics
         } else {
             $cur = $from_ts;
             while ($cur <= $to_ts) {
-                $key = date('Y-m-d', $cur);
+                $key = wp_date('Y-m-d', $cur);
                 $out[$key] = isset($daily[$key]) ? (float) $daily[$key] : 0.0;
                 $cur = strtotime('+1 day', $cur);
             }
@@ -378,6 +378,7 @@ class MLSHOP_Statistics
                 $cards = array(
                     array('label' => __('总销售额', 'moonlight-shop'),   'value' => mlshop_format_price($stats['revenue']),       'sub' => sprintf(__('（全部已收款状态：已付款→完成）', 'moonlight-shop'))),
                     array('label' => __('订单总数', 'moonlight-shop'),   'value' => number_format_i18n($stats['order_count']),    'sub' => sprintf(__('（含未付款/已取消）', 'moonlight-shop'))),
+                    /* translators: %d: 数量 */
                     array('label' => __('已付款订单', 'moonlight-shop'), 'value' => number_format_i18n($stats['paid_count']),     'sub' => sprintf(__('客户数 %d', 'moonlight-shop'), $stats['user_count'])),
                     array('label' => __('客单价', 'moonlight-shop'),     'value' => mlshop_format_price($stats['aov']),           'sub' => sprintf(__('（AOV = 销售额 / 已付款订单）', 'moonlight-shop'))),
                 );
@@ -399,6 +400,7 @@ class MLSHOP_Statistics
                 <?php echo $this->render_svg_line($stats['trend']); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                 <?php if ($stats['refund_total'] > 0) : ?>
                     <p class="description">
+                        /* translators: %s: 值 */
                         <?php echo esc_html(sprintf(__('退款合计：%s', 'moonlight-shop'), mlshop_format_price($stats['refund_total']))); ?>
                     </p>
                 <?php endif; ?>
@@ -562,7 +564,8 @@ class MLSHOP_Statistics
         $bw    = ($w - $pad_l - $pad_r - $gap * (count($statuses) - 1)) / count($statuses);
         $inner_h = $h - $pad_t - $pad_b;
 
-        $svg  = sprintf('<svg viewBox="0 0 %d %d" class="mlshop-stat-chart mlshop-stat-bar" role="img" aria-label="%s">', $w, $h, esc_attr__('订单状态分布', 'moonlight-shop'));
+        /* translators: %1$$d: 数量, %2$$d: 数量, %3$$s: 值 */
+        $svg  = sprintf('<svg viewBox="0 0 %1$d %2$d" class="mlshop-stat-chart mlshop-stat-bar" role="img" aria-label="%3$s">', $w, $h, esc_attr__('订单状态分布', 'moonlight-shop'));
         $i = 0;
         foreach ($statuses as $k => $v) {
             $bar_h = ($v / $max) * $inner_h;

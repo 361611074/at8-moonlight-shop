@@ -105,13 +105,13 @@ class MLUC_Assets
             foreach (MLUC_Hidecontent::$types as $key => $info) {
                 $types[] = array(
                     'value' => $key,
-                    'label' => isset($info['label']) ? __((string) $info['label'], 'moonlight-user-center') : $key,
+                    'label' => isset($info['label']) ? __((string) $info['label'], 'moonlight-shop') : $key,
                 );
             }
         }
         $payload = array(
-            'button_label' => __('隐藏内容', 'moonlight-user-center'),
-            'inserting'    => __('请选择一种隐藏类型…', 'moonlight-user-center'),
+            'button_label' => __('隐藏内容', 'moonlight-shop'),
+            'inserting'    => __('请选择一种隐藏类型…', 'moonlight-shop'),
             'types'        => $types,
         );
         echo '<script>window.mluc_tinymce_i18n = ' . wp_json_encode($payload) . ';</script>';

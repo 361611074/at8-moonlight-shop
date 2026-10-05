@@ -115,7 +115,7 @@ class MLUC_Material
                 auth_redirect();
                 exit;
             }
-            wp_die(esc_html__('權限不足，無法檢視此教材。', 'moonlight-user-center'), 403);
+            wp_die(esc_html__('權限不足，無法檢視此教材。', 'moonlight-shop'), 403);
         }
     }
 
@@ -123,11 +123,11 @@ class MLUC_Material
     {
         register_post_type(self::CPT, array(
             'labels' => array(
-                'name'          => __('工作紙 / 教材', 'moonlight-user-center'),
-                'singular_name' => __('教材', 'moonlight-user-center'),
-                'add_new'       => __('新建教材', 'moonlight-user-center'),
-                'add_new_item'  => __('新增教材', 'moonlight-user-center'),
-                'edit_item'     => __('編輯教材', 'moonlight-user-center'),
+                'name'          => __('工作紙 / 教材', 'moonlight-shop'),
+                'singular_name' => __('教材', 'moonlight-shop'),
+                'add_new'       => __('新建教材', 'moonlight-shop'),
+                'add_new_item'  => __('新增教材', 'moonlight-shop'),
+                'edit_item'     => __('編輯教材', 'moonlight-shop'),
             ),
             // 安全收敛（原 public=true + show_in_rest=true + has_archive=true，
             // 未登录访客可经 /wp-json/wp/v2/mluc_material 与归档页拿到全部高等级教材）：
@@ -156,7 +156,7 @@ class MLUC_Material
     {
         add_meta_box(
             'mluc_material_meta',
-            __('教材設定', 'moonlight-user-center'),
+            __('教材設定', 'moonlight-shop'),
             array($this, 'render_metabox'),
             self::CPT,
             'normal',
@@ -173,11 +173,11 @@ class MLUC_Material
         $levels = class_exists('MLUC_Membership') ? MLUC_Membership::get_levels() : array();
         // 普通会员关闭时 free 不在等级表中，但作为「公开内容」标记仍需出现在下拉里
         if (!isset($levels['free'])) {
-            $levels = array('free' => array('label' => __('公開（免費）', 'moonlight-user-center'))) + $levels;
+            $levels = array('free' => array('label' => __('公開（免費）', 'moonlight-shop'))) + $levels;
         }
         ?>
         <p>
-            <label for="mluc_material_min_level"><strong><?php esc_html_e('最低訪問等級', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_material_min_level"><strong><?php esc_html_e('最低訪問等級', 'moonlight-shop'); ?></strong></label><br>
             <select name="mluc_material_min_level" id="mluc_material_min_level" style="width:100%;max-width:300px;">
                 <?php foreach ($levels as $key => $lv) : ?>
                     <option value="<?php echo esc_attr($key); ?>"<?php selected($level, $key); ?>>
@@ -187,11 +187,11 @@ class MLUC_Material
             </select>
         </p>
         <p>
-            <label for="mluc_material_file"><strong><?php esc_html_e('文件網址（PDF / ZIP）', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_material_file"><strong><?php esc_html_e('文件網址（PDF / ZIP）', 'moonlight-shop'); ?></strong></label><br>
             <input type="url" name="mluc_material_file" id="mluc_material_file" value="<?php echo esc_attr($file); ?>" style="width:100%;" placeholder="https://...">
         </p>
         <p>
-            <label for="mluc_material_download_limit"><strong><?php esc_html_e('每用戶下載次數上限（0 = 不限）', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_material_download_limit"><strong><?php esc_html_e('每用戶下載次數上限（0 = 不限）', 'moonlight-shop'); ?></strong></label><br>
             <input type="number" min="0" name="mluc_material_download_limit" id="mluc_material_download_limit" value="<?php echo esc_attr($limit); ?>" style="width:120px;">
         </p>
         <?php
@@ -279,11 +279,11 @@ class MLUC_Material
                     <div class="mluc-material-excerpt"><?php the_excerpt(); ?></div>
                     <?php if ($download_url) : ?>
                         <a class="mluc-btn mluc-btn-download" href="<?php echo esc_url($download_url); ?>">
-                            <?php esc_html_e('下載 PDF / 工作紙', 'moonlight-user-center'); ?>
+                            <?php esc_html_e('下載 PDF / 工作紙', 'moonlight-shop'); ?>
                         </a>
                     <?php else : ?>
                         <a class="mluc-btn mluc-btn-login" href="<?php echo esc_url(wp_login_url(get_permalink())); ?>">
-                            <?php esc_html_e('登入後下載', 'moonlight-user-center'); ?>
+                            <?php esc_html_e('登入後下載', 'moonlight-shop'); ?>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -291,7 +291,7 @@ class MLUC_Material
             }
             wp_reset_postdata();
         } else {
-            echo '<p class="mluc-empty">' . esc_html__('暫無可下載的教材。', 'moonlight-user-center') . '</p>';
+            echo '<p class="mluc-empty">' . esc_html__('暫無可下載的教材。', 'moonlight-shop') . '</p>';
         }
         echo '</div>';
         return ob_get_clean();
@@ -304,7 +304,7 @@ class MLUC_Material
     {
         if (!is_user_logged_in()) {
             return '<p class="mluc-message">' .
-                esc_html__('請先登入。', 'moonlight-user-center') .
+                esc_html__('請先登入。', 'moonlight-shop') .
                 '</p>';
         }
         $query = self::query_accessible_materials(array('posts_per_page' => 50));
@@ -312,7 +312,7 @@ class MLUC_Material
         ob_start();
         echo '<div class="mluc-downloads-list">';
         if ($query->have_posts()) {
-            echo '<div class="mluc-table-scroll"><table class="mluc-table"><thead><tr><th>' . esc_html__('教材', 'moonlight-user-center') . '</th><th>' . esc_html__('等級', 'moonlight-user-center') . '</th><th>' . esc_html__('操作', 'moonlight-user-center') . '</th></tr></thead><tbody>';
+            echo '<div class="mluc-table-scroll"><table class="mluc-table"><thead><tr><th>' . esc_html__('教材', 'moonlight-shop') . '</th><th>' . esc_html__('等級', 'moonlight-shop') . '</th><th>' . esc_html__('操作', 'moonlight-shop') . '</th></tr></thead><tbody>';
             while ($query->have_posts()) {
                 $query->the_post();
                 $post_id = get_the_ID();
@@ -325,12 +325,13 @@ class MLUC_Material
                 echo '<tr>';
                 echo '<td>' . esc_html(get_the_title()) . '</td>';
                 echo '<td><span class="mluc-level-badge mluc-level-' . esc_attr($min_lv) . '">' . esc_html($level_label) . '</span></td>';
-                echo '<td><a class="mluc-btn mluc-btn-small" href="' . esc_url($url) . '">' . esc_html__('下載', 'moonlight-user-center') . '</a> ';
+                echo '<td><a class="mluc-btn mluc-btn-small" href="' . esc_url($url) . '">' . esc_html__('下載', 'moonlight-shop') . '</a> ';
                 echo '<span class="mluc-muted">';
                 if ($limit > 0) {
-                    echo esc_html(sprintf(__('剩餘 %1$s / %2$s 次', 'moonlight-user-center'), $remaining, $limit));
+                    /* translators: %1$$s: 值, %2$$s: 值 */
+                    echo esc_html(sprintf(__('剩餘 %1$s / %2$s 次', 'moonlight-shop'), $remaining, $limit));
                 } else {
-                    esc_html_e('不限次', 'moonlight-user-center');
+                    esc_html_e('不限次', 'moonlight-shop');
                 }
                 echo '</span></td>';
                 echo '</tr>';
@@ -338,7 +339,7 @@ class MLUC_Material
             echo '</tbody></table></div>';
             wp_reset_postdata();
         } else {
-            echo '<p class="mluc-empty">' . esc_html__('暫無教材可下載。', 'moonlight-user-center') . '</p>';
+            echo '<p class="mluc-empty">' . esc_html__('暫無教材可下載。', 'moonlight-shop') . '</p>';
         }
         echo '</div>';
         return ob_get_clean();
@@ -356,23 +357,23 @@ class MLUC_Material
         $post_id = isset($_GET['mid']) ? (int) $_GET['mid'] : 0;
         $nonce   = isset($_GET['_wpnonce']) ? $_GET['_wpnonce'] : '';
         if (!$post_id || !wp_verify_nonce($nonce, 'mluc_download_' . $post_id)) {
-            wp_die(esc_html__('安全校驗失敗。', 'moonlight-user-center'));
+            wp_die(esc_html__('安全校驗失敗。', 'moonlight-shop'));
         }
         if (self::CPT !== get_post_type($post_id)) {
-            wp_die(esc_html__('教材不存在。', 'moonlight-user-center'));
+            wp_die(esc_html__('教材不存在。', 'moonlight-shop'));
         }
         $min_lv = get_post_meta($post_id, self::META_LEVEL, true) ?: 'free';
         if (class_exists('MLUC_Membership') && !MLUC_Membership::user_can_access($min_lv)) {
-            wp_die(esc_html__('權限不足，無法下載。', 'moonlight-user-center'));
+            wp_die(esc_html__('權限不足，無法下載。', 'moonlight-shop'));
         }
         $limit = (int) get_post_meta($post_id, self::META_DOWNLOAD_LIMIT, true);
         $used  = (int) get_user_meta(get_current_user_id(), 'mluc_material_dl_' . $post_id, true);
         if ($limit > 0 && $used >= $limit) {
-            wp_die(esc_html__('已達下載次數上限。', 'moonlight-user-center'));
+            wp_die(esc_html__('已達下載次數上限。', 'moonlight-shop'));
         }
         $file = get_post_meta($post_id, self::META_FILE, true);
         if (!$file) {
-            wp_die(esc_html__('文件未配置。', 'moonlight-user-center'));
+            wp_die(esc_html__('文件未配置。', 'moonlight-shop'));
         }
         // 计数：读-改-写在并发下会重复计数（连点两次只记一次却被放行两次），
         // 这里用 5 秒会话节流保证同一次下载只计一次，计数准确且不影响正常重试。

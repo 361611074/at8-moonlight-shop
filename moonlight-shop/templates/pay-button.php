@@ -29,6 +29,7 @@ $post_id         = isset($post_id) ? (int) $post_id : 0;
         <p class="mlshop-paywall-login">
             <?php
             printf(
+                /* translators: %s: 值 */
                 esc_html__('请先 %s 后购买此内容。', 'moonlight-shop'),
                 '<a href="' . esc_url($login_url) . '">' . esc_html__('登录', 'moonlight-shop') . '</a>'
             );
@@ -42,7 +43,8 @@ $post_id         = isset($post_id) ? (int) $post_id : 0;
         <div class="mlshop-paywall-price">
             <?php if ('credit' === $pay_type) : ?>
                 <span class="mlshop-paywall-cost"><?php echo esc_html($credit_price); ?> <?php echo esc_html($credit_name); ?></span>
-                <span class="mlshop-paywall-balance"><?php printf(esc_html__('您的余额：%s %s', 'moonlight-shop'), esc_html($credit_balance), esc_html($credit_name)); ?></span>
+                /* translators: %1$$s: 值, %2$$s: 值 */
+                <span class="mlshop-paywall-balance"><?php printf(esc_html__('您的余额：%1$s %2$s', 'moonlight-shop'), esc_html($credit_balance), esc_html($credit_name)); ?></span>
             <?php else : ?>
                 <span class="mlshop-paywall-cost"><?php echo mlshop_format_price($money_price); ?></span>
                 <?php if ($original_price > $money_price) : ?>
@@ -53,7 +55,8 @@ $post_id         = isset($post_id) ? (int) $post_id : 0;
 
         <?php if ('credit' === $pay_type) : ?>
             <button type="button" class="mlshop-btn mlshop-pay-unlock" data-post-id="<?php echo esc_attr($post_id); ?>" data-type="credit">
-                <?php printf(esc_html__('使用 %s %s 解锁', 'moonlight-shop'), esc_html($credit_price), esc_html($credit_name)); ?>
+                /* translators: %1$$s: 值, %2$$s: 值 */
+                <?php printf(esc_html__('使用 %1$s %2$s 解锁', 'moonlight-shop'), esc_html($credit_price), esc_html($credit_name)); ?>
             </button>
         <?php else : ?>
             <form class="mlshop-paywall-form" onsubmit="return false;">

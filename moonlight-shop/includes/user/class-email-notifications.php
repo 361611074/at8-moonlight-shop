@@ -80,20 +80,22 @@ class MLUC_Email_Notifications
 
         $subject = sprintf(
             /* translators: 1: 站点名，2: 商品名 */
-            __('[%1$s] 购买成功：%2$s', 'moonlight-user-center'),
+            __('[%1$s] 购买成功：%2$s', 'moonlight-shop'),
             wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES),
             $item
         );
         $lines = array(
-            sprintf(__('您好，%s：', 'moonlight-user-center'), $user->display_name),
+            /* translators: %s: 值 */
+            sprintf(__('您好，%s：', 'moonlight-shop'), $user->display_name),
             '',
-            sprintf(__('您在「%1$s」的购买已完成支付。', 'moonlight-user-center'), get_bloginfo('name')),
-            __('商品：', 'moonlight-user-center') . $item,
-            __('金额：', 'moonlight-user-center') . $symbol . number_format($price, 2),
-            __('订单号：', 'moonlight-user-center') . $order_no,
-            __('时间：', 'moonlight-user-center') . current_time('mysql'),
+            /* translators: %1$$s: 值 */
+            sprintf(__('您在「%1$s」的购买已完成支付。', 'moonlight-shop'), get_bloginfo('name')),
+            __('商品：', 'moonlight-shop') . $item,
+            __('金额：', 'moonlight-shop') . $symbol . number_format($price, 2),
+            __('订单号：', 'moonlight-shop') . $order_no,
+            __('时间：', 'moonlight-shop') . current_time('mysql'),
             '',
-            __('感谢您的支持！', 'moonlight-user-center'),
+            __('感谢您的支持！', 'moonlight-shop'),
         );
         wp_mail($user->user_email, $subject, implode("\n", $lines));
     }
@@ -132,14 +134,15 @@ class MLUC_Email_Notifications
             }
             $subject = sprintf(
                 /* translators: 1: 站点名 */
-                __('[%1$s] License 即将到期提醒', 'moonlight-user-center'),
+                __('[%1$s] License 即将到期提醒', 'moonlight-shop'),
                 wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES)
             );
             $lines = array(
-                sprintf(__('您的 License（%1$s，产品：%2$s）将于 %3$s 到期。', 'moonlight-user-center'), $p->post_title,
+                /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
+                sprintf(__('您的 License（%1$s，产品：%2$s）将于 %3$s 到期。', 'moonlight-shop'), $p->post_title,
                     (string) get_post_meta($p->ID, '_mluc_license_product', true),
                     wp_date(get_option('date_format', 'Y-m-d'), $expires)),
-                __('到期后对应 Pro 功能将停止，请及时续费。', 'moonlight-user-center'),
+                __('到期后对应 Pro 功能将停止，请及时续费。', 'moonlight-shop'),
             );
             if (wp_mail($to, $subject, implode("\n", $lines))) {
                 update_post_meta($p->ID, '_mluc_license_reminded', current_time('mysql'));

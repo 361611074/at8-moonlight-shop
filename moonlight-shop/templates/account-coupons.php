@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) {
             <?php foreach ($used as $code => $count) : ?>
                 <li class="mlshop-coupon-list-item">
                     <span class="mlshop-coupon-list-code"><?php echo esc_html($code); ?></span>
+                    /* translators: %d: 数量 */
                     <span class="mlshop-coupon-list-count"><?php echo sprintf(esc_html__('已使用 %d 次', 'moonlight-shop'), (int) $count); ?></span>
                 </li>
             <?php endforeach; ?>

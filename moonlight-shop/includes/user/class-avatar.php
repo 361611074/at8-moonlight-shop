@@ -47,27 +47,27 @@ class MLUC_Avatar
     public function register_cpt()
     {
         $labels = array(
-            'name'                  => __('会员头像库', 'moonlight-user-center'),
-            'singular_name'         => __('会员头像', 'moonlight-user-center'),
-            'add_new'               => __('添加头像', 'moonlight-user-center'),
-            'add_new_item'          => __('添加头像', 'moonlight-user-center'),
-            'edit_item'             => __('编辑头像', 'moonlight-user-center'),
-            'new_item'              => __('新头像', 'moonlight-user-center'),
-            'view_item'             => __('查看头像', 'moonlight-user-center'),
-            'view_items'            => __('查看头像', 'moonlight-user-center'),
-            'search_items'          => __('搜索头像', 'moonlight-user-center'),
-            'not_found'             => __('暂无头像', 'moonlight-user-center'),
-            'not_found_in_trash'    => __('回收站中暂无头像', 'moonlight-user-center'),
-            'all_items'             => __('所有头像', 'moonlight-user-center'),
-            'archives'              => __('会员头像库', 'moonlight-user-center'),
-            'attributes'            => __('头像属性', 'moonlight-user-center'),
-            'insert_into_item'      => __('插入到头像', 'moonlight-user-center'),
-            'uploaded_to_this_item' => __('上传到此头像', 'moonlight-user-center'),
-            'menu_name'             => __('会员头像库', 'moonlight-user-center'),
-            'name_admin_bar'        => __('会员头像', 'moonlight-user-center'),
-            'item_published'        => __('头像已添加。', 'moonlight-user-center'),
-            'item_updated'          => __('头像已更新。', 'moonlight-user-center'),
-            'item_trashed'          => __('头像已移至回收站。', 'moonlight-user-center'),
+            'name'                  => __('会员头像库', 'moonlight-shop'),
+            'singular_name'         => __('会员头像', 'moonlight-shop'),
+            'add_new'               => __('添加头像', 'moonlight-shop'),
+            'add_new_item'          => __('添加头像', 'moonlight-shop'),
+            'edit_item'             => __('编辑头像', 'moonlight-shop'),
+            'new_item'              => __('新头像', 'moonlight-shop'),
+            'view_item'             => __('查看头像', 'moonlight-shop'),
+            'view_items'            => __('查看头像', 'moonlight-shop'),
+            'search_items'          => __('搜索头像', 'moonlight-shop'),
+            'not_found'             => __('暂无头像', 'moonlight-shop'),
+            'not_found_in_trash'    => __('回收站中暂无头像', 'moonlight-shop'),
+            'all_items'             => __('所有头像', 'moonlight-shop'),
+            'archives'              => __('会员头像库', 'moonlight-shop'),
+            'attributes'            => __('头像属性', 'moonlight-shop'),
+            'insert_into_item'      => __('插入到头像', 'moonlight-shop'),
+            'uploaded_to_this_item' => __('上传到此头像', 'moonlight-shop'),
+            'menu_name'             => __('会员头像库', 'moonlight-shop'),
+            'name_admin_bar'        => __('会员头像', 'moonlight-shop'),
+            'item_published'        => __('头像已添加。', 'moonlight-shop'),
+            'item_updated'          => __('头像已更新。', 'moonlight-shop'),
+            'item_trashed'          => __('头像已移至回收站。', 'moonlight-shop'),
         );
 
         register_post_type(self::CPT, array(
@@ -161,29 +161,29 @@ class MLUC_Avatar
     {
         check_ajax_referer('mluc_nonce', 'nonce');
         if (!is_user_logged_in()) {
-            mluc_send_json(false, __('请先登录。', 'moonlight-user-center'));
+            mluc_send_json(false, __('请先登录。', 'moonlight-shop'));
         }
         if (!mluc_get_option('enable_avatar', 1)) {
-            mluc_send_json(false, __('头像功能未启用。', 'moonlight-user-center'));
+            mluc_send_json(false, __('头像功能未启用。', 'moonlight-shop'));
         }
 
         $avatar_id = isset($_POST['avatar_id']) ? (int) $_POST['avatar_id'] : 0;
         if (!$avatar_id || get_post_type($avatar_id) !== self::CPT) {
-            mluc_send_json(false, __('所选头像无效。', 'moonlight-user-center'));
+            mluc_send_json(false, __('所选头像无效。', 'moonlight-shop'));
         }
 
         $thumb_id = (int) get_post_thumbnail_id($avatar_id);
         if (!$thumb_id) {
-            mluc_send_json(false, __('该头像尚未设置图片。', 'moonlight-user-center'));
+            mluc_send_json(false, __('该头像尚未设置图片。', 'moonlight-shop'));
         }
         $url = wp_get_attachment_image_url($thumb_id, 'medium');
         if (!$url) {
-            mluc_send_json(false, __('头像图片加载失败。', 'moonlight-user-center'));
+            mluc_send_json(false, __('头像图片加载失败。', 'moonlight-shop'));
         }
 
         update_user_meta(get_current_user_id(), self::META_SELECTED, $thumb_id);
 
-        mluc_send_json(true, __('头像已更新。', 'moonlight-user-center'), array(
+        mluc_send_json(true, __('头像已更新。', 'moonlight-shop'), array(
             'url'        => $url,
             'avatar_id'  => $avatar_id,
             'attachment' => $thumb_id,
@@ -197,7 +197,7 @@ class MLUC_Avatar
     {
         add_meta_box(
             'mluc_avatar_usage',
-            __('使用情况', 'moonlight-user-center'),
+            __('使用情况', 'moonlight-shop'),
             array($this, 'render_usage_metabox'),
             self::CPT,
             'side',
@@ -209,7 +209,7 @@ class MLUC_Avatar
     {
         $thumb_id = (int) get_post_thumbnail_id($post->ID);
         if (!$thumb_id) {
-            echo '<p style="margin:0;color:#666;">' . esc_html__('请先设置「特色图片」再发布。', 'moonlight-user-center') . '</p>';
+            echo '<p style="margin:0;color:#666;">' . esc_html__('请先设置「特色图片」再发布。', 'moonlight-shop') . '</p>';
             return;
         }
         $users = get_users(array(
@@ -222,7 +222,7 @@ class MLUC_Avatar
         echo '<p style="margin:0 0 8px;font-size:13px;">' .
             esc_html(sprintf(
                 /* translators: %d: 选用人数 */
-                __('当前 %d 位用户在用此头像。', 'moonlight-user-center'),
+                __('当前 %d 位用户在用此头像。', 'moonlight-shop'),
                 $count
             )) . '</p>';
         if ($count) {
@@ -236,7 +236,7 @@ class MLUC_Avatar
                 echo '<p style="margin:6px 0 0;color:#888;font-size:11px;">' .
                     esc_html(sprintf(
                         /* translators: %d: 总人数 */
-                        __('…等共 %d 位用户。', 'moonlight-user-center'),
+                        __('…等共 %d 位用户。', 'moonlight-shop'),
                         $count
                     )) . '</p>';
             }
@@ -254,7 +254,7 @@ class MLUC_Avatar
         }
         if ($screen->action === 'add' || (isset($screen->post->ID) && !has_post_thumbnail($screen->post->ID))) {
             echo '<div class="notice notice-info"><p>' .
-                esc_html__('请为头像设置「特色图片」（≥256×256 的 PNG/JPG/WebP），未设置时不会出现在用户的选择列表中。', 'moonlight-user-center') .
+                esc_html__('请为头像设置「特色图片」（≥256×256 的 PNG/JPG/WebP），未设置时不会出现在用户的选择列表中。', 'moonlight-shop') .
                 '</p></div>';
         }
     }

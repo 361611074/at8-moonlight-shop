@@ -29,13 +29,15 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
     public function get_title()
     {
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
+        /* translators: %s: 值 */
         return sprintf(__('%s支付', 'moonlight-shop'), $credit_name);
     }
 
     public function get_description()
     {
         return sprintf(
-            __('使用账户%s按比例支付（%s %s = 1 货币单位）。', 'moonlight-shop'),
+            /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
+            __('使用账户%1$s按比例支付（%2$s %3$s = 1 货币单位）。', 'moonlight-shop'),
             mlshop_get_option('credit_name', __('积分', 'moonlight-shop')),
             mlshop_get_credit_rate(),
             mlshop_get_option('credit_name', __('积分', 'moonlight-shop'))
@@ -60,6 +62,7 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
         if (!$user_id) {
             return array(
                 'success' => false,
+                /* translators: %s: 值 */
                 'message' => sprintf(__('%s支付需登录后使用。', 'moonlight-shop'), $credit_name),
             );
         }
@@ -92,6 +95,7 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
         $remaining = MLSHOP_Credit::spend(
             $user_id,
             $points,
+            /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
             sprintf(__('支付订单 #%1$s（%2$s %3$s）', 'moonlight-shop'), $order_id, $points, $credit_name)
         );
         if (false === $remaining) {
@@ -100,6 +104,7 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
             return array(
                 'success' => false,
                 'message' => sprintf(
+                    /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
                     __('%1$s不足，本次需 %2$s，当前余额 %3$s。', 'moonlight-shop'),
                     $credit_name,
                     $points,
@@ -115,6 +120,7 @@ class MLSHOP_Gateway_Credit extends MLSHOP_Gateway
             // 已先行按 _mlshop_credit_spent 回补时此处跳过，杜绝双倍返还。
             delete_post_meta($order_id, '_mlshop_credit_spent');
             if (add_post_meta($order_id, '_mlshop_funds_reversed', 'gateway-comp', true)) {
+                /* translators: %1$$s: 值 */
                 MLSHOP_Credit::add($user_id, $points, sprintf(__('订单 #%1$s 支付失败回补', 'moonlight-shop'), $order_id));
             }
             return array(

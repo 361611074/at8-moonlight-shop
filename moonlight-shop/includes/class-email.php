@@ -180,6 +180,7 @@ class MLSHOP_Email
             }
             $addr_html = $addr_lines ? '<ul style="padding-left:18px;margin:6px 0;">' . $addr_lines . '</ul>' : '';
             $physical_html = '<h3 style="font-size:15px;margin:18px 0 8px;">' . esc_html__('實物商品寄送', 'moonlight-shop') . '</h3>'
+                /* translators: %s: 值 */
                 . '<p style="margin:6px 0;">' . esc_html(sprintf(__('本訂單含實物商品，將由 %s 安排寄送，付款後約 2–3 個工作天出貨。', 'moonlight-shop'), MLSHOP_Shipping::carrier())) . '</p>'
                 . $addr_html;
         }
@@ -224,6 +225,7 @@ class MLSHOP_Email
                 $names[] = isset($mb_map[$lv]) ? $mb_map[$lv] : $lv;
             }
             $mb_html = '<h3 style="font-size:15px;margin:18px 0 8px;">' . esc_html__('會員升級', 'moonlight-shop') . '</h3>'
+                /* translators: %s: 值 */
                 . '<p style="margin:6px 0;">' . esc_html(sprintf(__('感謝您的支持！您的會員等級已升級為：%s，相關權限立即生效。', 'moonlight-shop'), implode('、', $names))) . '</p>';
         }
 
@@ -306,6 +308,7 @@ class MLSHOP_Email
             . '<a href="' . esc_url($register_url) . '" style="display:inline-block;background:#2563eb;color:#fff;text-decoration:none;padding:10px 22px;border-radius:6px;font-size:14px;">' . esc_html__('立即注册', 'moonlight-shop') . '</a>'
             . '&nbsp;&nbsp;<a href="' . esc_url($order_url) . '" style="color:#2563eb;text-decoration:underline;font-size:14px;">' . esc_html__('查看本次订单', 'moonlight-shop') . '</a>'
             . '</p>'
+            /* translators: %s: 值 */
             . '<p style="margin:10px 0 0;color:#6b7280;font-size:12px;">' . esc_html(sprintf(__('注册时填写下单邮箱 %s，方便站长为您关联本次订单。', 'moonlight-shop'), $guest_email)) . '</p>'
             . '</div>';
     }
@@ -328,7 +331,7 @@ class MLSHOP_Email
             . '<h1 style="font-size:20px;margin:0 0 16px;color:#1f2937;">' . esc_html($site_name) . '</h1>'
             . $content
             . '</div>'
-            . '<p style="text-align:center;color:#9ca3af;font-size:12px;margin:14px 0 0;">&copy; ' . esc_html(date('Y')) . ' ' . esc_html($site_name) . '</p>'
+            . '<p style="text-align:center;color:#9ca3af;font-size:12px;margin:14px 0 0;">&copy; ' . esc_html(wp_date('Y')) . ' ' . esc_html($site_name) . '</p>'
             . '</div></body></html>';
     }
 }

@@ -57,7 +57,8 @@ $checkin_ajax   = isset($checkin_ajax) && is_array($checkin_ajax) ? $checkin_aja
                         var bal = document.querySelector('.mlshop-credit-balance-value');
                         if (bal && j.data && typeof j.data.balance !== 'undefined') { bal.textContent = j.data.balance; }
                         if (streakEl && j.data && typeof j.data.streak !== 'undefined') {
-                            streakEl.textContent = <?php echo wp_json_encode(__('已连续签到 %d 天', 'moonlight-shop')); ?>.replace('%d', j.data.streak);
+                            /* translators: %1$$d: 数量, %2$$d: 数量 */
+                            streakEl.textContent = <?php echo wp_json_encode(__('已连续签到 %1$d 天', 'moonlight-shop')); ?>.replace('%2$d', j.data.streak);
                         }
                     } else if (j && j.message && -1 !== j.message.indexOf('已经签到')) {
                         btn.textContent = <?php echo wp_json_encode(__('今日已签到', 'moonlight-shop')); ?>;
@@ -93,8 +94,8 @@ $checkin_ajax   = isset($checkin_ajax) && is_array($checkin_ajax) ? $checkin_aja
                         <span class="mlshop-recharge-pkg-price"><?php echo esc_html($symbol . number_format($pkg['price'], 2)); ?></span>
                         <?php if ($pkg_rate > 0 && $pkg_rate !== (float) $rate) : ?>
                             <span class="mlshop-recharge-pkg-rate"><?php
-                            /* translators: %s = 该套餐隐含汇率 */
-                            printf(esc_html__('按 %s %s / 货币单位', 'moonlight-shop'), esc_html($pkg_rate), esc_html($credit_name));
+                            /* translators: %1$s = 该套餐隐含汇率, %2$s = 积分名称 */
+                            printf(esc_html__('按 %1$s %2$s / 货币单位', 'moonlight-shop'), esc_html($pkg_rate), esc_html($credit_name));
                             ?></span>
                         <?php endif; ?>
                     </label>
@@ -109,8 +110,8 @@ $checkin_ajax   = isset($checkin_ajax) && is_array($checkin_ajax) ? $checkin_aja
                 <input type="number" name="mlshop_recharge_custom" min="1" step="1" placeholder="<?php esc_attr_e('输入积分数', 'moonlight-shop'); ?>" class="mlshop-recharge-custom-input">
                 <span class="mlshop-recharge-custom-hint" data-rate="<?php echo esc_attr($rate); ?>">
                     <?php
-                    /* translators: %s = 汇率 */
-                    printf(esc_html__('按 %s %s / 1 货币单位计算', 'moonlight-shop'), esc_html($rate), esc_html($credit_name));
+                    /* translators: %1$s = 汇率, %2$s = 积分名称 */
+                    printf(esc_html__('按 %1$s %2$s / 1 货币单位计算', 'moonlight-shop'), esc_html($rate), esc_html($credit_name));
                     ?>
                 </span>
                 <span class="mlshop-recharge-custom-price"></span>

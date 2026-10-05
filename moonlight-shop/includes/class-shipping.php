@@ -472,6 +472,7 @@ class MLSHOP_Shipping
             return new WP_Error(
                 'invalid_transition',
                 sprintf(
+                    /* translators: %1$$s: 值 */
                     __('订单状态「%1$s」不允许发货（需为待发货/处理中/已发货补录）。', 'moonlight-shop'),
                     MLSHOP_Order::get_status_label($current)
                 )
@@ -540,6 +541,7 @@ class MLSHOP_Shipping
         }
         $events[] = array(
             'time' => $created_ts,
+            /* translators: %1$$s: 值, %2$$s: 值 */
             'desc' => sprintf(__('包裹已交运（%1$s %2$s）', 'moonlight-shop'), $company, $no),
         );
         update_post_meta($shipment_id, '_mlship_events', wp_json_encode($events));
@@ -636,7 +638,7 @@ class MLSHOP_Shipping
     public static function format_event_time($time)
     {
         if (is_numeric($time) && (int) $time > 0) {
-            return date('Y-m-d H:i', (int) $time);
+            return wp_date('Y-m-d H:i', (int) $time);
         }
         return (string) $time;
     }

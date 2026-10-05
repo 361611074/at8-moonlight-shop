@@ -118,10 +118,10 @@ class MLUC_Payment_Manager
     {
         $gateway = $this->get($id);
         if (!$gateway) {
-            return new WP_Error('mluc_invalid_gateway', __('支付方式无效。', 'moonlight-user-center'));
+            return new WP_Error('mluc_invalid_gateway', __('支付方式无效。', 'moonlight-shop'));
         }
         if (!$gateway->is_available()) {
-            return new WP_Error('mluc_gateway_unavailable', __('该支付方式当前不可用。', 'moonlight-user-center'));
+            return new WP_Error('mluc_gateway_unavailable', __('该支付方式当前不可用。', 'moonlight-shop'));
         }
         $currency = class_exists('MLUC_Payments') ? MLUC_Payments::currency_code() : '';
         $caps     = $gateway->get_capabilities();
@@ -131,7 +131,7 @@ class MLUC_Payment_Manager
                 'mluc_gateway_currency',
                 sprintf(
                     /* translators: 1: 网关名称，2: 当前货币代码 */
-                    __('%1$s 仅支持 %2$s 结算，请先在后台调整货币代码。', 'moonlight-user-center'),
+                    __('%1$s 仅支持 %2$s 结算，请先在后台调整货币代码。', 'moonlight-shop'),
                     $gateway->get_name(),
                     implode(' / ', $allowed)
                 )

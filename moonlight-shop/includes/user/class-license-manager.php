@@ -73,8 +73,8 @@ class MLUC_License_Manager
     {
         register_post_type(self::CPT, array(
             'labels' => array(
-                'name'          => __('License 授权', 'moonlight-user-center'),
-                'singular_name' => __('License 授权', 'moonlight-user-center'),
+                'name'          => __('License 授权', 'moonlight-shop'),
+                'singular_name' => __('License 授权', 'moonlight-shop'),
             ),
             'public'          => false,
             'show_ui'         => false,
@@ -121,7 +121,7 @@ class MLUC_License_Manager
         ));
         $product = sanitize_key((string) $args['product']);
         if ('' === $product) {
-            return new WP_Error('mluc_lic_product', __('License 产品标识无效。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_product', __('License 产品标识无效。', 'moonlight-shop'));
         }
         $user_id = (int) $args['user_id'];
         $email   = (string) $args['email'];
@@ -479,17 +479,17 @@ class MLUC_License_Manager
     {
         $post = self::get_by_key($key);
         if (!$post) {
-            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-shop'));
         }
         $status = self::effective_status($post->ID);
         if (self::STATUS_REVOKED === $status) {
-            return new WP_Error('mluc_lic_revoked', __('该 License 已被撤销，请联系管理员。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_revoked', __('该 License 已被撤销，请联系管理员。', 'moonlight-shop'));
         }
         if (self::STATUS_SUSPENDED === $status) {
-            return new WP_Error('mluc_lic_suspended', __('该 License 已被暂停，请联系管理员。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_suspended', __('该 License 已被暂停，请联系管理员。', 'moonlight-shop'));
         }
         if (self::STATUS_EXPIRED === $status) {
-            return new WP_Error('mluc_lic_expired', __('该 License 已过期，请续费后重新激活。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_expired', __('该 License 已过期，请续费后重新激活。', 'moonlight-shop'));
         }
 
         $site = self::current_site();
@@ -502,13 +502,13 @@ class MLUC_License_Manager
                 'mluc_lic_bound',
                 sprintf(
                     /* translators: %s: 已绑定的站点地址 */
-                    __('该 License 已绑定到其他站点（%s）。如需迁移，请先在原站点停用。', 'moonlight-user-center'),
+                    __('该 License 已绑定到其他站点（%s）。如需迁移，请先在原站点停用。', 'moonlight-shop'),
                     (string) get_post_meta($post->ID, '_mluc_license_site', true)
                 )
             );
         }
         if (!$bound_hash && $count >= $limit) {
-            return new WP_Error('mluc_lic_limit', __('该 License 的激活数量已达上限。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_limit', __('该 License 的激活数量已达上限。', 'moonlight-shop'));
         }
 
         if (!$bound_hash) {
@@ -536,11 +536,11 @@ class MLUC_License_Manager
     {
         $post = self::get_by_key($key);
         if (!$post) {
-            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_notfound', __('License Key 不存在，请核对后重试。', 'moonlight-shop'));
         }
         $site = self::current_site();
         if ((string) get_post_meta($post->ID, '_mluc_license_site_hash', true) !== $site['hash']) {
-            return new WP_Error('mluc_lic_site', __('该 License 未绑定当前站点。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_site', __('该 License 未绑定当前站点。', 'moonlight-shop'));
         }
         $count = (int) get_post_meta($post->ID, '_mluc_license_count', true);
         update_post_meta($post->ID, '_mluc_license_count', max(0, $count - 1));
@@ -561,7 +561,7 @@ class MLUC_License_Manager
     {
         $post_id = (int) $post_id;
         if (!$post_id || get_post_type($post_id) !== self::CPT) {
-            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-shop'));
         }
         $days    = max(0, (int) $days);
         $expires = (int) get_post_meta($post_id, '_mluc_license_expires', true);
@@ -588,7 +588,7 @@ class MLUC_License_Manager
     {
         $post_id = (int) $post_id;
         if (!$post_id || get_post_type($post_id) !== self::CPT) {
-            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-shop'));
         }
         update_post_meta($post_id, '_mluc_license_status', self::STATUS_REVOKED);
         delete_transient('mluc_lic_verify_' . md5((string) get_post($post_id)->post_title));
@@ -603,7 +603,7 @@ class MLUC_License_Manager
     {
         $post_id = (int) $post_id;
         if (!$post_id || get_post_type($post_id) !== self::CPT) {
-            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-user-center'));
+            return new WP_Error('mluc_lic_notfound', __('License 不存在。', 'moonlight-shop'));
         }
         update_post_meta($post_id, '_mluc_license_status', self::STATUS_ACTIVE);
         delete_transient('mluc_lic_verify_' . md5((string) get_post($post_id)->post_title));

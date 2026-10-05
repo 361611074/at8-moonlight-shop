@@ -79,13 +79,13 @@ class MLUC_Checkin
             mluc_send_json(false, mluc_ui_label('buy_login_required', 'Please log in first.'));
         }
         if (!self::enabled()) {
-            mluc_send_json(false, __('签到功能未启用。', 'moonlight-user-center'));
+            mluc_send_json(false, __('签到功能未启用。', 'moonlight-shop'));
         }
 
         $user_id = get_current_user_id();
         $today   = gmdate('Y-m-d', current_time('timestamp'));
         if (self::checked_today($user_id)) {
-            mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-user-center'));
+            mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-shop'));
         }
 
         // 并发防护：每用户命名锁（GET_LOCK 立取不等待），双击 / 并发请求只有一个能进入发奖段。
@@ -94,7 +94,7 @@ class MLUC_Checkin
         $lock_name = 'mluc_checkin_' . $user_id;
         $lock      = $wpdb->get_var($wpdb->prepare('SELECT GET_LOCK(%s, 0)', $lock_name));
         if ('0' === (string) $lock) {
-            mluc_send_json(false, __('签到正在处理中，请勿重复提交。', 'moonlight-user-center'));
+            mluc_send_json(false, __('签到正在处理中，请勿重复提交。', 'moonlight-shop'));
         }
         $locked = ('1' === (string) $lock);
         if ($locked) {
@@ -110,7 +110,7 @@ class MLUC_Checkin
             if ($locked) {
                 $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
             }
-            mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-user-center'));
+            mluc_send_json(false, __('今天已经签到过了，明天再来吧。', 'moonlight-shop'));
         }
 
         $yesterday  = gmdate('Y-m-d', current_time('timestamp') - DAY_IN_SECONDS);
@@ -128,12 +128,13 @@ class MLUC_Checkin
             if ($locked) {
                 $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
             }
-            mluc_send_json(false, __('签到奖励配置无效，请联系管理员。', 'moonlight-user-center'));
+            mluc_send_json(false, __('签到奖励配置无效，请联系管理员。', 'moonlight-shop'));
         }
 
         update_user_meta($user_id, self::META_DATE, $today);
         update_user_meta($user_id, self::META_STREAK, $streak);
-        $balance = MLUC_Credit::add($user_id, $award, sprintf(__('每日签到（连续 %1$d 天）', 'moonlight-user-center'), $streak));
+        /* translators: %1$$d: 数量 */
+        $balance = MLUC_Credit::add($user_id, $award, sprintf(__('每日签到（连续 %1$d 天）', 'moonlight-shop'), $streak));
 
         if ($locked) {
             $wpdb->query($wpdb->prepare('SELECT RELEASE_LOCK(%s)', $lock_name));
@@ -143,7 +144,7 @@ class MLUC_Checkin
 
         mluc_send_json(true, sprintf(
             /* translators: 1: 积分名称，2: 奖励数，3: 连续天数 */
-            __('签到成功，获得 %1$s %2$s！已连续签到 %3$d 天。', 'moonlight-user-center'),
+            __('签到成功，获得 %1$s %2$s！已连续签到 %3$d 天。', 'moonlight-shop'),
             mluc_get_credit_name(),
             number_format($award),
             $streak

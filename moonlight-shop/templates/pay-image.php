@@ -37,5 +37,6 @@ if (empty($items)) {
     <?php endforeach; ?>
 </div>
 <?php if ($locked && $free < $total) : ?>
-    <p class="mlshop-gallery-tip"><?php printf(esc_html__('前 %d 张免费，剩余 %d 张购买后查看。', 'moonlight-shop'), $free, max(0, $total - $free)); ?></p>
+    /* translators: %1$$d: 数量, %2$$d: 数量 */
+    <p class="mlshop-gallery-tip"><?php printf(esc_html__('前 %1$d 张免费，剩余 %2$d 张购买后查看。', 'moonlight-shop'), $free, max(0, $total - $free)); ?></p>
 <?php endif; ?>

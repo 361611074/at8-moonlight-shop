@@ -82,6 +82,7 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
         $code = wp_remote_retrieve_response_code($response);
         $data = json_decode(wp_remote_retrieve_body($response), true);
         if ($code < 200 || $code >= 300 || empty($data['access_token'])) {
+            /* translators: %d: 数量 */
             $msg = isset($data['error_description']) ? $data['error_description'] : sprintf(__('PayPal 認證失敗（HTTP %d）', 'moonlight-shop'), $code);
             return new WP_Error('mlshop_paypal_auth', $msg);
         }
@@ -194,6 +195,7 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
         $code  = wp_remote_retrieve_response_code($response);
         $order = json_decode(wp_remote_retrieve_body($response), true);
         if ($code < 200 || $code >= 300 || empty($order['id'])) {
+            /* translators: %d: 数量 */
             $msg = isset($order['message']) ? $order['message'] : sprintf(__('PayPal 創建訂單失敗（HTTP %d）', 'moonlight-shop'), $code);
             return array('success' => false, 'message' => $msg, 'redirect' => '');
         }
@@ -242,6 +244,7 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
         $code = wp_remote_retrieve_response_code($response);
         $data = json_decode(wp_remote_retrieve_body($response), true);
         if ($code < 200 || $code >= 300) {
+            /* translators: %d: 数量 */
             $msg = isset($data['message']) ? $data['message'] : sprintf(__('PayPal 確認收款失敗（HTTP %d）', 'moonlight-shop'), $code);
             return new WP_Error('mlshop_paypal_capture', $msg);
         }
@@ -327,6 +330,7 @@ class MLSHOP_Gateway_PayPal extends MLSHOP_Gateway
         $code2 = wp_remote_retrieve_response_code($res2);
         $data2 = json_decode(wp_remote_retrieve_body($res2), true);
         if ($code2 < 200 || $code2 >= 300 || empty($data2['id'])) {
+            /* translators: %d: 数量 */
             $msg = isset($data2['message']) ? (string) $data2['message'] : sprintf(__('PayPal 退款失敗（HTTP %d）', 'moonlight-shop'), $code2);
             return array('success' => false, 'message' => $msg);
         }

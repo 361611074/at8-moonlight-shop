@@ -83,6 +83,7 @@ class Moonlight_Refund_Service
         if (!in_array($status, self::REFUNDABLE_STATUSES, true)) {
             return new WP_Error(
                 'moonlight_refund_status',
+                /* translators: %s: 值 */
                 sprintf(__('当前订单状态（%s）不支持申请售后。', 'moonlight-shop'), MLSHOP_Order::get_status_label($status))
             );
         }
@@ -123,6 +124,7 @@ class Moonlight_Refund_Service
         $user_line = $user
             ? sprintf('%s（%s）#%d', $user->display_name, $user->user_email, $user->ID)
             : sprintf('#%d', $user_id);
+        /* translators: %1$$s: 值, %2$$s: 值 */
         $subject = sprintf(__('[%1$s] 新售后申请：订单 %2$s', 'moonlight-shop'), get_bloginfo('name'), $order_no);
         $body = sprintf(
             __("收到新的售后申请：\n\n订单：%1\$s\n用户：%2\$s\n原因：%3\$s\n\n请进入后台订单编辑页处理。", 'moonlight-shop'),
@@ -153,6 +155,7 @@ class Moonlight_Refund_Service
         if (!in_array($status, self::REFUNDABLE_STATUSES, true)) {
             return new WP_Error(
                 'moonlight_refund_status',
+                /* translators: %s: 值 */
                 sprintf(__('当前订单状态（%s）不支持退款。', 'moonlight-shop'), MLSHOP_Order::get_status_label($status))
             );
         }
@@ -339,6 +342,7 @@ class Moonlight_Refund_Service
         if (!in_array($status, self::REFUNDABLE_STATUSES, true)) {
             return new WP_Error(
                 'moonlight_refund_status',
+                /* translators: %s: 值 */
                 sprintf(__('当前订单状态（%s）不支持退款。', 'moonlight-shop'), MLSHOP_Order::get_status_label($status))
             );
         }
@@ -505,6 +509,7 @@ class Moonlight_Refund_Service
             return array(
                 'success' => false,
                 'refund_id' => '',
+                /* translators: %s: 值 */
                 'message' => sprintf(__('网关 %s 不支持在线退款，请人工到网关后台处理。', 'moonlight-shop'), $gateway_id),
             );
         }

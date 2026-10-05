@@ -5,6 +5,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "%1$s %2$s 充值"
+msgstr ""
+
 msgid "%1$s 仅支持 %2$s 结算，请先在后台调整货币代码。"
 msgstr "%1$s 仅支持 %2$s 结算，请先在后台调整货币代码。"
 
@@ -38,8 +41,12 @@ msgstr "%s支付"
 msgid "%s支付需登录后使用。"
 msgstr "%s支付需登录后使用。"
 
+msgid msgstr "+ 添加等级"msgstr ""
+
 msgid "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
 msgstr "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
+
+msgid msgstr "0 = 永久；License 创建后立即绑定当前站点并生效。"msgstr ""
 
 msgid "0 表示不限次数。当前已用：%d"
 msgstr "0 表示不限次数。当前已用：%d"
@@ -167,6 +174,10 @@ msgstr "点击下方任一头像即可即时切换，无需储存。"
 msgid "Client ID"
 msgstr "Client ID"
 
+msgid msgstr "Client ID / App ID"msgstr ""
+
+msgid msgstr "Client Secret"msgstr ""
+
 msgid "Comments"
 msgstr "评论"
 
@@ -190,6 +201,8 @@ msgstr "目前会员等级"
 
 msgid "Current Password"
 msgstr "目前密码"
+
+msgid msgstr "Dashicons 类"msgstr ""
 
 msgid "Date"
 msgstr "日期"
@@ -290,8 +303,12 @@ msgstr "授权"
 msgid "License / Pro"
 msgstr "授权 / Pro"
 
+msgid msgstr "License Key"msgstr ""
+
 msgid "License Key 不存在，请核对后重试。"
 msgstr "License Key 不存在，请核对后重试。"
+
+msgid msgstr "License Server 地址"msgstr ""
 
 msgid "License 不存在。"
 msgstr "License 不存在。"
@@ -299,14 +316,22 @@ msgstr "License 不存在。"
 msgid "License 产品标识无效。"
 msgstr "License 产品标识无效。"
 
+msgid msgstr "License 列表"msgstr ""
+
+msgid msgstr "License 到期前 7 天发送续费提醒邮件（每日检查一次）"msgstr ""
+
 msgid "License 已签发：%s（已绑定当前站点并生效）。"
 msgstr "License 已签发：%s（已绑定当前站点并生效）。"
+
+msgid msgstr "License 总数 / 有效"msgstr ""
 
 msgid "License 授权"
 msgstr "License 授权"
 
 msgid "License 操作成功。"
 msgstr "License 操作成功。"
+
+msgid msgstr "License 数"msgstr ""
 
 msgid "License 管理"
 msgstr "License 管理"
@@ -401,6 +426,8 @@ msgstr "OAuth 模块未加载。"
 msgid "OpenSSL 不可用"
 msgstr "OpenSSL 不可用"
 
+msgid msgstr "OpenSSL 扩展（支付宝 RSA2）"msgstr ""
+
 msgid "Order"
 msgstr "订单"
 
@@ -409,6 +436,8 @@ msgstr "订单编号"
 
 msgid "Overview"
 msgstr "概览"
+
+msgid msgstr "PHP 版本"msgstr ""
 
 msgid "Paid"
 msgstr "已付款"
@@ -500,6 +529,8 @@ msgstr "文章"
 msgid "Premium"
 msgstr "特级"
 
+msgid msgstr "Pro 扩展插件"msgstr ""
+
 msgid "Product"
 msgstr "商品"
 
@@ -577,6 +608,8 @@ msgstr "状态"
 
 msgid "Stripe"
 msgstr "Stripe"
+
+msgid msgstr "Stripe Webhook"msgstr ""
 
 msgid "Stripe 創建會話失敗，請稍後重試。"
 msgstr "Stripe 创建会话失败，请稍后重试。"
@@ -683,6 +716,8 @@ msgstr "网站"
 msgid "WooCommerce 没有商品标签，无需同步。"
 msgstr "WooCommerce 没有商品标签，无需同步。"
 
+msgid msgstr "WordPress 版本"msgstr ""
+
 msgid "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
 msgstr "你目前是普通会员，升级至月费或高级即可解锁更多教材与示范影片。"
 
@@ -740,8 +775,13 @@ msgstr "…等共 %d 位用户。"
 msgid "‹ 上一頁"
 msgstr "‹ 上一页"
 
+msgid "「%1$s」库存不足，仅剩 %2$d 件。"
+msgstr ""
+
 msgid "「%s」库存不足，仅剩 %d 件。"
 msgstr "「%s」库存不足，仅剩 %d 件。"
+
+msgid msgstr "「用户中心」功能已并入 Moonlight Shop。此处核对旧数据并决定是否把旧会员订单复制为商城订单；迁移只复制不删除，原数据始终保留。"msgstr ""
 
 msgid "【測試】訂單 / 下載確認郵件"
 msgstr "【测试】订单 / 下载确认邮件"
@@ -779,6 +819,8 @@ msgstr "一键迁入全部商品"
 msgid "上一张"
 msgstr "上一张"
 
+msgid msgstr "上传/选择图片"msgstr ""
+
 msgid "上传到本订单"
 msgstr "上传到本订单"
 
@@ -811,6 +853,8 @@ msgstr "下单时间"
 
 msgid "下載"
 msgstr "下载"
+
+msgid msgstr "下载 PDF / 工作纸"msgstr ""
 
 msgid "下载"
 msgstr "下载"
@@ -845,6 +889,8 @@ msgstr "不支持的登录方式。"
 msgid "不选择（默认）"
 msgstr "不选择（默认）"
 
+msgid msgstr "不限次"msgstr ""
+
 msgid "与下方间距"
 msgstr "与下方间距"
 
@@ -856,6 +902,8 @@ msgstr "中国邮政"
 
 msgid "中通快递"
 msgstr "中通快递"
+
+msgid msgstr "为每个菜单项选择内置 Dashicons 类，或上传自定义 PNG / SVG / JPG 图片。留空时使用插件内置默认图标。"msgstr ""
 
 msgid "主色"
 msgstr "主色"
@@ -871,6 +919,8 @@ msgstr "交付内容"
 
 msgid "交易号"
 msgstr "交易号"
+
+msgid msgstr "产品"msgstr ""
 
 msgid "产品 Meta Box 未填写\"商品标题\"时的回退文案。"
 msgstr "产品 Meta Box 未填写\"商品标题\"时的回退文案。"
@@ -889,6 +939,10 @@ msgstr "亲爱的 {customer_name}：\\\n\\\n感谢您一直以来的支持！\\\
 
 msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
 msgstr "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。一般卖教材的站点请留空。"
+
+msgid msgstr "仅未登录访客"msgstr ""
+
+msgid msgstr "仅登录用户"msgstr ""
 
 msgid "仅百分比类型生效，0 表示不限。"
 msgstr "仅百分比类型生效，0 表示不限。"
@@ -1037,6 +1091,8 @@ msgstr "会员模块未加载。"
 msgid "会员模块未启用。"
 msgstr "会员模块未启用。"
 
+msgid msgstr "会员用户数"msgstr ""
+
 msgid "会员等级"
 msgstr "会员等级"
 
@@ -1076,6 +1132,9 @@ msgstr "佣金"
 msgid "佣金明细"
 msgstr "佣金明细"
 
+msgid "使用 %1$s %2$s 解锁"
+msgstr ""
+
 msgid "使用 %s %s 解锁"
 msgstr "使用 %s %s 解锁"
 
@@ -1090,6 +1149,9 @@ msgstr "使用情况"
 
 msgid "使用次数上限"
 msgstr "使用次数上限"
+
+msgid "使用账户%1$s按比例支付（%2$s %3$s = 1 货币单位）。"
+msgstr ""
 
 msgid "使用账户%s按比例支付（%s %s = 1 货币单位）。"
 msgstr "使用账户%s按比例支付（%s %s = 1 货币单位）。"
@@ -1120,6 +1182,8 @@ msgstr "保存地址"
 
 msgid "信用卡 / Apple Pay / Google Pay（Stripe）"
 msgstr "信用卡 / Apple Pay / Google Pay（Stripe）"
+
+msgid msgstr "修改密码"msgstr ""
 
 msgid "修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。"
 msgstr "修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。"
@@ -1235,6 +1299,8 @@ msgstr "公开（免费）"
 msgid "共 %d 件商品"
 msgstr "共 %d 件商品"
 
+msgid msgstr "关联订单"msgstr ""
+
 msgid "关闭"
 msgstr "关闭"
 
@@ -1247,8 +1313,12 @@ msgstr "关闭后此区域内的列表卡片不显示「实物 / 虚拟 / 卡密
 msgid "关闭后此区域内的列表卡片不渲染标签云；留「默认」则跟随后台「列表显示」设置。"
 msgstr "关闭后此区域内的列表卡片不渲染标签云；留「默认」则跟随后台「列表显示」设置。"
 
+msgid msgstr "关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。"msgstr ""
+
 msgid "关闭后，产品的付费 Meta Box 不生效。"
 msgstr "关闭后，产品的付费 Meta Box 不生效。"
+
+msgid msgstr "其中已复制为商城订单"msgstr ""
 
 msgid "其他商品"
 msgstr "其他商品"
@@ -1292,6 +1362,11 @@ msgstr "创建发货单并标记已发货"
 msgid "创建时间"
 msgstr "创建时间"
 
+msgid msgstr "删除"msgstr ""
+
+msgstr "删除 free 等同关闭普通会员基座"�座"
+msgstr ""
+
 msgid "刪除"
 msgstr "删除"
 
@@ -1322,6 +1397,9 @@ msgstr "到期日"
 msgid "到期时间"
 msgstr "到期时间"
 
+msgid "前 %1$d 张免费，剩余 %2$d 张购买后查看。"
+msgstr ""
+
 msgid "前 %d 张免费，剩余 %d 张购买后查看。"
 msgstr "前 %d 张免费，剩余 %d 张购买后查看。"
 
@@ -1336,6 +1414,8 @@ msgstr "前台显示名稱"
 
 msgid "前台顯示說明"
 msgstr "前台显示说明"
+
+msgid msgstr "前往头像库管理 →"msgstr ""
 
 msgid "前往购买 Pro"
 msgstr "前往购买 Pro"
@@ -1405,6 +1485,9 @@ msgstr "单个订单"
 
 msgid "单价"
 msgstr "单价"
+
+msgid "单次最多导入 %1$d 行（当前 %2$d 行），请分批导入。"
+msgstr ""
 
 msgid "单次最多导入 %d 行（当前 %d 行），请分批导入。"
 msgstr "单次最多导入 %d 行（当前 %d 行），请分批导入。"
@@ -1607,11 +1690,17 @@ msgstr "启用会员头像库：管理员在「会员头像库」上传头像，
 msgid "启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。"
 msgstr "启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。"
 
+msgid msgstr "启用普通会员（免费基座等级）"msgstr ""
+
 msgid "启用此优惠券"
 msgstr "启用此优惠券"
 
 msgid "启用此活动"
 msgstr "启用此活动"
+
+msgid msgstr "启用每日签到送积分（账户中心 → 积分余额 Tab 展示签到入口）"msgstr ""
+
+msgid msgstr "启用积分体系（签到入账的前提）"msgstr ""
 
 msgid "响应解析失败"
 msgstr "响应解析失败"
@@ -1874,6 +1963,8 @@ msgstr "回收站中暂无头像"
 msgid "回收站中暂无订单。"
 msgstr "回收站中暂无订单。"
 
+msgid msgstr "回调地址"msgstr ""
+
 msgid "固定 %s"
 msgstr "固定 %s"
 
@@ -1882,6 +1973,8 @@ msgstr "固定运费"
 
 msgid "固定金额减免"
 msgstr "固定金额减免"
+
+msgid msgstr "图标"msgstr ""
 
 msgid "圆角"
 msgstr "圆角"
@@ -1931,6 +2024,8 @@ msgstr "在对应开放平台填写回调地址（示例）：%s。仅填写了 
 msgid "在摘要下方顯示「貨號 / 分類 / 庫存」三行"
 msgstr "在摘要下方显示「货号 / 分类 / 库存」三行"
 
+msgid msgstr "在此新增、编辑或删除会员等级（含 free 基座等级）。删除某等级后，原拥有该等级的用户会自动降级；删除 free 等级则未付费用户视为无任何等级身份，重新勾选上方「启用普通会员」即可恢复。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。"msgstr ""
+
 msgid "在线预览"
 msgstr "在线预览"
 
@@ -1955,8 +2050,14 @@ msgstr "城市"
 msgid "基本設定"
 msgstr "基本设定"
 
+msgid msgstr "基础奖励"msgstr ""
+
+msgid msgstr "基础资料"msgstr ""
+
 msgid "填 50 為正圓，填 0 為方角。"
 msgstr "填 50 为正圆，填 0 为方角。"
+
+msgid msgstr "填等级标识（会员等级定义中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 Pro License（到期时长跟随等级有效期）。"msgstr ""
 
 msgid "填等级标识（后台「会员等级定义」中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 moonlight-user-center-pro License（到期时长跟随等级有效期）。"
 msgstr "填等级标识（后台「会员等级定义」中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 moonlight-user-center-pro License（到期时长跟随等级有效期）。"
@@ -1978,6 +2079,8 @@ msgstr "复制"
 
 msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
 msgstr "大多数站点无需任何设定：安装 Pro 外挂后，用订单里的授权码启动即可。"
+
+msgid msgstr "天额外加成"msgstr ""
 
 msgid "天（0 = 永不过期）"
 msgstr "天（0 = 永不过期）"
@@ -2015,8 +2118,12 @@ msgstr "头像已移至回收站。"
 msgid "头像库"
 msgstr "头像库"
 
+msgid msgstr "头像库为空。点击下方按钮上传头像。"msgstr ""
+
 msgid "头像库模块未加载。"
 msgstr "头像库模块未加载。"
+
+msgid msgstr "头像选择"msgstr ""
 
 msgid "套餐按钮（预留）"
 msgstr "套餐按钮（预留）"
@@ -2029,6 +2136,8 @@ msgstr "如果该账户存在，重置链接已发送至邮箱。"
 
 msgid "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
 msgstr "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
+
+msgid msgstr "始终显示"msgstr ""
 
 msgid "字号"
 msgstr "字号"
@@ -2122,6 +2231,8 @@ msgstr "尝试过于频繁，请稍后再试。"
 
 msgid "居中"
 msgstr "居中"
+
+msgid msgstr "嵌入 URL（YouTube / Vimeo / 直接 mp4）"msgstr ""
 
 msgid "工作紙 / 教材"
 msgstr "工作纸 / 教材"
@@ -2293,6 +2404,9 @@ msgstr "已过期"
 
 msgid "已过期/停用"
 msgstr "已过期/停用"
+
+msgid "已连续签到 %1$d 天"
+msgstr ""
 
 msgid "已连续签到 %d 天"
 msgstr "已连续签到 %d 天"
@@ -2510,6 +2624,8 @@ msgstr "总数"
 msgid "总销售额"
 msgstr "总销售额"
 
+msgid msgstr "恢复"msgstr ""
+
 msgid "您在「%1$s」的购买已完成支付。"
 msgstr "您在「%1$s」的购买已完成支付。"
 
@@ -2518,6 +2634,9 @@ msgstr "您好，%s："
 
 msgid "您尚未购买此内容。"
 msgstr "您尚未购买此内容。"
+
+msgid "您已登录，前往 %1$s 或 %2$s。"
+msgstr ""
 
 msgid "您已登录，前往 %s 或 %s。"
 msgstr "您已登录，前往 %s 或 %s。"
@@ -2536,6 +2655,9 @@ msgstr "您当前的会员等级无权查看此内容，请升级会员后继续
 
 msgid "您的 License（%1$s，产品：%2$s）将于 %3$s 到期。"
 msgstr "您的 License（%1$s，产品：%2$s）将于 %3$s 到期。"
+
+msgid "您的余额：%1$s %2$s"
+msgstr ""
 
 msgid "您的余额：%s %s"
 msgstr "您的余额：%s %s"
@@ -2705,6 +2827,12 @@ msgstr "折扣（按百分比）"
 msgid "指定会员等级"
 msgstr "指定会员等级"
 
+msgid "按 %1$s %2$s / 1 货币单位计算"
+msgstr ""
+
+msgid "按 %1$s %2$s / 货币单位"
+msgstr ""
+
 msgid "按 %s %s / 1 货币单位计算"
 msgstr "按 %s %s / 1 货币单位计算"
 
@@ -2713,6 +2841,9 @@ msgstr "按 %s %s / 货币单位"
 
 msgid "按付费可购买行为方式"
 msgstr "按付费可购买行为方式"
+
+msgid "按件（首件 %1$s / 續件 %2$s）"
+msgstr ""
 
 msgid "按件（首件 %s / 續件 %s）"
 msgstr "按件（首件 %s / 续件 %s）"
@@ -2765,6 +2896,8 @@ msgstr "授权码"
 msgid "授权设置"
 msgstr "授权设置"
 
+msgid msgstr "授权迁移（复制旧订单为商城订单）"msgstr ""
+
 msgid "授權中心"
 msgstr "授权中心"
 
@@ -2791,6 +2924,8 @@ msgstr "提交订单"
 
 msgid "提供 %d 次免费下载机会"
 msgstr "提供 %d 次免费下载机会"
+
+msgid msgstr "提供商"msgstr ""
 
 msgid "提现"
 msgstr "提现"
@@ -2843,6 +2978,8 @@ msgstr "搜索头像"
 msgid "搜索订单"
 msgstr "搜索订单"
 
+msgid msgstr "撤销"msgstr ""
+
 msgid "操作"
 msgstr "操作"
 
@@ -2872,6 +3009,8 @@ msgstr "支付失败，请重新下单或更换支付方式。"
 
 msgid "支付宝仅支持 CNY；切换为 CNY 后购买页才会出现支付宝选项"
 msgstr "支付宝仅支持 CNY；切换为 CNY 后购买页才会出现支付宝选项"
+
+msgid msgstr "支付宝异步通知（notify_url）"msgstr ""
 
 msgid "支付宝网关可用"
 msgstr "支付宝网关可用"
@@ -2918,6 +3057,10 @@ msgstr "支付宝退款响应驗签失败。"
 msgid "支付已确认，订单即将更新。"
 msgstr "支付已确认，订单即将更新。"
 
+msgid msgstr "支付成功后向购买用户发送邮件"msgstr ""
+
+msgid msgstr "支付成功自动颁发 License 的会员等级"msgstr ""
+
 msgid "支付成功，订单已生效。"
 msgstr "支付成功，订单已生效。"
 
@@ -2942,8 +3085,12 @@ msgstr "支付网关"
 msgid "支付订单 #%1$s（%2$s %3$s）"
 msgstr "支付订单 #%1$s（%2$s %3$s）"
 
+msgid msgstr "支付调试日志"msgstr ""
+
 msgid "支付金额与订单不符，已记录待人工核对。"
 msgstr "支付金额与订单不符，已记录待人工核对。"
+
+msgid msgstr "支持 PNG / SVG / JPG。建议 24×24 或 32×32 的方形图标。"msgstr ""
 
 msgid "支持占位符："
 msgstr "支持占位符："
@@ -3016,6 +3163,8 @@ msgstr "文件不存在。"
 
 msgid "文件未配置。"
 msgstr "文件未配置。"
+
+msgid msgstr "文件网址（PDF / ZIP）"msgstr ""
 
 msgid "文字大小"
 msgstr "文字大小"
@@ -3104,6 +3253,10 @@ msgstr "无门槛"
 msgid "日期"
 msgstr "日期"
 
+msgid msgstr "旧会员订单（mluc_order）"msgstr ""
+
+msgid msgstr "旧配置（mluc_options）"msgstr ""
+
 msgid "时间"
 msgstr "时间"
 
@@ -3124,6 +3277,8 @@ msgstr "显示"
 
 msgid "显示加入购物车"
 msgstr "显示加入购物车"
+
+msgid msgstr "显示名称"msgstr ""
 
 msgid "显示商品数"
 msgstr "显示商品数"
@@ -3160,6 +3315,8 @@ msgstr "显示评价标签"
 
 msgid "暂不支持该登录方式。"
 msgstr "暂不支持该登录方式。"
+
+msgid msgstr "暂无 License。"msgstr ""
 
 msgid "暂无佣金记录。"
 msgstr "暂无佣金记录。"
@@ -3199,6 +3356,8 @@ msgstr "暂无积分流水。"
 
 msgid "暂无订单。"
 msgstr "暂无订单。"
+
+msgid msgstr "暂无记录。"msgstr ""
 
 msgid "暂未查询到支付结果，请稍后再试。"
 msgstr "暂未查询到支付结果，请稍后再试。"
@@ -3241,6 +3400,8 @@ msgstr "最低消费"
 
 msgid "最低消费（小计门槛）"
 msgstr "最低消费（小计门槛）"
+
+msgid msgstr "最低访问等级"msgstr ""
 
 msgid "最多保存 %d 个收货地址。"
 msgstr "最多保存 %d 个收货地址。"
@@ -3293,6 +3454,8 @@ msgstr "有效期 %d 天"
 msgid "有效期至"
 msgstr "有效期至"
 
+msgid msgstr "有效期（天）"msgstr ""
+
 msgid "有订单的客户"
 msgstr "有订单的客户"
 
@@ -3304,6 +3467,9 @@ msgstr "未分类"
 
 msgid "未启用"
 msgstr "未启用"
+
+msgid "未填写调整备注，本次未做任何调整。"
+msgstr ""
 
 msgid "未安装（Free 功能不受影响）"
 msgstr "未安装（Free 功能不受影响）"
@@ -3446,6 +3612,10 @@ msgstr "标签"
 msgid "标签："
 msgstr "标签："
 
+msgid msgstr "标识"msgstr ""
+
+msgid msgstr "标识颜色"msgstr ""
+
 msgid "标题"
 msgstr "标题"
 
@@ -3524,6 +3694,8 @@ msgstr "每日签到"
 msgid "每日签到（连续 %1$d 天）"
 msgstr "每日签到（连续 %1$d 天）"
 
+msgid msgstr "每用户下载次数上限（0 = 不限）"msgstr ""
+
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
 msgstr "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
 
@@ -3575,6 +3747,8 @@ msgstr "注册时填写下单邮箱 %s，方便站长为您关联本次订单。
 msgid "注册页面"
 msgstr "注册页面"
 
+msgid msgstr "注意：父项被隐藏时其整组子菜单一并隐藏。魔法链接：#mluc-login / #mluc-register / #mluc-account / #mluc-lostpassword / #mluc-logout（自定义链接 URL 填此占位符，前台自动替换为真实地址）"msgstr ""
+
 msgid "活动类型"
 msgstr "活动类型"
 
@@ -3623,6 +3797,9 @@ msgstr "测试模式"
 msgid "測試發送"
 msgstr "测试发送"
 
+msgid "測試郵件已發送到 %1$s（使用訂單 #%2$s 模擬，卡密已掩碼，含下載連結）。"
+msgstr ""
+
 msgid "測試郵件已發送到 %s。"
 msgstr "测试邮件已发送到 %s。"
 
@@ -3656,8 +3833,12 @@ msgstr "漫步白月光商城"
 msgid "漫步白月光電子商城 設定"
 msgstr "漫步白月光电子商城 设定"
 
+msgid msgstr "激活"msgstr ""
+
 msgid "激活 Pro"
 msgstr "启动 Pro"
+
+msgid msgstr "激活数量上限"msgstr ""
 
 msgid "点击复制"
 msgstr "点击复制"
@@ -3701,6 +3882,8 @@ msgstr "物流单号"
 msgid "状态"
 msgstr "状态"
 
+msgid msgstr "环境"msgstr ""
+
 msgid "環境模式"
 msgstr "环境模式"
 
@@ -3733,6 +3916,8 @@ msgstr "用户"
 
 msgid "用户中心"
 msgstr "用户中心"
+
+msgid msgstr "用户中心 · 显示条件"msgstr ""
 
 msgid "用户中心设置"
 msgstr "用户中心设置"
@@ -3773,6 +3958,9 @@ msgstr "界面文案（账户中心）"
 msgid "留空 = 不调整。调整会记入用户积分流水（含操作备注），扣减不会使余额变为负数。"
 msgstr "留空 = 不调整。调整会记入用户积分流水（含操作备注），扣减不会使余额变为负数。"
 
+msgid "留空 = 全额（%1$s %2$s）"
+msgstr ""
+
 msgid "留空 = 全额（%s %s）"
 msgstr "留空 = 全额（%s %s）"
 
@@ -3808,6 +3996,8 @@ msgstr "留空表示长期有效（YY-MM-DD）。"
 
 msgid "異步通知 URL"
 msgstr "异步通知 URL"
+
+msgid msgstr "登入后下载"msgstr ""
 
 msgid "登出"
 msgstr "登出"
@@ -3887,8 +4077,15 @@ msgstr "示范影片"
 msgid "积分"
 msgstr "积分"
 
+msgid msgstr "积分 / 天"msgstr ""
+
+msgid "积分不足，需要 %1$s %2$s，当前余额 %3$s。"
+msgstr ""
+
 msgid "积分不足，需要 %s %s，当前余额 %s。"
 msgstr "积分不足，需要 %s %s，当前余额 %s。"
+
+msgid msgstr "积分与签到"msgstr ""
 
 msgid "积分价格未设置。"
 msgstr "积分价格未设置。"
@@ -3919,6 +4116,12 @@ msgstr "积分支付需登录后使用。"
 
 msgid "积分流水"
 msgstr "积分流水"
+
+msgid msgstr "积分账本与商城积分（充值 / 积分支付）共用同一本账；开启后签到所得可直接用于下单。"msgstr ""
+
+msgid msgstr "积分（间隔填 0 表示不加成）"msgstr ""
+
+msgid msgstr "移除"msgstr ""
 
 msgid "移除商品主图"
 msgstr "移除商品主图"
@@ -3974,6 +4177,8 @@ msgstr "等级"
 msgid "等级"
 msgstr "等级"
 
+msgid msgstr "等级标识"msgstr ""
+
 msgid "等级配置"
 msgstr "等级配置"
 
@@ -3988,6 +4193,8 @@ msgstr "筛选订单列表"
 
 msgid "签到功能未启用。"
 msgstr "签到功能未启用。"
+
+msgid msgstr "签到奖励"msgstr ""
 
 msgid "签到奖励配置无效，请联系管理员。"
 msgstr "签到奖励配置无效，请联系管理员。"
@@ -4052,11 +4259,19 @@ msgstr "线下转账开关未开启"
 msgid "终身"
 msgstr "终身"
 
+msgid msgstr "绑定用户"msgstr ""
+
+msgid msgstr "绑定站点"msgstr ""
+
 msgid "结算"
 msgstr "结算"
 
+msgid msgstr "结算货币代码"msgstr ""
+
 msgid "结算页提供「积分支付」方式，按上方比例全额扣除积分（需在「前台公開支付方式」同时勾选）"
 msgstr "结算页提供「积分支付」方式，按上方比例全额扣除积分（需在「前台公开支付方式」同时勾选）"
+
+msgid msgstr "续期(天)"msgstr ""
 
 msgid "编辑优惠券"
 msgstr "编辑优惠券"
@@ -4084,6 +4299,8 @@ msgstr "缺少商品 ID。"
 
 msgid "缺少地址 ID。"
 msgstr "缺少地址 ID。"
+
+msgid msgstr "网关"msgstr ""
 
 msgid "网关 %s 不支持在线退款，请人工到网关后台处理。"
 msgstr "网关 %s 不支持在线退款，请人工到网关后台处理。"
@@ -4136,6 +4353,10 @@ msgstr "自定义"
 msgid "自定义充值汇率（积分/货币单位）"
 msgstr "自定义充值汇率（积分/货币单位）"
 
+msgid msgstr "自定义图片"msgstr ""
+
+msgid msgstr "自订缩图网址（选填）"msgstr ""
+
 msgid "若站內已有其他內容類型佔用相同前綴，商城會自動改用備用前綴，避免頁面出現 404。修改後系統會自動更新連結規則，無需手動重新儲存永久連結。"
 msgstr "若站内已有其他内容类型占用相同前缀，商城会自动改用备用前缀，避免页面出现 404。修改后系统会自动更新连结规则，无需手动重新储存永久连结。"
 
@@ -4153,6 +4374,8 @@ msgstr "获取微信 openid 失败。"
 
 msgid "菜单图标"
 msgstr "菜单图标"
+
+msgid msgstr "菜单项"msgstr ""
 
 msgid "虚拟"
 msgstr "虚拟"
@@ -4384,6 +4607,9 @@ msgstr "订单状态"
 
 msgid "订单状态「%1$s」不允许发货（需为待发货/处理中/已发货补录）。"
 msgstr "订单状态「%1$s」不允许发货（需为待发货/处理中/已发货补录）。"
+
+msgid "订单状态不允许从 %1$s 变更为 %2$s。"
+msgstr ""
 
 msgid "订单状态不允许从 %s 变更为 %s。"
 msgstr "订单状态不允许从 %s 变更为 %s。"
@@ -4694,6 +4920,8 @@ msgstr "账户中心模块未加载。"
 msgid "账户中心页面"
 msgstr "账户中心页面"
 
+msgid msgstr "账户概览"msgstr ""
+
 msgid "货到付款"
 msgstr "货到付款"
 
@@ -4702,6 +4930,9 @@ msgstr "货号"
 
 msgid "购买卡（开通/升级会员）"
 msgstr "购买卡（开通/升级会员）"
+
+msgid "购买后 %1$d%2$s 内有效，逾期需重新购买"
+msgstr ""
 
 msgid "购买后 %d%s 内有效，逾期需重新购买"
 msgstr "购买后 %d%s 内有效，逾期需重新购买"
@@ -4751,6 +4982,8 @@ msgstr "跳转至支付宝完成付款（仅支持人民币 CNY 计价订单）�
 msgid "跳过"
 msgstr "跳过"
 
+msgid msgstr "跳过迁移"msgstr ""
+
 msgid "输入框占位"
 msgstr "输入框占位"
 
@@ -4765,6 +4998,10 @@ msgstr "迁移已执行：%s。原订单保留未动。"
 
 msgid "迁移执行出错：%s（数据未受影响，可重试）"
 msgstr "迁移执行出错：%s（数据未受影响，可重试）"
+
+msgid msgstr "迁移授权状态"msgstr ""
+
+msgid msgstr "迁移日志（最近 10 条）"msgstr ""
 
 msgid "迁移状态"
 msgstr "迁移状态"
@@ -4810,6 +5047,8 @@ msgstr "连线资讯"
 
 msgid "连接状态"
 msgstr "连接状态"
+
+msgid msgstr "连续每"msgstr ""
 
 msgid "连续碰撞未能生成唯一卡密，请缩短长度或更换字符集。"
 msgstr "连续碰撞未能生成唯一卡密，请缩短长度或更换字符集。"
@@ -4858,6 +5097,8 @@ msgstr "选择商品"
 
 msgid "选择商品相册"
 msgstr "选择商品相册"
+
+msgid msgstr "选择头像"msgstr ""
 
 msgid "选择套餐"
 msgstr "选择套餐"
@@ -5060,8 +5301,12 @@ msgstr "显示于结算页、订单与邮件中的运送说明（例：顺丰速
 msgid "顯示購物車 / 收藏數量角標"
 msgstr "显示购物车 / 收藏数量角标"
 
+msgid msgstr "页面导航"msgstr ""
+
 msgid "顺丰速运"
 msgstr "顺丰速运"
+
+msgid msgstr "预览"msgstr ""
 
 msgid "颜色"
 msgstr "颜色"
@@ -5093,8 +5338,12 @@ msgstr "默认"
 msgid "默認全局運費（固定運費 + 滿額包郵）"
 msgstr "默认全局运费（固定运费 + 满额包邮）"
 
+msgid msgstr "默认"msgstr ""
+
 msgid "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
 msgstr "默认不选择。留空时按「实物」参与运费计算（保守兜底，避免漏算运费）；如商品不需要发货，请显式选择「虚拟下载」或「卡密商品」。"
+
+msgid msgstr "默认为 Pro 扩展产品标识，一般无需修改。"msgstr ""
 
 msgid "點此下載"
 msgstr "点此下载"
@@ -5104,6 +5353,8 @@ msgstr "（AOV = 销售额 / 已付款订单）"
 
 msgid "（不变）"
 msgstr "（不变）"
+
+msgid msgstr "（不绑定用户）"msgstr ""
 
 msgid "（全部已收款状态：已付款→完成）"
 msgstr "（全部已收款状态：已付款→完成）"
@@ -5164,6 +5415,8 @@ msgstr "（本月 1 日起，已收款状态口径）"
 
 msgid "（点击插入）"
 msgstr "（点击插入）"
+
+msgid msgstr "（无会员等级）"msgstr ""
 
 msgid "（解密失败）"
 msgstr "（解密失败）"

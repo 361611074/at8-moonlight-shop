@@ -124,6 +124,7 @@ class MLSHOP_Coupon
                 <th><label for="mlshop_coupon_limit"><?php esc_html_e('使用次数上限', 'moonlight-shop'); ?></label></th>
                 <td>
                     <input type="number" min="0" id="mlshop_coupon_limit" name="mlshop_coupon_limit" value="<?php echo esc_attr($limit); ?>" class="small-text">
+                    /* translators: %d: 数量 */
                     <p class="description"><?php esc_html_e('0 表示不限次数。当前已用：%d', 'moonlight-shop'); echo ' ' . (int) $used; ?></p>
                 </td>
             </tr>
@@ -215,6 +216,7 @@ class MLSHOP_Coupon
         }
         $min = (float) get_post_meta($id, '_mlshop_coupon_min', true);
         if ($min > 0 && $subtotal < $min) {
+            /* translators: %s: 值 */
             return new WP_Error('min', sprintf(__('订单满 %s 才可使用此优惠码。', 'moonlight-shop'), mlshop_format_price($min)));
         }
         $limit = (int) get_post_meta($id, '_mlshop_coupon_limit', true);

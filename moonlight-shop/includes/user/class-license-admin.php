@@ -49,8 +49,8 @@ class MLUC_License_Admin
             : 'mluc-settings';
         add_submenu_page(
             $parent,
-            __('License 管理', 'moonlight-user-center'),
-            __('License 管理', 'moonlight-user-center'),
+            __('License 管理', 'moonlight-shop'),
+            __('License 管理', 'moonlight-shop'),
             'manage_options',
             'mluc-licenses',
             array($this, 'render_page')
@@ -127,26 +127,26 @@ class MLUC_License_Admin
         $action_url = admin_url('admin-post.php');
         $users = get_users(array('fields' => array('ID', 'user_login'), 'number' => 200));
         $status_labels = array(
-            'active'    => __('有效', 'moonlight-user-center'),
-            'inactive'  => __('未激活', 'moonlight-user-center'),
-            'expired'   => __('已过期', 'moonlight-user-center'),
-            'revoked'   => __('已撤销', 'moonlight-user-center'),
-            'suspended' => __('已暂停', 'moonlight-user-center'),
+            'active'    => __('有效', 'moonlight-shop'),
+            'inactive'  => __('未激活', 'moonlight-shop'),
+            'expired'   => __('已过期', 'moonlight-shop'),
+            'revoked'   => __('已撤销', 'moonlight-shop'),
+            'suspended' => __('已暂停', 'moonlight-shop'),
         );
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('License 管理', 'moonlight-user-center'); ?></h1>
+            <h1><?php esc_html_e('License 管理', 'moonlight-shop'); ?></h1>
 
-            <h2><?php esc_html_e('签发 License', 'moonlight-user-center'); ?></h2>
+            <h2><?php esc_html_e('签发 License', 'moonlight-shop'); ?></h2>
             <form method="post" action="<?php echo esc_url($action_url); ?>" style="margin-bottom:16px;">
                 <?php wp_nonce_field('mluc_lic_issue'); ?>
                 <input type="hidden" name="action" value="mluc_lic_issue">
                 <table class="form-table" role="presentation">
                     <tr>
-                        <th><label for="mluc_lic_user"><?php esc_html_e('绑定用户', 'moonlight-user-center'); ?></label></th>
+                        <th><label for="mluc_lic_user"><?php esc_html_e('绑定用户', 'moonlight-shop'); ?></label></th>
                         <td>
                             <select name="user_id" id="mluc_lic_user">
-                                <option value="0"><?php esc_html_e('（不绑定用户）', 'moonlight-user-center'); ?></option>
+                                <option value="0"><?php esc_html_e('（不绑定用户）', 'moonlight-shop'); ?></option>
                                 <?php foreach ($users as $u) : ?>
                                     <option value="<?php echo (int) $u->ID; ?>"><?php echo esc_html($u->user_login . ' (#' . $u->ID . ')'); ?></option>
                                 <?php endforeach; ?>
@@ -154,53 +154,53 @@ class MLUC_License_Admin
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mluc_lic_product"><?php esc_html_e('产品', 'moonlight-user-center'); ?></label></th>
+                        <th><label for="mluc_lic_product"><?php esc_html_e('产品', 'moonlight-shop'); ?></label></th>
                         <td>
                             <input type="text" id="mluc_lic_product" class="regular-text" name="product"
                                    value="<?php echo esc_attr(MLUC_License_Manager::PRODUCT_PRO); ?>">
-                            <p class="description"><?php esc_html_e('默认为 Pro 扩展产品标识，一般无需修改。', 'moonlight-user-center'); ?></p>
+                            <p class="description"><?php esc_html_e('默认为 Pro 扩展产品标识，一般无需修改。', 'moonlight-shop'); ?></p>
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mluc_lic_days"><?php esc_html_e('有效期（天）', 'moonlight-user-center'); ?></label></th>
+                        <th><label for="mluc_lic_days"><?php esc_html_e('有效期（天）', 'moonlight-shop'); ?></label></th>
                         <td>
                             <input type="number" id="mluc_lic_days" class="small-text" name="days" value="365" min="0">
-                            <span class="description"><?php esc_html_e('0 = 永久；License 创建后立即绑定当前站点并生效。', 'moonlight-user-center'); ?></span>
+                            <span class="description"><?php esc_html_e('0 = 永久；License 创建后立即绑定当前站点并生效。', 'moonlight-shop'); ?></span>
                         </td>
                     </tr>
                     <tr>
-                        <th><label for="mluc_lic_limit"><?php esc_html_e('激活数量上限', 'moonlight-user-center'); ?></label></th>
+                        <th><label for="mluc_lic_limit"><?php esc_html_e('激活数量上限', 'moonlight-shop'); ?></label></th>
                         <td><input type="number" id="mluc_lic_limit" class="small-text" name="limit" value="1" min="1"></td>
                     </tr>
                 </table>
-                <?php submit_button(__('签发 License', 'moonlight-user-center'), 'primary', 'submit', false); ?>
+                <?php submit_button(__('签发 License', 'moonlight-shop'), 'primary', 'submit', false); ?>
             </form>
 
-            <h2><?php esc_html_e('License 列表', 'moonlight-user-center'); ?></h2>
+            <h2><?php esc_html_e('License 列表', 'moonlight-shop'); ?></h2>
             <form method="get">
                 <input type="hidden" name="page" value="mluc-licenses">
                 <p class="search-box">
                     <input type="search" name="s" value="<?php echo esc_attr($search); ?>">
-                    <?php submit_button(__('搜索', 'moonlight-user-center'), '', '', false); ?>
+                    <?php submit_button(__('搜索', 'moonlight-shop'), '', '', false); ?>
                 </p>
             </form>
             <table class="widefat striped">
                 <thead>
                     <tr>
-                        <th><?php esc_html_e('License Key', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('产品', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('用户', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('状态', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('绑定站点', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('激活', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('到期', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('关联订单', 'moonlight-user-center'); ?></th>
-                        <th><?php esc_html_e('操作', 'moonlight-user-center'); ?></th>
+                        <th><?php esc_html_e('License Key', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('产品', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('用户', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('状态', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('绑定站点', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('激活', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('到期', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('关联订单', 'moonlight-shop'); ?></th>
+                        <th><?php esc_html_e('操作', 'moonlight-shop'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php if (empty($rows)) : ?>
-                    <tr><td colspan="9"><?php esc_html_e('暂无 License。', 'moonlight-user-center'); ?></td></tr>
+                    <tr><td colspan="9"><?php esc_html_e('暂无 License。', 'moonlight-shop'); ?></td></tr>
                 <?php else : foreach ($rows as $r) : ?>
                     <tr>
                         <td><code><?php echo esc_html($r['key']); ?></code></td>
@@ -209,7 +209,7 @@ class MLUC_License_Admin
                         <td><?php echo esc_html(isset($status_labels[$r['status']]) ? $status_labels[$r['status']] : $r['status']); ?></td>
                         <td><?php echo esc_html('' !== $r['site'] ? $r['site'] : '—'); ?></td>
                         <td><?php echo esc_html($r['count'] . ' / ' . $r['limit']); ?></td>
-                        <td><?php echo esc_html($r['expires'] ? wp_date('Y-m-d', $r['expires']) : __('永久', 'moonlight-user-center')); ?></td>
+                        <td><?php echo esc_html($r['expires'] ? wp_date('Y-m-d', $r['expires']) : __('永久', 'moonlight-shop')); ?></td>
                         <td><?php echo $r['order_id'] ? '<a href="' . esc_url(get_edit_post_link($r['order_id'])) . '">#' . (int) $r['order_id'] . '</a>' : '—'; ?></td>
                         <td>
                             <form method="post" action="<?php echo esc_url($action_url); ?>" style="display:inline;">
@@ -217,10 +217,10 @@ class MLUC_License_Admin
                                 <input type="hidden" name="action" value="mluc_lic_action">
                                 <input type="hidden" name="license_id" value="<?php echo (int) $r['id']; ?>">
                                 <?php if ('revoked' === $r['status'] || 'suspended' === $r['status'] || 'inactive' === $r['status']) : ?>
-                                    <button type="submit" name="op" value="restore" class="button button-small"><?php esc_html_e('恢复', 'moonlight-user-center'); ?></button>
+                                    <button type="submit" name="op" value="restore" class="button button-small"><?php esc_html_e('恢复', 'moonlight-shop'); ?></button>
                                 <?php else : ?>
                                     <button type="submit" name="op" value="revoke" class="button button-small"
-                                            onclick="return confirm('<?php echo esc_js(__('确认撤销该 License？撤销后立即失效。', 'moonlight-user-center')); ?>');"><?php esc_html_e('撤销', 'moonlight-user-center'); ?></button>
+                                            onclick="return confirm('<?php echo esc_js(__('确认撤销该 License？撤销后立即失效。', 'moonlight-shop')); ?>');"><?php esc_html_e('撤销', 'moonlight-shop'); ?></button>
                                 <?php endif; ?>
                             </form>
                             <form method="post" action="<?php echo esc_url($action_url); ?>" style="display:inline;">
@@ -228,7 +228,7 @@ class MLUC_License_Admin
                                 <input type="hidden" name="action" value="mluc_lic_action">
                                 <input type="hidden" name="license_id" value="<?php echo (int) $r['id']; ?>">
                                 <input type="number" name="days" value="365" min="0" class="small-text" style="width:64px;">
-                                <button type="submit" name="op" value="renew" class="button button-small"><?php esc_html_e('续期(天)', 'moonlight-user-center'); ?></button>
+                                <button type="submit" name="op" value="renew" class="button button-small"><?php esc_html_e('续期(天)', 'moonlight-shop'); ?></button>
                             </form>
                         </td>
                     </tr>
@@ -246,10 +246,10 @@ class MLUC_License_Admin
     {
         if (!method_exists('MLUC_License_Manager', 'local_mode_enabled')
             || !MLUC_License_Manager::local_mode_enabled()) {
-            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-shop'), '', array('response' => 403));
         }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_issue')) {
-            wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
+            wp_die(esc_html__('权限不足或校验失败。', 'moonlight-shop'));
         }
         $redirect = admin_url('admin.php?page=mluc-licenses');
         $user_id  = isset($_POST['user_id']) ? (int) $_POST['user_id'] : 0;
@@ -269,7 +269,7 @@ class MLUC_License_Admin
             $key = (string) get_post($created)->post_title;
             self::set_notice(sprintf(
                 /* translators: %s: License Key */
-                __('License 已签发：%s（已绑定当前站点并生效）。', 'moonlight-user-center'),
+                __('License 已签发：%s（已绑定当前站点并生效）。', 'moonlight-shop'),
                 $key
             ));
         }
@@ -284,16 +284,16 @@ class MLUC_License_Admin
     {
         if (!method_exists('MLUC_License_Manager', 'local_mode_enabled')
             || !MLUC_License_Manager::local_mode_enabled()) {
-            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-user-center'), '', array('response' => 403));
+            wp_die(esc_html__('当前站点未启用本地授权管理。', 'moonlight-shop'), '', array('response' => 403));
         }
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_lic_action')) {
-            wp_die(esc_html__('权限不足或校验失败。', 'moonlight-user-center'));
+            wp_die(esc_html__('权限不足或校验失败。', 'moonlight-shop'));
         }
         $redirect = admin_url('admin.php?page=mluc-licenses');
         $license_id = isset($_POST['license_id']) ? (int) $_POST['license_id'] : 0;
         $op = isset($_POST['op']) ? sanitize_key(wp_unslash($_POST['op'])) : '';
 
-        $result = new WP_Error('mluc_lic_op', __('未知操作。', 'moonlight-user-center'));
+        $result = new WP_Error('mluc_lic_op', __('未知操作。', 'moonlight-shop'));
         if ('revoke' === $op) {
             $result = MLUC_License_Manager::revoke($license_id);
         } elseif ('restore' === $op) {
@@ -306,7 +306,7 @@ class MLUC_License_Admin
         if (is_wp_error($result)) {
             self::set_notice($result->get_error_message(), true);
         } else {
-            self::set_notice(__('License 操作成功。', 'moonlight-user-center'));
+            self::set_notice(__('License 操作成功。', 'moonlight-shop'));
         }
         wp_safe_redirect($redirect);
         exit;

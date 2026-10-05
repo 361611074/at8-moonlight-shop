@@ -67,21 +67,21 @@ class MLUC_Menu
         wp_nonce_field(self::NONCE_ACTION, self::NONCE_NAME, false);
         ?>
         <p class="field-mluc-visibility description description-wide">
-            <strong><?php esc_html_e('用户中心 · 显示条件', 'moonlight-user-center'); ?></strong><br>
+            <strong><?php esc_html_e('用户中心 · 显示条件', 'moonlight-shop'); ?></strong><br>
             <label style="margin-right:12px;">
                 <input type="radio" name="mluc-menu-visibility[<?php echo (int) $item_id; ?>]" value="" <?php checked('', $vis); ?>>
-                <?php esc_html_e('始终显示', 'moonlight-user-center'); ?>
+                <?php esc_html_e('始终显示', 'moonlight-shop'); ?>
             </label>
             <label style="margin-right:12px;">
                 <input type="radio" name="mluc-menu-visibility[<?php echo (int) $item_id; ?>]" value="logged_in" <?php checked('logged_in', $vis); ?>>
-                <?php esc_html_e('仅登录用户', 'moonlight-user-center'); ?>
+                <?php esc_html_e('仅登录用户', 'moonlight-shop'); ?>
             </label>
             <label>
                 <input type="radio" name="mluc-menu-visibility[<?php echo (int) $item_id; ?>]" value="logged_out" <?php checked('logged_out', $vis); ?>>
-                <?php esc_html_e('仅未登录访客', 'moonlight-user-center'); ?>
+                <?php esc_html_e('仅未登录访客', 'moonlight-shop'); ?>
             </label>
             <br>
-            <span class="description"><?php esc_html_e('注意：父项被隐藏时其整组子菜单一并隐藏。魔法链接：#mluc-login / #mluc-register / #mluc-account / #mluc-lostpassword / #mluc-logout（自定义链接 URL 填此占位符，前台自动替换为真实地址）', 'moonlight-user-center'); ?></span>
+            <span class="description"><?php esc_html_e('注意：父项被隐藏时其整组子菜单一并隐藏。魔法链接：#mluc-login / #mluc-register / #mluc-account / #mluc-lostpassword / #mluc-logout（自定义链接 URL 填此占位符，前台自动替换为真实地址）', 'moonlight-shop'); ?></span>
         </p>
         <?php
     }

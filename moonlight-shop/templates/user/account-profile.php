@@ -20,10 +20,10 @@ $library       = $enable_avatar ? MLUC_Avatar::get_library() : array();
 <div class="mluc-profile">
 
     <?php if ($enable_avatar) : ?>
-        <section class="mluc-card" aria-label="<?php esc_attr_e('头像选择', 'moonlight-user-center'); ?>">
-            <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_avatar_title', __('Avatar', 'moonlight-user-center'))); ?></h3>
+        <section class="mluc-card" aria-label="<?php esc_attr_e('头像选择', 'moonlight-shop'); ?>">
+            <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_avatar_title', __('Avatar', 'moonlight-shop'))); ?></h3>
             <p class="mluc-card-subtitle">
-                <?php echo esc_html(mluc_ui_label('pf_avatar_sub', __('Choose one from the avatar library below; avatars are maintained by the administrator.', 'moonlight-user-center'))); ?>
+                <?php echo esc_html(mluc_ui_label('pf_avatar_sub', __('Choose one from the avatar library below; avatars are maintained by the administrator.', 'moonlight-shop'))); ?>
             </p>
 
             <div class="mluc-profile-avatar">
@@ -31,9 +31,9 @@ $library       = $enable_avatar ? MLUC_Avatar::get_library() : array();
                     <img class="mluc-avatar mluc-avatar-lg" id="mluc_avatar_preview" src="<?php echo esc_url($avatar); ?>" alt="<?php echo esc_attr($user->display_name); ?>">
                 </div>
                 <div class="mluc-profile-avatar__meta">
-                    <h3><?php echo esc_html(mluc_ui_label('pf_avatar_current', __('Current Avatar', 'moonlight-user-center'))); ?></h3>
+                    <h3><?php echo esc_html(mluc_ui_label('pf_avatar_current', __('Current Avatar', 'moonlight-shop'))); ?></h3>
                     <p class="description">
-                        <?php echo esc_html(mluc_ui_label('pf_avatar_tip', __('Click any avatar below to switch instantly, no save needed.', 'moonlight-user-center'))); ?>
+                        <?php echo esc_html(mluc_ui_label('pf_avatar_tip', __('Click any avatar below to switch instantly, no save needed.', 'moonlight-shop'))); ?>
                     </p>
                     <p class="mluc-profile-avatar__msg" id="mluc_avatar_msg" role="status" aria-live="polite"></p>
                 </div>
@@ -41,10 +41,10 @@ $library       = $enable_avatar ? MLUC_Avatar::get_library() : array();
 
             <?php if (empty($library)) : ?>
                 <div class="mluc-empty">
-                    <?php echo esc_html(mluc_ui_label('pf_avatar_empty', __('No avatars have been uploaded yet. Please contact the administrator.', 'moonlight-user-center'))); ?>
+                    <?php echo esc_html(mluc_ui_label('pf_avatar_empty', __('No avatars have been uploaded yet. Please contact the administrator.', 'moonlight-shop'))); ?>
                 </div>
             <?php else : ?>
-                <div class="mluc-avatar-picker" role="radiogroup" aria-label="<?php esc_attr_e('选择头像', 'moonlight-user-center'); ?>">
+                <div class="mluc-avatar-picker" role="radiogroup" aria-label="<?php esc_attr_e('选择头像', 'moonlight-shop'); ?>">
                     <?php foreach ($library as $item) :
                         $is_selected = ((int) $item['thumb'] === $selected_id);
                         ?>
@@ -69,61 +69,61 @@ $library       = $enable_avatar ? MLUC_Avatar::get_library() : array();
         </section>
     <?php endif; ?>
 
-    <section class="mluc-card" aria-label="<?php esc_attr_e('基础资料', 'moonlight-user-center'); ?>">
-        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_base_title', __('Basic Information', 'moonlight-user-center'))); ?></h3>
+    <section class="mluc-card" aria-label="<?php esc_attr_e('基础资料', 'moonlight-shop'); ?>">
+        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_base_title', __('Basic Information', 'moonlight-shop'))); ?></h3>
         <p class="mluc-card-subtitle">
-            <?php echo esc_html(mluc_ui_label('pf_base_sub', __('This information appears on your public profile and article bylines.', 'moonlight-user-center'))); ?>
+            <?php echo esc_html(mluc_ui_label('pf_base_sub', __('This information appears on your public profile and article bylines.', 'moonlight-shop'))); ?>
         </p>
 
         <form class="mluc-form" data-action="update_profile" novalidate>
             <p class="mluc-msg" role="alert"></p>
             <div class="mluc-field">
-                <label for="mluc_email"><?php echo esc_html(mluc_ui_label('pf_email', __('Email', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_email"><?php echo esc_html(mluc_ui_label('pf_email', __('Email', 'moonlight-shop'))); ?></label>
                 <input type="email" id="mluc_email" name="user_email" value="<?php echo esc_attr($user->user_email); ?>" disabled>
-                <p class="description"><?php echo esc_html(mluc_ui_label('pf_email_sub', __('To change your email, please contact the administrator.', 'moonlight-user-center'))); ?></p>
+                <p class="description"><?php echo esc_html(mluc_ui_label('pf_email_sub', __('To change your email, please contact the administrator.', 'moonlight-shop'))); ?></p>
             </div>
             <div class="mluc-field">
-                <label for="mluc_display_name"><?php echo esc_html(mluc_ui_label('pf_display', __('Display Name', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_display_name"><?php echo esc_html(mluc_ui_label('pf_display', __('Display Name', 'moonlight-shop'))); ?></label>
                 <input type="text" id="mluc_display_name" name="display_name" value="<?php echo esc_attr($user->display_name); ?>" required>
             </div>
             <div class="mluc-field">
-                <label for="mluc_nickname"><?php echo esc_html(mluc_ui_label('pf_nickname', __('Nickname', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_nickname"><?php echo esc_html(mluc_ui_label('pf_nickname', __('Nickname', 'moonlight-shop'))); ?></label>
                 <input type="text" id="mluc_nickname" name="nickname" value="<?php echo esc_attr($user->nickname); ?>">
             </div>
             <div class="mluc-field">
-                <label for="mluc_phone"><?php echo esc_html(mluc_ui_label('pf_phone', __('Phone', 'moonlight-user-center'))); ?></label>
-                <input type="tel" id="mluc_phone" name="phone" value="<?php echo esc_attr(get_user_meta($user->ID, 'phone', true)); ?>" placeholder="<?php echo esc_attr(mluc_ui_label('pf_phone_ph', __('e.g. 9123 4567', 'moonlight-user-center'))); ?>">
+                <label for="mluc_phone"><?php echo esc_html(mluc_ui_label('pf_phone', __('Phone', 'moonlight-shop'))); ?></label>
+                <input type="tel" id="mluc_phone" name="phone" value="<?php echo esc_attr(get_user_meta($user->ID, 'phone', true)); ?>" placeholder="<?php echo esc_attr(mluc_ui_label('pf_phone_ph', __('e.g. 9123 4567', 'moonlight-shop'))); ?>">
             </div>
             <div class="mluc-field">
-                <label for="mluc_url"><?php echo esc_html(mluc_ui_label('pf_url', __('Website', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_url"><?php echo esc_html(mluc_ui_label('pf_url', __('Website', 'moonlight-shop'))); ?></label>
                 <input type="url" id="mluc_url" name="user_url" value="<?php echo esc_attr($user->user_url); ?>">
             </div>
             <div class="mluc-field">
-                <label for="mluc_desc"><?php echo esc_html(mluc_ui_label('pf_bio', __('Bio', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_desc"><?php echo esc_html(mluc_ui_label('pf_bio', __('Bio', 'moonlight-shop'))); ?></label>
                 <textarea id="mluc_desc" name="description" rows="4"><?php echo esc_textarea($user->description); ?></textarea>
             </div>
-            <button type="submit" class="mluc-btn"><?php echo esc_html(mluc_ui_label('pf_save', __('Save Changes', 'moonlight-user-center'))); ?></button>
+            <button type="submit" class="mluc-btn"><?php echo esc_html(mluc_ui_label('pf_save', __('Save Changes', 'moonlight-shop'))); ?></button>
         </form>
     </section>
 
-    <section class="mluc-card" aria-label="<?php esc_attr_e('修改密码', 'moonlight-user-center'); ?>">
-        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_pass_title', __('Change Password', 'moonlight-user-center'))); ?></h3>
+    <section class="mluc-card" aria-label="<?php esc_attr_e('修改密码', 'moonlight-shop'); ?>">
+        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('pf_pass_title', __('Change Password', 'moonlight-shop'))); ?></h3>
         <p class="mluc-card-subtitle">
-            <?php echo esc_html(mluc_ui_label('pf_pass_sub', __('For account security, change your password regularly. You will need to log in again after changing it.', 'moonlight-user-center'))); ?>
+            <?php echo esc_html(mluc_ui_label('pf_pass_sub', __('For account security, change your password regularly. You will need to log in again after changing it.', 'moonlight-shop'))); ?>
         </p>
 
         <form class="mluc-form mluc-password-form" data-action="change_password" novalidate>
             <p class="mluc-msg" role="alert"></p>
             <div class="mluc-field">
-                <label for="mluc_old_pass"><?php echo esc_html(mluc_ui_label('pf_old_pass', __('Current Password', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_old_pass"><?php echo esc_html(mluc_ui_label('pf_old_pass', __('Current Password', 'moonlight-shop'))); ?></label>
                 <input type="password" id="mluc_old_pass" name="old_password" autocomplete="current-password" required>
             </div>
             <div class="mluc-field">
-                <label for="mluc_new_pass"><?php echo esc_html(mluc_ui_label('pf_new_pass', __('New Password', 'moonlight-user-center'))); ?></label>
+                <label for="mluc_new_pass"><?php echo esc_html(mluc_ui_label('pf_new_pass', __('New Password', 'moonlight-shop'))); ?></label>
                 <input type="password" id="mluc_new_pass" name="new_password" autocomplete="new-password" required>
-                <p class="description"><?php echo esc_html(mluc_ui_label('pf_new_pass_sub', __('At least 6 characters.', 'moonlight-user-center'))); ?></p>
+                <p class="description"><?php echo esc_html(mluc_ui_label('pf_new_pass_sub', __('At least 6 characters.', 'moonlight-shop'))); ?></p>
             </div>
-            <button type="submit" class="mluc-btn"><?php echo esc_html(mluc_ui_label('pf_pass_save', __('Update Password', 'moonlight-user-center'))); ?></button>
+            <button type="submit" class="mluc-btn"><?php echo esc_html(mluc_ui_label('pf_pass_save', __('Update Password', 'moonlight-shop'))); ?></button>
         </form>
     </section>
 </div>

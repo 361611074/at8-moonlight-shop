@@ -165,7 +165,7 @@ class MLUC_Membership
         }
         foreach ($levels as $k => $lv) {
             if (!empty($lv['description']) && isset($factory_desc[(string) $lv['description']])) {
-                $levels[$k]['description'] = __($lv['description'], 'moonlight-user-center');
+                $levels[$k]['description'] = __($lv['description'], 'moonlight-shop');
             }
         }
         }
@@ -412,14 +412,14 @@ class MLUC_Membership
         $expires_value = $current_expires ? wp_date('Y-m-d', (int) $current_expires) : '';
         $expires_never = !$current_expires ? ' checked="checked"' : '';
         ?>
-        <h2 id="mluc-membership"><?php echo esc_html__('会员等级', 'moonlight-user-center'); ?></h2>
+        <h2 id="mluc-membership"><?php echo esc_html__('会员等级', 'moonlight-shop'); ?></h2>
         <table class="form-table" role="presentation">
             <tr>
-                <th><label for="mluc_membership_level"><?php echo esc_html__('等级', 'moonlight-user-center'); ?></label></th>
+                <th><label for="mluc_membership_level"><?php echo esc_html__('等级', 'moonlight-shop'); ?></label></th>
                 <td>
                     <select name="mluc_membership_level" id="mluc_membership_level">
                         <?php if (!self::free_enabled()) : ?>
-                            <option value=""<?php selected($current_level, ''); ?>><?php esc_html_e('（無會員等級）', 'moonlight-user-center'); ?></option>
+                            <option value=""<?php selected($current_level, ''); ?>><?php esc_html_e('（無會員等級）', 'moonlight-shop'); ?></option>
                         <?php endif; ?>
                         <?php foreach (self::get_levels() as $key => $lv) : ?>
                             <option value="<?php echo esc_attr($key); ?>"<?php selected($current_level, $key); ?>>
@@ -427,18 +427,18 @@ class MLUC_Membership
                             </option>
                         <?php endforeach; ?>
                     </select>
-                    <p class="description"><?php echo esc_html__('可选等级由后台「会员等级定义」配置。', 'moonlight-user-center'); ?></p>
+                    <p class="description"><?php echo esc_html__('可选等级由后台「会员等级定义」配置。', 'moonlight-shop'); ?></p>
                 </td>
             </tr>
             <tr>
-                <th><label for="mluc_membership_expires_date"><?php echo esc_html__('到期日', 'moonlight-user-center'); ?></label></th>
+                <th><label for="mluc_membership_expires_date"><?php echo esc_html__('到期日', 'moonlight-shop'); ?></label></th>
                 <td>
                     <input type="date" name="mluc_membership_expires_date" id="mluc_membership_expires_date" value="<?php echo esc_attr($expires_value); ?>" />
                     <label style="margin-left:1em;">
                         <input type="checkbox" name="mluc_membership_expires_never" value="1"<?php echo $expires_never; ?> />
-                        <?php echo esc_html__('永不过期', 'moonlight-user-center'); ?>
+                        <?php echo esc_html__('永不过期', 'moonlight-shop'); ?>
                     </label>
-                    <p class="description"><?php echo esc_html__('勾选「永不过期」时忽略日期；不勾选则到期时间为该日 23:59（站点时区）。', 'moonlight-user-center'); ?></p>
+                    <p class="description"><?php echo esc_html__('勾选「永不过期」时忽略日期；不勾选则到期时间为该日 23:59（站点时区）。', 'moonlight-shop'); ?></p>
                 </td>
             </tr>
         </table>

@@ -701,6 +701,7 @@ class MLSHOP_License_Bridge
                         <input type="password" id="mlshop_at8lic_secret" name="<?php echo esc_attr(self::OPT_SECRET); ?>"
                                value="" class="regular-text" autocomplete="new-password">
                         <p class="description">
+                            /* translators: %s: 值 */
                             <?php echo esc_html(sprintf(__('已保存（%s）。留空表示不修改；如需更换请输入新值。', 'moonlight-shop'), mlshop_mask_secret($secret))); ?>
                         </p>
                     </td>

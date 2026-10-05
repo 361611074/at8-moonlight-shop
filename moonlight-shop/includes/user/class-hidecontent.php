@@ -246,17 +246,17 @@ class MLUC_Hidecontent
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($login_url),
-                    esc_html__('Log In', 'moonlight-user-center')
+                    esc_html__('Log In', 'moonlight-shop')
                 );
-                $tip = esc_html__('Log in to view the content below.', 'moonlight-user-center');
+                $tip = esc_html__('Log in to view the content below.', 'moonlight-shop');
                 break;
             case 'vip1':
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($account_url . '?tab=membership'),
-                    esc_html__('Upgrade Membership', 'moonlight-user-center')
+                    esc_html__('Upgrade Membership', 'moonlight-shop')
                 );
-                $tip = esc_html__('This content is for Monthly members and above.', 'moonlight-user-center');
+                $tip = esc_html__('This content is for Monthly members and above.', 'moonlight-shop');
                 break;
             case 'payshow':
                 // 若当前文章启用了付费墙（商城单引擎，含旧 _mluc_pw_* 兼容读取），跳到该文章触发解锁；否则跳会员购买
@@ -269,17 +269,17 @@ class MLUC_Hidecontent
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s">%s</a>',
                     esc_url($target),
-                    esc_html__('Buy Now', 'moonlight-user-center')
+                    esc_html__('Buy Now', 'moonlight-shop')
                 );
-                $tip = esc_html__('Purchase to view the content below.', 'moonlight-user-center');
+                $tip = esc_html__('Purchase to view the content below.', 'moonlight-shop');
                 break;
             case 'reply':
                 $action = sprintf(
                     '<a class="mluc-hc-btn" href="%s#respond">%s</a>',
                     esc_url(is_singular() ? get_permalink() : home_url('/')),
-                    esc_html__('Post a Comment', 'moonlight-user-center')
+                    esc_html__('Post a Comment', 'moonlight-shop')
                 );
-                $tip = esc_html__('Your comment must be approved before the content is revealed.', 'moonlight-user-center');
+                $tip = esc_html__('Your comment must be approved before the content is revealed.', 'moonlight-shop');
                 break;
             default:
                 $action = '';

@@ -49,6 +49,7 @@ class MLSHOP_Gateway_Balance extends MLSHOP_Gateway
             $balance = (float) get_user_meta($user_id, '_mlshop_balance', true);
             return array(
                 'success' => false,
+                /* translators: %s: 值 */
                 'message' => sprintf(__('余额不足，当前余额 %s。', 'moonlight-shop'), mlshop_format_price($balance)),
             );
         }

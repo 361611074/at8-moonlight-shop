@@ -275,7 +275,7 @@ class Moonlight_Migrations
         $post_id = (int) get_post_meta($old_id, '_mluc_pay_post', true);
 
         $new_id = wp_insert_post(array(
-            'post_title'  => 'ML-M-' . date('Ymd', strtotime($old->post_date)) . '-' . wp_generate_password(5, false, false),
+            'post_title'  => 'ML-M-' . wp_date('Ymd', strtotime($old->post_date)) . '-' . wp_generate_password(5, false, false),
             'post_type'   => 'mlshop_order',
             'post_status' => 'mlshop_' . $status,
             'post_author' => $uid,
@@ -289,6 +289,7 @@ class Moonlight_Migrations
         if ($post_id) {
             $items[] = array('id' => $post_id, 'qty' => 1, 'price' => $price, 'title' => get_the_title($post_id));
         } elseif ($level) {
+            /* translators: %s: 值 */
             $items[] = array('title' => sprintf(__('会员升级：%s', 'moonlight-shop'), $level), 'qty' => 1, 'subtotal' => $price);
         }
 
@@ -348,7 +349,7 @@ class Moonlight_Migrations
                 $complete = true;
                 $imported = 0;
                 if (!empty($lines)) {
-                    $res = static::import_cardkeys($pid, $lines, '迁移 ' . date('Ymd-His'));
+                    $res = static::import_cardkeys($pid, $lines, '迁移 ' . wp_date('Ymd-His'));
                     if (is_array($res) && (int) $res['batch_id'] > 0
                         && ((int) $res['imported'] + (int) $res['duplicates']) === count($lines)) {
                         $imported = (int) $res['imported'];
@@ -441,6 +442,6 @@ class Moonlight_Migrations
      */
     public static function generate_order_no()
     {
-        return 'ML' . date('Ymd') . strtoupper(bin2hex(random_bytes(4)));
+        return 'ML' . wp_date('Ymd') . strtoupper(bin2hex(random_bytes(4)));
     }
 }

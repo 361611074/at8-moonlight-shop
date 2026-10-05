@@ -107,6 +107,7 @@ $archive_link     = get_post_type_archive_link('mlshop_product');
                         <button type="button" class="mlshop-gallery-arrow mlshop-gallery-next" aria-label="<?php echo esc_attr__('下一张', 'moonlight-shop'); ?>">›</button>
                         <div class="mlshop-gallery-dots">
                             <?php foreach ($gallery_full as $i => $u) : ?>
+                                /* translators: %d: 数量 */
                                 <button type="button" class="mlshop-gallery-dot<?php echo $i === 0 ? ' is-active' : ''; ?>" data-index="<?php echo (int) $i; ?>" aria-label="<?php echo esc_attr(sprintf(__('第 %d 张', 'moonlight-shop'), $i + 1)); ?>"></button>
                             <?php endforeach; ?>
                         </div>

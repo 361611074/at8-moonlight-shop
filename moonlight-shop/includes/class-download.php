@@ -164,6 +164,7 @@ class MLSHOP_Download
         $used = isset($data['used']) ? (int) $data['used'] : 0;
         if ($max > 0 && $used >= $max) {
             wp_die(
+                /* translators: %d: 数量 */
                 sprintf(__('下载次数已达上限（%d 次）。如需重新获取请联系站长。', 'moonlight-shop'), $max),
                 '',
                 array('response' => 403)
@@ -234,6 +235,7 @@ class MLSHOP_Download
                 $info = get_transient('mlshop_dl_' . $d['token']);
                 if (is_array($info) && (int) $info['max'] > 0) {
                     $left = max(0, (int) $info['max'] - (int) $info['used']);
+                    /* translators: %d: 数量 */
                     echo ' <small class="description">(' . esc_html(sprintf(__('剩余 %d 次', 'moonlight-shop'), $left)) . ')</small>';
                 }
                 echo ' <a class="mlshop-btn" href="' . esc_url($url) . '">' . esc_html__('下载', 'moonlight-shop') . '</a>';

@@ -201,6 +201,7 @@ class MLSHOP_Credit_UI
         if (!add_post_meta($order_id, '_mlshop_recharge_granted', current_time('mysql'), true)) {
             return;
         }
+        /* translators: %s: 值 */
         MLSHOP_Credit::add($user_id, $credit, sprintf(__('充值到账（订单 #%s）', 'moonlight-shop'), $order_id));
     }
 
@@ -228,9 +229,11 @@ class MLSHOP_Credit_UI
         $balance     = MLSHOP_Credit::get_balance($user->ID);
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
         ?>
+        /* translators: %s: 值 */
         <h2><?php echo esc_html(sprintf(__('%s 管理', 'moonlight-shop'), $credit_name)); ?></h2>
         <table class="form-table">
             <tr>
+                /* translators: %s: 值 */
                 <th><?php echo esc_html(sprintf(__('当前%s余额', 'moonlight-shop'), $credit_name)); ?></th>
                 <td><strong><?php echo esc_html($balance); ?></strong></td>
             </tr>
@@ -290,17 +293,20 @@ class MLSHOP_Credit_UI
         }
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
         if ('deduct' === $dir) {
+            /* translators: %1$$s: 值, %2$$s: 值 */
             $remaining = MLSHOP_Credit::spend($user_id, $amount, sprintf(__('管理员扣减：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
             // 审计 L2：扣减失败（余额不足）必须让管理员看见，不能静默丢弃
             if (false === $remaining) {
                 set_transient(
                     'mlshop_credit_adjust_notice_' . get_current_user_id(),
+                    /* translators: %1$$s: 值, %2$$s: 值 */
                     array('success' => false, 'message' => sprintf(__('扣减失败：该用户%1$s余额不足 %2$s，未做任何调整。', 'moonlight-shop'), $credit_name, $amount)),
                     60
                 );
                 return false;
             }
         } else {
+            /* translators: %1$$s: 值, %2$$s: 值 */
             MLSHOP_Credit::add($user_id, $amount, sprintf(__('管理员增加：%1$s（by %2$s）', 'moonlight-shop'), $note, wp_get_current_user()->user_login));
         }
         return true;

@@ -27,6 +27,7 @@ if (!defined('ABSPATH')) {
                 <div class="mlshop-membership-name" style="color:<?php echo esc_attr($color); ?>"><?php echo esc_html($lv['label']); ?></div>
                 <div class="mlshop-membership-price"><?php echo esc_html($symbol . number_format($price, 2)); ?></div>
                 <div class="mlshop-membership-validity">
+                    /* translators: %d: 数量 */
                     <?php echo $validity > 0 ? sprintf(esc_html__('有效期 %d 天', 'moonlight-shop'), $validity) : esc_html__('永久有效', 'moonlight-shop'); ?>
                 </div>
                 <div class="mlshop-membership-actions">

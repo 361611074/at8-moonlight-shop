@@ -41,8 +41,8 @@ class MLUC_Migration_Status
             : 'mluc-settings';
         add_submenu_page(
             $parent,
-            __('迁移状态', 'moonlight-user-center'),
-            __('迁移状态', 'moonlight-user-center'),
+            __('迁移状态', 'moonlight-shop'),
+            __('迁移状态', 'moonlight-shop'),
             'manage_options',
             'mluc-migration-status',
             array($this, 'render_page')
@@ -120,17 +120,18 @@ class MLUC_Migration_Status
     {
         if ('skip' === $mode) {
             update_option('moonlight_consent_migrate_mluc', 'skip');
-            return array('ok' => true, 'message' => __('已跳过迁移。后续可在本页随时重新授权。', 'moonlight-user-center'));
+            return array('ok' => true, 'message' => __('已跳过迁移。后续可在本页随时重新授权。', 'moonlight-shop'));
         }
         if ('authorize' !== $mode) {
-            return array('ok' => false, 'message' => __('未知操作。', 'moonlight-user-center'));
+            return array('ok' => false, 'message' => __('未知操作。', 'moonlight-shop'));
         }
         update_option('moonlight_consent_migrate_mluc', 1);
         $result = Moonlight_Migrations::m3_migrate_mluc_orders();
         if (is_wp_error($result)) {
             return array(
                 'ok'      => false,
-                'message' => sprintf(__('迁移执行出错：%s（数据未受影响，可重试）', 'moonlight-user-center'), $result->get_error_message()),
+                /* translators: %s: 值 */
+                'message' => sprintf(__('迁移执行出错：%s（数据未受影响，可重试）', 'moonlight-shop'), $result->get_error_message()),
             );
         }
         $stats = get_option(Moonlight_Migrations::LOG_OPTION, array());
@@ -143,14 +144,15 @@ class MLUC_Migration_Status
         }
         return array(
             'ok'      => true,
-            'message' => $last ? sprintf(__('迁移已执行：%s。原订单保留未动。', 'moonlight-user-center'), $last) : __('迁移已执行。', 'moonlight-user-center'),
+            /* translators: %s: 值 */
+            'message' => $last ? sprintf(__('迁移已执行：%s。原订单保留未动。', 'moonlight-shop'), $last) : __('迁移已执行。', 'moonlight-shop'),
         );
     }
 
     public function handle_consent()
     {
         if (!current_user_can('manage_options') || !check_admin_referer('mluc_migration_consent')) {
-            wp_die(__('权限不足。', 'moonlight-user-center'), '', array('response' => 403));
+            wp_die(__('权限不足。', 'moonlight-shop'), '', array('response' => 403));
         }
         $result = self::apply_consent(isset($_POST['consent']) ? sanitize_key(wp_unslash($_POST['consent'])) : '');
         set_transient(
@@ -179,40 +181,40 @@ class MLUC_Migration_Status
     public function render_page()
     {
         if (!current_user_can('manage_options')) {
-            wp_die(__('权限不足。', 'moonlight-user-center'), '', array('response' => 403));
+            wp_die(__('权限不足。', 'moonlight-shop'), '', array('response' => 403));
         }
         $s = $this->stats();
         $consent_label = (1 === (int) $s['consent'])
-            ? __('已授权（迁移已执行/可重复执行）', 'moonlight-user-center')
-            : (('skip' === $s['consent']) ? __('已跳过', 'moonlight-user-center') : __('未授权', 'moonlight-user-center'));
+            ? __('已授权（迁移已执行/可重复执行）', 'moonlight-shop')
+            : (('skip' === $s['consent']) ? __('已跳过', 'moonlight-shop') : __('未授权', 'moonlight-shop'));
         $log = get_option(Moonlight_Migrations::LOG_OPTION, array());
         $log = array_slice(array_reverse(is_array($log) ? $log : array()), 0, 10);
         ?>
         <div class="wrap">
-            <h1><?php esc_html_e('迁移状态', 'moonlight-user-center'); ?></h1>
-            <p class="description"><?php esc_html_e('「用户中心」功能已并入 Moonlight Shop。此处核对旧数据并决定是否把旧会员订单复制为商城订单；迁移只复制不删除，原数据始终保留。', 'moonlight-user-center'); ?></p>
+            <h1><?php esc_html_e('迁移状态', 'moonlight-shop'); ?></h1>
+            <p class="description"><?php esc_html_e('「用户中心」功能已并入 Moonlight Shop。此处核对旧数据并决定是否把旧会员订单复制为商城订单；迁移只复制不删除，原数据始终保留。', 'moonlight-shop'); ?></p>
             <table class="widefat striped" style="max-width:640px;">
                 <tbody>
-                    <tr><th><?php esc_html_e('旧会员订单（mluc_order）', 'moonlight-user-center'); ?></th><td><?php echo esc_html((string) $s['legacy_orders']); ?></td></tr>
-                    <tr><th><?php esc_html_e('其中已复制为商城订单', 'moonlight-user-center'); ?></th><td><?php echo esc_html((string) $s['migrated_orders']); ?></td></tr>
-                    <tr><th><?php esc_html_e('会员用户数', 'moonlight-user-center'); ?></th><td><?php echo esc_html((string) $s['members']); ?></td></tr>
-                    <tr><th><?php esc_html_e('License 数', 'moonlight-user-center'); ?></th><td><?php echo esc_html((string) $s['licenses']); ?></td></tr>
-                    <tr><th><?php esc_html_e('旧配置（mluc_options）', 'moonlight-user-center'); ?></th><td><?php echo esc_html($s['has_options'] ? __('存在（会员等级/OAuth 等配置由商城直接沿用）', 'moonlight-user-center') : __('无', 'moonlight-user-center')); ?></td></tr>
-                    <tr><th><?php esc_html_e('迁移授权状态', 'moonlight-user-center'); ?></th><td><?php echo esc_html($consent_label); ?></td></tr>
+                    <tr><th><?php esc_html_e('旧会员订单（mluc_order）', 'moonlight-shop'); ?></th><td><?php echo esc_html((string) $s['legacy_orders']); ?></td></tr>
+                    <tr><th><?php esc_html_e('其中已复制为商城订单', 'moonlight-shop'); ?></th><td><?php echo esc_html((string) $s['migrated_orders']); ?></td></tr>
+                    <tr><th><?php esc_html_e('会员用户数', 'moonlight-shop'); ?></th><td><?php echo esc_html((string) $s['members']); ?></td></tr>
+                    <tr><th><?php esc_html_e('License 数', 'moonlight-shop'); ?></th><td><?php echo esc_html((string) $s['licenses']); ?></td></tr>
+                    <tr><th><?php esc_html_e('旧配置（mluc_options）', 'moonlight-shop'); ?></th><td><?php echo esc_html($s['has_options'] ? __('存在（会员等级/OAuth 等配置由商城直接沿用）', 'moonlight-shop') : __('无', 'moonlight-shop')); ?></td></tr>
+                    <tr><th><?php esc_html_e('迁移授权状态', 'moonlight-shop'); ?></th><td><?php echo esc_html($consent_label); ?></td></tr>
                 </tbody>
             </table>
             <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:12px;">
                 <?php wp_nonce_field('mluc_migration_consent'); ?>
                 <input type="hidden" name="action" value="mluc_migration_consent">
-                <button type="submit" name="consent" value="authorize" class="button button-primary"><?php esc_html_e('授权迁移（复制旧订单为商城订单）', 'moonlight-user-center'); ?></button>
-                <button type="submit" name="consent" value="skip" class="button"><?php esc_html_e('跳过迁移', 'moonlight-user-center'); ?></button>
+                <button type="submit" name="consent" value="authorize" class="button button-primary"><?php esc_html_e('授权迁移（复制旧订单为商城订单）', 'moonlight-shop'); ?></button>
+                <button type="submit" name="consent" value="skip" class="button"><?php esc_html_e('跳过迁移', 'moonlight-shop'); ?></button>
             </form>
 
-            <h2><?php esc_html_e('迁移日志（最近 10 条）', 'moonlight-user-center'); ?></h2>
+            <h2><?php esc_html_e('迁移日志（最近 10 条）', 'moonlight-shop'); ?></h2>
             <table class="widefat striped" style="max-width:640px;">
                 <tbody>
                 <?php if (empty($log)) : ?>
-                    <tr><td><?php esc_html_e('暂无记录。', 'moonlight-user-center'); ?></td></tr>
+                    <tr><td><?php esc_html_e('暂无记录。', 'moonlight-shop'); ?></td></tr>
                 <?php else : ?>
                     <?php foreach ($log as $entry) : ?>
                         <tr>

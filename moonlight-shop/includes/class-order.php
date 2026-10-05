@@ -491,7 +491,7 @@ class MLSHOP_Order
             $raw = sanitize_text_field(wp_unslash($_POST['mlshop_tracking_time']));
             // datetime-local: "2026-08-28T10:30" → 规范化为 "Y-m-d H:i:s" 存
             $ts = strtotime($raw);
-            $val = $ts ? date('Y-m-d H:i:s', $ts) : '';
+            $val = $ts ? wp_date('Y-m-d H:i:s', $ts) : '';
             update_post_meta($post_id, '_mlshop_tracking_time', $val);
         }
         if (isset($_POST['mlshop_tracking_remark'])) {
@@ -524,6 +524,7 @@ class MLSHOP_Order
                 set_transient('mlshop_admin_notice_' . get_current_user_id(), array(
                     'gateway' => 'SHIP',
                     'success' => true,
+                    /* translators: %1$$d: 数量, %2$$s: 值 */
                     'message' => sprintf(__('发货单 #%1$d 已创建（运单号 %2$s），订单已标记为已发货。', 'moonlight-shop'), (int) $res, $ship_no),
                 ), 60);
             }
@@ -564,6 +565,7 @@ class MLSHOP_Order
 
         if ($refunded > 0) {
             echo '<p>' . sprintf(
+                /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值, %4$$s: 值 */
                 esc_html__('已退款累计：%1$s %2$s / %3$s %4$s', 'moonlight-shop'),
                 esc_html($currency),
                 esc_html(number_format($refunded, 2)),
@@ -625,6 +627,7 @@ class MLSHOP_Order
         // ---- 退款操作表单（规则闸通过才显示；拒绝原因给管理员提示）----
         if (is_wp_error($gate)) {
             echo '<p class="description" style="margin-top:12px;">'
+                /* translators: %s: 值 */
                 . esc_html(sprintf(__('当前订单不可通过本表单退款：%s。如需协商退款，可使用上方「更新状态」改为已退款（仅标记，不调网关）。', 'moonlight-shop'), $gate->get_error_message()))
                 . '</p>';
             return;
@@ -641,7 +644,8 @@ class MLSHOP_Order
                 <label for="mlshop_refund_amount"><?php esc_html_e('退款金额', 'moonlight-shop'); ?></label>
                 <?php echo esc_html($currency); ?>
                 <input type="text" id="mlshop_refund_amount" name="refund_amount" class="small-text" placeholder="<?php echo esc_attr(number_format($total, 2)); ?>">
-                <span class="description"><?php echo esc_html(sprintf(__('留空 = 全额（%s %s）', 'moonlight-shop'), $currency, number_format($total, 2))); ?></span>
+                /* translators: %1$$s: 值, %2$$s: 值 */
+                <span class="description"><?php echo esc_html(sprintf(__('留空 = 全额（%1$s %2$s）', 'moonlight-shop'), $currency, number_format($total, 2))); ?></span>
             </p>
             <p>
                 <label for="mlshop_refund_reason"><?php esc_html_e('退款原因', 'moonlight-shop'); ?></label><br>
@@ -716,10 +720,13 @@ class MLSHOP_Order
         if (!$ts) return '';
         $diff = current_time('timestamp') - $ts;
         if ($diff < 60) return __('刚刚', 'moonlight-shop');
+        /* translators: %d: 数量 */
         if ($diff < 3600) return sprintf(__('%d 分钟前', 'moonlight-shop'), (int) ($diff / 60));
+        /* translators: %d: 数量 */
         if ($diff < 86400) return sprintf(__('%d 小时前', 'moonlight-shop'), (int) ($diff / 3600));
+        /* translators: %d: 数量 */
         if ($diff < 86400 * 30) return sprintf(__('%d 天前', 'moonlight-shop'), (int) ($diff / 86400));
-        return date('Y-m-d', $ts);
+        return wp_date('Y-m-d', $ts);
     }
 
     public static function register_post_type()
@@ -923,7 +930,8 @@ class MLSHOP_Order
                 $release_coupon();
                 return new WP_Error(
                     'stock',
-                    sprintf(__('「%s」库存不足，仅剩 %d 件。', 'moonlight-shop'), get_the_title($chk_pid), $chk_stock)
+                    /* translators: %1$$s: 值, %2$$d: 数量 */
+                    sprintf(__('「%1$s」库存不足，仅剩 %2$d 件。', 'moonlight-shop'), get_the_title($chk_pid), $chk_stock)
                 );
             }
         }
@@ -951,12 +959,13 @@ class MLSHOP_Order
             $release_coupon();
             return new WP_Error(
                 'stock',
-                sprintf(__('「%s」库存不足，仅剩 %d 件。', 'moonlight-shop'), get_the_title($pid), $stock - 1)
+                /* translators: %1$$s: 值, %2$$d: 数量 */
+                sprintf(__('「%1$s」库存不足，仅剩 %2$d 件。', 'moonlight-shop'), get_the_title($pid), $stock - 1)
             );
         }
 
         $order_id = wp_insert_post(array(
-            'post_title'  => 'MLS-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_title'  => 'MLS-' . wp_date('Ymd') . '-' . wp_generate_password(5, false, false),
             'post_type'   => 'mlshop_order',
             'post_status' => 'mlshop_pending',
             'post_author' => $user_id,
@@ -1031,7 +1040,7 @@ class MLSHOP_Order
 
         $title = get_the_title($post_id);
         $order_id = wp_insert_post(array(
-            'post_title'  => 'MLS-PW-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_title'  => 'MLS-PW-' . wp_date('Ymd') . '-' . wp_generate_password(5, false, false),
             'post_type'   => 'mlshop_order',
             'post_status' => 'mlshop_pending',
             'post_author' => $user_id,
@@ -1075,7 +1084,7 @@ class MLSHOP_Order
 
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
         $order_id = wp_insert_post(array(
-            'post_title'  => 'MLS-RC-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_title'  => 'MLS-RC-' . wp_date('Ymd') . '-' . wp_generate_password(5, false, false),
             'post_type'   => 'mlshop_order',
             'post_status' => 'mlshop_pending',
             'post_author' => $user_id,
@@ -1088,7 +1097,8 @@ class MLSHOP_Order
         update_post_meta($order_id, '_mlshop_type', 'recharge');
         update_post_meta($order_id, '_mlshop_credit_amount', $credit);
         update_post_meta($order_id, '_mlshop_items', array(
-            array('title' => sprintf(__('%s %s 充值', 'moonlight-shop'), $credit, $credit_name), 'qty' => 1, 'subtotal' => $price),
+            /* translators: %1$$s: 值, %2$$s: 值 */
+            array('title' => sprintf(__('%1$s %2$s 充值', 'moonlight-shop'), $credit, $credit_name), 'qty' => 1, 'subtotal' => $price),
         ));
         update_post_meta($order_id, '_mlshop_total', $price);
         update_post_meta($order_id, '_mlshop_gateway', $gateway_id);
@@ -1120,7 +1130,7 @@ class MLSHOP_Order
         }
         $label = class_exists('MLUC_Membership') ? MLUC_Membership::get_level_label($level) : $level;
         $order_id = wp_insert_post(array(
-            'post_title'  => 'MLS-MB-' . date('Ymd') . '-' . wp_generate_password(5, false, false),
+            'post_title'  => 'MLS-MB-' . wp_date('Ymd') . '-' . wp_generate_password(5, false, false),
             'post_type'   => 'mlshop_order',
             'post_status' => 'mlshop_pending',
             'post_author' => $user_id,
@@ -1132,6 +1142,7 @@ class MLSHOP_Order
         update_post_meta($order_id, '_mlshop_type', 'membership');
         update_post_meta($order_id, '_mlshop_membership_target', $level);
         update_post_meta($order_id, '_mlshop_items', array(
+            /* translators: %s: 值 */
             array('title' => sprintf(__('%s 升级', 'moonlight-shop'), $label), 'qty' => 1, 'subtotal' => $price),
         ));
         update_post_meta($order_id, '_mlshop_total', $price);
@@ -1226,7 +1237,8 @@ class MLSHOP_Order
         if (!self::can_transition($current, $new)) {
             return new WP_Error(
                 'invalid_transition',
-                sprintf(__('订单状态不允许从 %s 变更为 %s。', 'moonlight-shop'), $current, $new)
+                /* translators: %1$$s: 值, %2$$s: 值 */
+                sprintf(__('订单状态不允许从 %1$s 变更为 %2$s。', 'moonlight-shop'), $current, $new)
             );
         }
 
@@ -1407,6 +1419,7 @@ class MLSHOP_Order
             }
             return new WP_Error(
                 'mlshop_rehold_stock',
+                /* translators: %d: 数量 */
                 sprintf(__('商品 #%d 库存不足，无法重新打开订单。', 'moonlight-shop'), $pid)
             );
         }
@@ -1465,6 +1478,7 @@ class MLSHOP_Order
         if ($recharge_recall > 0) {
             // 修复：读取键与写入键一致（create_recharge 写入 _mlshop_credit_amount，
             // 此处曾误读 _mlshop_credit 导致充值退款永远收不回积分）。
+            /* translators: %d: 数量 */
             $remaining = MLSHOP_Credit::spend($uid, $recharge_recall, sprintf(__('订单 #%d 退款回收充值积分', 'moonlight-shop'), $order_id));
             if (false === $remaining) {
                 update_post_meta($order_id, '_mlshop_recharge_revoke_short', $recharge_recall);
@@ -1475,6 +1489,7 @@ class MLSHOP_Order
         // 与充值回收相互独立：充值订单没有 _mlshop_credit_spent，积分支付订单
         // 没有 _mlshop_recharge_granted，两条账目不会互相串扰。
         if ($credit_return > 0 && class_exists('MLSHOP_Credit')) {
+            /* translators: %d: 数量 */
             MLSHOP_Credit::add($uid, $credit_return, sprintf(__('订单 #%d 退款返还积分', 'moonlight-shop'), $order_id));
         }
     }

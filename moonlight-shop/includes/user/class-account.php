@@ -39,17 +39,17 @@ class MLUC_Account
     {
         $tabs = array(
             'overview'   => array(
-                'title'    => mluc_ui_label('tab_overview', __('Overview', 'moonlight-user-center')),
+                'title'    => mluc_ui_label('tab_overview', __('Overview', 'moonlight-shop')),
                 'icon'     => 'dashicons-dashboard',
                 'callback' => array($this, 'tab_overview'),
             ),
             'profile'    => array(
-                'title'    => mluc_ui_label('tab_profile', __('Profile', 'moonlight-user-center')),
+                'title'    => mluc_ui_label('tab_profile', __('Profile', 'moonlight-shop')),
                 'icon'     => 'dashicons-edit',
                 'callback' => array($this, 'tab_profile'),
             ),
             'membership' => array(
-                'title'    => mluc_ui_label('tab_membership', __('Membership Level', 'moonlight-user-center')),
+                'title'    => mluc_ui_label('tab_membership', __('Membership Level', 'moonlight-shop')),
                 'icon'     => 'dashicons-star-filled',
                 'callback' => array($this, 'tab_membership'),
             ),
@@ -62,8 +62,9 @@ class MLUC_Account
         if (!is_user_logged_in()) {
             return '<p class="mluc-message">' .
                 sprintf(
-                    mluc_ui_label('msg_account_login', __('Please %s to view the account center.', 'moonlight-user-center')),
-                    '<a href="' . esc_url(mluc_get_login_url()) . '">' . esc_html(mluc_ui_label('msg_login_link', __('log in', 'moonlight-user-center'))) . '</a>'
+                    /* translators: %s: 值 */
+                    mluc_ui_label('msg_account_login', __('Please %s to view the account center.', 'moonlight-shop')),
+                    '<a href="' . esc_url(mluc_get_login_url()) . '">' . esc_html(mluc_ui_label('msg_login_link', __('log in', 'moonlight-shop'))) . '</a>'
                 ) . '</p>';
         }
 
@@ -117,7 +118,7 @@ class MLUC_Account
             echo '<li' . $class . '><a href="' . $url . '">' . $icon_html . esc_html($tab['title']) . '</a></li>';
         }
         $logout_url = wp_nonce_url(add_query_arg('mluc_logout', '1', home_url()), 'mluc_logout');
-        echo '<li class="mluc-logout"><a href="' . esc_url($logout_url) . '"><span class="dashicons dashicons-migrate"></span>' . esc_html(mluc_ui_label('tab_logout', __('Log Out', 'moonlight-user-center'))) . '</a></li>';
+        echo '<li class="mluc-logout"><a href="' . esc_url($logout_url) . '"><span class="dashicons dashicons-migrate"></span>' . esc_html(mluc_ui_label('tab_logout', __('Log Out', 'moonlight-shop'))) . '</a></li>';
         echo '</ul></nav>';
     }
 
@@ -163,13 +164,13 @@ class MLUC_Account
         // 升级购买。双插件同装时由 moonlight-shop 提供商城升级流程；
         // 仅装用户中心时由 MLUC_Payments 提供独立购买与收款确认流程。
         if (class_exists('MLSHOP_Membership_UI') && method_exists('MLSHOP_Membership_UI', 'shortcode_upgrade')) {
-            echo '<section class="mluc-card mluc-membership-upgrade-card" aria-label="' . esc_attr(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-user-center'))) . '">';
-            echo '<h3 class="mluc-card-title">' . esc_html(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-user-center'))) . '</h3>';
+            echo '<section class="mluc-card mluc-membership-upgrade-card" aria-label="' . esc_attr(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-shop'))) . '">';
+            echo '<h3 class="mluc-card-title">' . esc_html(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-shop'))) . '</h3>';
             echo MLSHOP_Membership_UI::get_instance()->shortcode_upgrade();
             echo '</section>';
         } elseif (class_exists('MLUC_Payments')) {
-            echo '<section class="mluc-card mluc-membership-upgrade-card" aria-label="' . esc_attr(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-user-center'))) . '">';
-            echo '<h3 class="mluc-card-title">' . esc_html(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-user-center'))) . '</h3>';
+            echo '<section class="mluc-card mluc-membership-upgrade-card" aria-label="' . esc_attr(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-shop'))) . '">';
+            echo '<h3 class="mluc-card-title">' . esc_html(mluc_ui_label('mb_upgrade_title', __('Buy / Upgrade Membership', 'moonlight-shop'))) . '</h3>';
             do_action('mluc_membership_purchase');
             echo '</section>';
         }
@@ -182,7 +183,7 @@ class MLUC_Account
     {
         check_ajax_referer('mluc_nonce', 'nonce');
         if (!is_user_logged_in()) {
-            mluc_send_json(false, mluc_ui_label('msg_login_required', __('Please log in first.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_login_required', __('Please log in first.', 'moonlight-shop')));
         }
 
         $user_id      = get_current_user_id();
@@ -193,7 +194,7 @@ class MLUC_Account
         $phone        = sanitize_text_field(isset($_POST['phone']) ? $_POST['phone'] : '');
 
         if (empty($display_name)) {
-            mluc_send_json(false, mluc_ui_label('msg_nickname_empty', __('Nickname cannot be empty.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_nickname_empty', __('Nickname cannot be empty.', 'moonlight-shop')));
         }
 
         $args = array(
@@ -210,7 +211,7 @@ class MLUC_Account
 
         update_user_meta($user_id, 'phone', $phone);
         do_action('mluc_after_profile_update', $user_id, array('phone' => $phone));
-        mluc_send_json(true, mluc_ui_label('msg_profile_updated', __('Profile updated.', 'moonlight-user-center')));
+        mluc_send_json(true, mluc_ui_label('msg_profile_updated', __('Profile updated.', 'moonlight-shop')));
     }
 
     /**
@@ -220,26 +221,26 @@ class MLUC_Account
     {
         check_ajax_referer('mluc_nonce', 'nonce');
         if (!is_user_logged_in()) {
-            mluc_send_json(false, mluc_ui_label('msg_login_required', __('Please log in first.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_login_required', __('Please log in first.', 'moonlight-shop')));
         }
 
         $old = isset($_POST['old_password']) ? $_POST['old_password'] : '';
         $new = isset($_POST['new_password']) ? $_POST['new_password'] : '';
 
         if (empty($old) || empty($new)) {
-            mluc_send_json(false, mluc_ui_label('msg_pass_fields', __('Please enter your current and new password.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_pass_fields', __('Please enter your current and new password.', 'moonlight-shop')));
         }
         if (mb_strlen($new) < 6) {
-            mluc_send_json(false, mluc_ui_label('msg_pass_len', __('The new password must be at least 6 characters.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_pass_len', __('The new password must be at least 6 characters.', 'moonlight-shop')));
         }
 
         $user = wp_get_current_user();
         if (!wp_check_password($old, $user->user_pass, $user->ID)) {
-            mluc_send_json(false, mluc_ui_label('msg_pass_wrong', __('The current password is incorrect.', 'moonlight-user-center')));
+            mluc_send_json(false, mluc_ui_label('msg_pass_wrong', __('The current password is incorrect.', 'moonlight-shop')));
         }
 
         wp_set_password($new, $user->ID);
         wp_set_auth_cookie($user->ID, true);
-        mluc_send_json(true, mluc_ui_label('msg_pass_changed', __('Password changed. Please log in again.', 'moonlight-user-center')));
+        mluc_send_json(true, mluc_ui_label('msg_pass_changed', __('Password changed. Please log in again.', 'moonlight-shop')));
     }
 }

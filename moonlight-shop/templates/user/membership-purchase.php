@@ -22,11 +22,11 @@ if (!defined('ABSPATH')) {
 ?>
 <div class="mluc-buy">
     <?php if ('paid' === $pay_notice) : ?>
-        <p class="mluc-buy-notice mluc-buy-notice-ok"><?php echo esc_html(mluc_ui_label('buy_ok', __('Payment successful. Your membership has been activated.', 'moonlight-user-center'))); ?></p>
+        <p class="mluc-buy-notice mluc-buy-notice-ok"><?php echo esc_html(mluc_ui_label('buy_ok', __('Payment successful. Your membership has been activated.', 'moonlight-shop'))); ?></p>
     <?php elseif ('failed' === $pay_notice) : ?>
-        <p class="mluc-buy-notice mluc-buy-notice-err"><?php echo esc_html(mluc_ui_label('buy_failed', __('Payment was not completed or verification failed. Please try again or contact the administrator.', 'moonlight-user-center'))); ?></p>
+        <p class="mluc-buy-notice mluc-buy-notice-err"><?php echo esc_html(mluc_ui_label('buy_failed', __('Payment was not completed or verification failed. Please try again or contact the administrator.', 'moonlight-shop'))); ?></p>
     <?php elseif ('cancelled' === $pay_notice) : ?>
-        <p class="mluc-buy-notice"><?php echo esc_html(mluc_ui_label('buy_cancelled', __('Payment cancelled. The order remains pending.', 'moonlight-user-center'))); ?></p>
+        <p class="mluc-buy-notice"><?php echo esc_html(mluc_ui_label('buy_cancelled', __('Payment cancelled. The order remains pending.', 'moonlight-shop'))); ?></p>
     <?php endif; ?>
 
     <div class="mluc-buy-grid">
@@ -43,8 +43,9 @@ if (!defined('ABSPATH')) {
                 <div class="mluc-buy-price"><?php echo esc_html($symbol . number_format($price, 2)); ?></div>
                 <div class="mluc-buy-validity">
                     <?php echo $validity > 0
-                        ? sprintf(mluc_ui_label('buy_validity_days', __('Valid for %d days', 'moonlight-user-center')), $validity)
-                        : mluc_ui_label('permanent', __('Permanent', 'moonlight-user-center')); ?>
+                        /* translators: %d: 数量 */
+                        ? sprintf(mluc_ui_label('buy_validity_days', __('Valid for %d days', 'moonlight-shop')), $validity)
+                        : mluc_ui_label('permanent', __('Permanent', 'moonlight-shop')); ?>
                 </div>
                 <?php if ($price > 0) : ?>
                     <div class="mluc-buy-actions">
@@ -57,10 +58,10 @@ if (!defined('ABSPATH')) {
                                 </label>
                             <?php endforeach; ?>
                         <?php else : ?>
-                            <span class="mluc-buy-gw-empty"><?php echo esc_html(mluc_ui_label('buy_no_gateway', __('No payment method is available. Please contact the administrator.', 'moonlight-user-center'))); ?></span>
+                            <span class="mluc-buy-gw-empty"><?php echo esc_html(mluc_ui_label('buy_no_gateway', __('No payment method is available. Please contact the administrator.', 'moonlight-shop'))); ?></span>
                         <?php endif; ?>
                     </div>
-                    <button type="button" class="mluc-btn-buy" data-level="<?php echo esc_attr($key); ?>"<?php echo $gateways ? '' : ' disabled'; ?>><?php echo esc_html(mluc_ui_label('buy_btn', __('Buy', 'moonlight-user-center'))); ?></button>
+                    <button type="button" class="mluc-btn-buy" data-level="<?php echo esc_attr($key); ?>"<?php echo $gateways ? '' : ' disabled'; ?>><?php echo esc_html(mluc_ui_label('buy_btn', __('Buy', 'moonlight-shop'))); ?></button>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>
@@ -70,30 +71,30 @@ if (!defined('ABSPATH')) {
 
     <?php if (isset($gateways['manual'])) : ?>
         <div class="mluc-buy-instructions">
-            <strong><?php echo esc_html(mluc_ui_label('buy_instructions', __('Payment Instructions', 'moonlight-user-center'))); ?></strong>
+            <strong><?php echo esc_html(mluc_ui_label('buy_instructions', __('Payment Instructions', 'moonlight-shop'))); ?></strong>
             <p><?php echo esc_html($instructions); ?></p>
         </div>
     <?php endif; ?>
 
     <?php if (!empty($orders)) : ?>
         <div class="mluc-order-list">
-            <strong><?php echo esc_html(mluc_ui_label('buy_history', __('My Purchase History', 'moonlight-user-center'))); ?></strong>
+            <strong><?php echo esc_html(mluc_ui_label('buy_history', __('My Purchase History', 'moonlight-shop'))); ?></strong>
             <table class="mluc-table">
                 <thead>
                     <tr>
-                        <th><?php echo esc_html(mluc_ui_label('buy_th_order', __('Order', 'moonlight-user-center'))); ?></th>
-                        <th><?php echo esc_html(mluc_ui_label('th_level', __('Level', 'moonlight-user-center'))); ?></th>
-                        <th><?php echo esc_html(mluc_ui_label('buy_th_amount', __('Amount', 'moonlight-user-center'))); ?></th>
-                        <th><?php echo esc_html(mluc_ui_label('th_status', __('Status', 'moonlight-user-center'))); ?></th>
-                        <th><?php echo esc_html(mluc_ui_label('buy_th_date', __('Date', 'moonlight-user-center'))); ?></th>
+                        <th><?php echo esc_html(mluc_ui_label('buy_th_order', __('Order', 'moonlight-shop'))); ?></th>
+                        <th><?php echo esc_html(mluc_ui_label('th_level', __('Level', 'moonlight-shop'))); ?></th>
+                        <th><?php echo esc_html(mluc_ui_label('buy_th_amount', __('Amount', 'moonlight-shop'))); ?></th>
+                        <th><?php echo esc_html(mluc_ui_label('th_status', __('Status', 'moonlight-shop'))); ?></th>
+                        <th><?php echo esc_html(mluc_ui_label('buy_th_date', __('Date', 'moonlight-shop'))); ?></th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($orders as $o) :
                         $status_labels = array(
-                            'pending'   => mluc_ui_label('buy_st_pending', __('Pending', 'moonlight-user-center')),
-                            'paid'      => mluc_ui_label('buy_st_paid', __('Paid', 'moonlight-user-center')),
-                            'cancelled' => mluc_ui_label('buy_st_cancelled', __('Cancelled', 'moonlight-user-center')),
+                            'pending'   => mluc_ui_label('buy_st_pending', __('Pending', 'moonlight-shop')),
+                            'paid'      => mluc_ui_label('buy_st_paid', __('Paid', 'moonlight-shop')),
+                            'cancelled' => mluc_ui_label('buy_st_cancelled', __('Cancelled', 'moonlight-shop')),
                         );
                         $st = isset($status_labels[$o['status']]) ? $status_labels[$o['status']] : $o['status'];
                         ?>
@@ -134,7 +135,7 @@ if (!defined('ABSPATH')) {
 
     function mountPayPal(orderId) {
         if (!window.paypal || !ppMount) {
-            say('<?php echo esc_js(mluc_ui_label('buy_pp_load_fail', __('Failed to load PayPal. Please refresh the page and try again.', 'moonlight-user-center'))); ?>');
+            say('<?php echo esc_js(mluc_ui_label('buy_pp_load_fail', __('Failed to load PayPal. Please refresh the page and try again.', 'moonlight-shop'))); ?>');
             return;
         }
         ppOrder = orderId;
@@ -149,14 +150,14 @@ if (!defined('ABSPATH')) {
                 });
             },
             onApprove: function () {
-                say('<?php echo esc_js(mluc_ui_label('buy_pp_confirming', __('Confirming payment...', 'moonlight-user-center'))); ?>');
+                say('<?php echo esc_js(mluc_ui_label('buy_pp_confirming', __('Confirming payment...', 'moonlight-shop'))); ?>');
                 return post('mluc_paypal_capture', { order_id: orderId, pp_order_id: ppOrder }).then(function (res) {
                     say(res.message);
                     if (res.success) { setTimeout(function () { window.location.reload(); }, 1500); }
                 });
             },
             onError: function () {
-                say('<?php echo esc_js(mluc_ui_label('buy_pp_error', __('PayPal payment error. Please try again or contact the administrator.', 'moonlight-user-center'))); ?>');
+                say('<?php echo esc_js(mluc_ui_label('buy_pp_error', __('PayPal payment error. Please try again or contact the administrator.', 'moonlight-shop'))); ?>');
             }
         }).render(ppMount);
     }
@@ -175,7 +176,7 @@ if (!defined('ABSPATH')) {
                 if (!res.success) { say(res.message); return; }
                 var flow = res.data && res.data.flow;
                 if ('paypal' === flow) {
-                    say('<?php echo esc_js(mluc_ui_label('buy_pp_goto', __('Please complete the PayPal payment below.', 'moonlight-user-center'))); ?>');
+                    say('<?php echo esc_js(mluc_ui_label('buy_pp_goto', __('Please complete the PayPal payment below.', 'moonlight-shop'))); ?>');
                     mountPayPal(res.data.order_id);
                 } else if (res.data.redirect) {
                     window.location.href = res.data.redirect;
@@ -184,7 +185,7 @@ if (!defined('ABSPATH')) {
                 }
             })
             .catch(function () {
-                say('<?php echo esc_js(mluc_ui_label('buy_net_error', __('Network error. Please try again later.', 'moonlight-user-center'))); ?>');
+                say('<?php echo esc_js(mluc_ui_label('buy_net_error', __('Network error. Please try again later.', 'moonlight-shop'))); ?>');
             })
             .finally(function () { btn.disabled = false; });
     });

@@ -109,7 +109,7 @@ class MLUC_Video
                 auth_redirect();
                 exit;
             }
-            wp_die(esc_html__('權限不足，無法觀看此影片。', 'moonlight-user-center'), 403);
+            wp_die(esc_html__('權限不足，無法觀看此影片。', 'moonlight-shop'), 403);
         }
     }
 
@@ -117,11 +117,11 @@ class MLUC_Video
     {
         register_post_type(self::CPT, array(
             'labels' => array(
-                'name'          => __('示範影片', 'moonlight-user-center'),
-                'singular_name' => __('示範影片', 'moonlight-user-center'),
-                'add_new'       => __('新建影片', 'moonlight-user-center'),
-                'add_new_item'  => __('新增示範影片', 'moonlight-user-center'),
-                'edit_item'     => __('編輯示範影片', 'moonlight-user-center'),
+                'name'          => __('示範影片', 'moonlight-shop'),
+                'singular_name' => __('示範影片', 'moonlight-shop'),
+                'add_new'       => __('新建影片', 'moonlight-shop'),
+                'add_new_item'  => __('新增示範影片', 'moonlight-shop'),
+                'edit_item'     => __('編輯示範影片', 'moonlight-shop'),
             ),
             // 安全收敛：与教材同理（关闭 REST / 归档 / 搜索收录），
             // 保留单页链接供 [mluc_videos] 卡片跳转，
@@ -146,7 +146,7 @@ class MLUC_Video
     {
         add_meta_box(
             'mluc_video_meta',
-            __('影片設定', 'moonlight-user-center'),
+            __('影片設定', 'moonlight-shop'),
             array($this, 'render_metabox'),
             self::CPT,
             'normal',
@@ -166,11 +166,11 @@ class MLUC_Video
         $levels = class_exists('MLUC_Membership') ? MLUC_Membership::get_levels() : array();
         // 普通会员关闭时 free 不在等级表中，但作为「公开内容」标记仍需出现在下拉里
         if (!isset($levels['free'])) {
-            $levels = array('free' => array('label' => __('公開（免費）', 'moonlight-user-center'))) + $levels;
+            $levels = array('free' => array('label' => __('公開（免費）', 'moonlight-shop'))) + $levels;
         }
         ?>
         <p>
-            <label for="mluc_video_min_level"><strong><?php esc_html_e('最低訪問等級', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_video_min_level"><strong><?php esc_html_e('最低訪問等級', 'moonlight-shop'); ?></strong></label><br>
             <select name="mluc_video_min_level" id="mluc_video_min_level" style="width:100%;max-width:300px;">
                 <?php foreach ($levels as $key => $lv) : ?>
                     <option value="<?php echo esc_attr($key); ?>"<?php selected($level, $key); ?>>
@@ -180,11 +180,11 @@ class MLUC_Video
             </select>
         </p>
         <p>
-            <label for="mluc_video_embed"><strong><?php esc_html_e('嵌入 URL（YouTube / Vimeo / 直接 mp4）', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_video_embed"><strong><?php esc_html_e('嵌入 URL（YouTube / Vimeo / 直接 mp4）', 'moonlight-shop'); ?></strong></label><br>
             <input type="url" name="mluc_video_embed" id="mluc_video_embed" value="<?php echo esc_attr($embed); ?>" style="width:100%;" placeholder="https://www.youtube.com/watch?v=... 或 https://.../video.mp4">
         </p>
         <p>
-            <label for="mluc_video_thumb"><strong><?php esc_html_e('自訂縮圖網址（選填）', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_video_thumb"><strong><?php esc_html_e('自訂縮圖網址（選填）', 'moonlight-shop'); ?></strong></label><br>
             <input type="url" name="mluc_video_thumb" id="mluc_video_thumb" value="<?php echo esc_attr($thumb); ?>" style="width:100%;">
         </p>
         <?php
@@ -320,7 +320,7 @@ class MLUC_Video
             }
             wp_reset_postdata();
         } else {
-            echo '<p class="mluc-empty">' . esc_html__('暫無可觀看的示範影片。', 'moonlight-user-center') . '</p>';
+            echo '<p class="mluc-empty">' . esc_html__('暫無可觀看的示範影片。', 'moonlight-shop') . '</p>';
         }
         echo '</div>';
         return ob_get_clean();
@@ -360,7 +360,7 @@ class MLUC_Video
                     echo esc_html(
                         sprintf(
                             /* translators: %s: 等级名 */
-                            __('此影片需要 %s 會員等級，請升級以觀看。', 'moonlight-user-center'),
+                            __('此影片需要 %s 會員等級，請升級以觀看。', 'moonlight-shop'),
                             MLUC_Membership::get_level_label($min_level)
                         )
                     );

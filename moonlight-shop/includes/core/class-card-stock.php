@@ -151,7 +151,7 @@ class Moonlight_Card_Stock
 
         $batch_name = trim((string) $batch_name);
         if ('' === $batch_name) {
-            $batch_name = '导入 ' . date('Ymd-His');
+            $batch_name = '导入 ' . wp_date('Ymd-His');
         }
 
         $batch_id = wp_insert_post(array(
@@ -596,6 +596,7 @@ class Moonlight_Card_Stock
         $to      = get_option('admin_email');
         $subject = __('卡密库存预警', 'moonlight-shop');
         $body    = sprintf(
+            /* translators: %1$$s: 值, %2$$d: 数量 */
             __('商品「%1$s」卡密库存不足，仅剩 %2$d 条，请及时补充（进入后台 → 商城 → 卡密库存 导入新批次）。', 'moonlight-shop'),
             get_the_title($product_id),
             $available

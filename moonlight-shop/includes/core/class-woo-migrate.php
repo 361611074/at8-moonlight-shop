@@ -240,6 +240,7 @@ class Moonlight_Woo_Migrate
         $count = (int) wp_count_posts('product')->publish;
         ?>
         <p class="description">
+            /* translators: %d: 数量 */
             <?php echo esc_html(sprintf(__('一键将站内全部 WooCommerce 商品（当前 %d 个已发布）迁入月光商城：标题/内容/图片/分类/标签/价格/库存/SKU 自动映射；可重复执行，已迁入的商品更新而非重建。', 'moonlight-shop'), $count)); ?>
         </p>
         <p>

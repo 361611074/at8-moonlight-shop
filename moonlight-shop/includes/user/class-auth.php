@@ -87,7 +87,7 @@ class MLUC_Auth
             return $this->logged_in_notice();
         }
         if (!get_option('users_can_register')) {
-            return '<p class="mluc-message">' . esc_html__('当前站点已关闭注册。', 'moonlight-user-center') . '</p>';
+            return '<p class="mluc-message">' . esc_html__('当前站点已关闭注册。', 'moonlight-shop') . '</p>';
         }
         $view = isset($_GET['mluc_view']) ? sanitize_key($_GET['mluc_view']) : 'register';
         if ($view === 'login') {
@@ -116,9 +116,10 @@ class MLUC_Auth
     {
         return '<p class="mluc-message">' .
             sprintf(
-                esc_html__('您已登录，前往 %s 或 %s。', 'moonlight-user-center'),
-                '<a href="' . esc_url(mluc_get_account_url()) . '">' . esc_html__('账户中心', 'moonlight-user-center') . '</a>',
-                '<a href="' . esc_url(wp_logout_url(mluc_get_account_url())) . '">' . esc_html__('退出登录', 'moonlight-user-center') . '</a>'
+                /* translators: %1$$s: 值, %2$$s: 值 */
+                esc_html__('您已登录，前往 %1$s 或 %2$s。', 'moonlight-shop'),
+                '<a href="' . esc_url(mluc_get_account_url()) . '">' . esc_html__('账户中心', 'moonlight-shop') . '</a>',
+                '<a href="' . esc_url(wp_logout_url(mluc_get_account_url())) . '">' . esc_html__('退出登录', 'moonlight-shop') . '</a>'
             ) . '</p>';
     }
 
@@ -135,7 +136,7 @@ class MLUC_Auth
         $key = 'mluc_rl_' . md5($bucket . '|' . $ip);
         $hits = (int) get_transient($key);
         if ($hits >= $limit) {
-            mluc_send_json(false, __('尝试过于频繁，请稍后再试。', 'moonlight-user-center'));
+            mluc_send_json(false, __('尝试过于频繁，请稍后再试。', 'moonlight-shop'));
         }
         set_transient($key, $hits + 1, $window);
     }
@@ -153,7 +154,7 @@ class MLUC_Auth
         $remember   = !empty($_POST['remember']);
 
         if (empty($user_login) || empty($password)) {
-            mluc_send_json(false, __('请输入账号和密码。', 'moonlight-user-center'));
+            mluc_send_json(false, __('请输入账号和密码。', 'moonlight-shop'));
         }
 
         $creds = array(
@@ -168,7 +169,7 @@ class MLUC_Auth
             // 防用户名枚举：账号不存在与密码错误返回统一提示。
             $code = $user->get_error_code();
             if ('invalid_username' === $code || 'incorrect_password' === $code) {
-                mluc_send_json(false, __('Incorrect username or password.', 'moonlight-user-center'));
+                mluc_send_json(false, __('Incorrect username or password.', 'moonlight-shop'));
             }
             mluc_send_json(false, mluc_translate_wp_error($user));
         }
@@ -186,7 +187,7 @@ class MLUC_Auth
             $redirect = wp_validate_redirect($_POST['redirect_to'], $redirect);
         }
 
-        mluc_send_json(true, __('登录成功，正在跳转…', 'moonlight-user-center'), array('redirect' => $redirect));
+        mluc_send_json(true, __('登录成功，正在跳转…', 'moonlight-shop'), array('redirect' => $redirect));
     }
 
     /**
@@ -198,13 +199,13 @@ class MLUC_Auth
         $this->throttle('register', 5, HOUR_IN_SECONDS);
 
         if (!get_option('users_can_register')) {
-            mluc_send_json(false, __('当前站点已关闭注册。', 'moonlight-user-center'));
+            mluc_send_json(false, __('当前站点已关闭注册。', 'moonlight-shop'));
         }
 
         // 蜜罐字段：正常用户不可见不填写，机器人常全量填写。
         $hp = isset($_POST['mluc_hp']) ? trim((string) $_POST['mluc_hp']) : '';
         if ('' !== $hp) {
-            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-user-center'));
+            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-shop'));
         }
         // 一次性渲染令牌：注册页渲染时由服务端签发 transient，提交时校验即焚。
         // 既保证最短填写时间（≥3 秒），又防重放，且不依赖客户端时钟。
@@ -215,7 +216,7 @@ class MLUC_Auth
             delete_transient($tk_key);
         }
         if (false === $tk_time || (time() - (int) $tk_time) < 3) {
-            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-user-center'));
+            mluc_send_json(false, __('Registration failed. Please try again.', 'moonlight-shop'));
         }
 
         $user_login = sanitize_user(isset($_POST['user_login']) ? $_POST['user_login'] : '');
@@ -223,19 +224,19 @@ class MLUC_Auth
         $password   = isset($_POST['password']) ? $_POST['password'] : '';
 
         if (empty($user_login) || empty($email) || empty($password)) {
-            mluc_send_json(false, __('请填写用户名、邮箱和密码。', 'moonlight-user-center'));
+            mluc_send_json(false, __('请填写用户名、邮箱和密码。', 'moonlight-shop'));
         }
         if (!is_email($email)) {
-            mluc_send_json(false, __('邮箱格式不正确。', 'moonlight-user-center'));
+            mluc_send_json(false, __('邮箱格式不正确。', 'moonlight-shop'));
         }
         if (mb_strlen($password) < 6) {
-            mluc_send_json(false, __('密码至少 6 位。', 'moonlight-user-center'));
+            mluc_send_json(false, __('密码至少 6 位。', 'moonlight-shop'));
         }
         if (username_exists($user_login)) {
-            mluc_send_json(false, __('该用户名已被使用。', 'moonlight-user-center'));
+            mluc_send_json(false, __('该用户名已被使用。', 'moonlight-shop'));
         }
         if (email_exists($email)) {
-            mluc_send_json(false, __('该邮箱已被注册。', 'moonlight-user-center'));
+            mluc_send_json(false, __('该邮箱已被注册。', 'moonlight-shop'));
         }
 
         $user_id = wp_create_user($user_login, $password, $email);
@@ -250,7 +251,7 @@ class MLUC_Auth
         do_action('mluc_after_register', $user_id);
 
         $redirect = mluc_get_account_url();
-        mluc_send_json(true, __('注册成功，正在跳转…', 'moonlight-user-center'), array('redirect' => $redirect));
+        mluc_send_json(true, __('注册成功，正在跳转…', 'moonlight-shop'), array('redirect' => $redirect));
     }
 
     /**
@@ -263,7 +264,7 @@ class MLUC_Auth
 
         $user_login = isset($_POST['user_login']) ? trim($_POST['user_login']) : '';
         if (empty($user_login)) {
-            mluc_send_json(false, __('请输入用户名或邮箱。', 'moonlight-user-center'));
+            mluc_send_json(false, __('请输入用户名或邮箱。', 'moonlight-shop'));
         }
 
         $user = is_email($user_login)
@@ -272,23 +273,24 @@ class MLUC_Auth
 
         if (!$user) {
             // 出于安全不透露用户是否存在
-            mluc_send_json(true, __('如果该账户存在，重置链接已发送至邮箱。', 'moonlight-user-center'));
+            mluc_send_json(true, __('如果该账户存在，重置链接已发送至邮箱。', 'moonlight-shop'));
         }
 
         $reset_key = get_password_reset_key($user);
         if (is_wp_error($reset_key)) {
-            mluc_send_json(false, __('生成重置密钥失败，请稍后再试。', 'moonlight-user-center'));
+            mluc_send_json(false, __('生成重置密钥失败，请稍后再试。', 'moonlight-shop'));
         }
 
         $reset_url = network_site_url('wp-login.php?action=rp&key=' . rawurlencode($reset_key) . '&login=' . rawurlencode($user->user_login), 'login');
-        $message   = sprintf(__('亲爱的 %s：', 'moonlight-user-center'), $user->display_name) . "\r\n";
-        $message  .= __('我们收到您的找回密码请求，请点击以下链接重置密码：', 'moonlight-user-center') . "\r\n";
+        /* translators: %s: 值 */
+        $message   = sprintf(__('亲爱的 %s：', 'moonlight-shop'), $user->display_name) . "\r\n";
+        $message  .= __('我们收到您的找回密码请求，请点击以下链接重置密码：', 'moonlight-shop') . "\r\n";
         $message  .= $reset_url . "\r\n\r\n";
-        $message  .= __('若非本人操作，请忽略本邮件。', 'moonlight-user-center');
+        $message  .= __('若非本人操作，请忽略本邮件。', 'moonlight-shop');
 
-        wp_mail($user->user_email, __('【重置密码】', 'moonlight-user-center') . get_bloginfo('name'), $message);
+        wp_mail($user->user_email, __('【重置密码】', 'moonlight-shop') . get_bloginfo('name'), $message);
 
-        mluc_send_json(true, __('如果该账户存在，重置链接已发送至邮箱。', 'moonlight-user-center'));
+        mluc_send_json(true, __('如果该账户存在，重置链接已发送至邮箱。', 'moonlight-shop'));
     }
 
     /**
@@ -298,7 +300,7 @@ class MLUC_Auth
     {
         check_ajax_referer('mluc_nonce', 'nonce');
         wp_logout();
-        mluc_send_json(true, __('已退出登录。', 'moonlight-user-center'), array('redirect' => home_url()));
+        mluc_send_json(true, __('已退出登录。', 'moonlight-shop'), array('redirect' => home_url()));
     }
 
     /**
@@ -310,7 +312,7 @@ class MLUC_Auth
             return;
         }
         if (!isset($_GET['_wpnonce']) || !wp_verify_nonce($_GET['_wpnonce'], 'mluc_logout')) {
-            wp_die(__('安全校验失败。', 'moonlight-user-center'));
+            wp_die(__('安全校验失败。', 'moonlight-shop'));
         }
         wp_logout();
         wp_safe_redirect(home_url());
@@ -329,10 +331,10 @@ function mluc_translate_wp_error($wp_error)
     }
     $code = $wp_error->get_error_code();
     $map  = array(
-        'invalid_username' => __('用户名不存在。', 'moonlight-user-center'),
-        'incorrect_password' => __('密码错误。', 'moonlight-user-center'),
-        'empty_username'   => __('请输入用户名。', 'moonlight-user-center'),
-        'empty_password'   => __('请输入密码。', 'moonlight-user-center'),
+        'invalid_username' => __('用户名不存在。', 'moonlight-shop'),
+        'incorrect_password' => __('密码错误。', 'moonlight-shop'),
+        'empty_username'   => __('请输入用户名。', 'moonlight-shop'),
+        'empty_password'   => __('请输入密码。', 'moonlight-shop'),
     );
     return isset($map[$code]) ? $map[$code] : $wp_error->get_error_message();
 }

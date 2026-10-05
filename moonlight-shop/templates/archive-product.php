@@ -17,6 +17,7 @@ $search = get_search_query();
         <header class="mlshop-archive-header">
             <h1 class="mlshop-archive-title">
                 <?php if ($search) : ?>
+                    /* translators: %s: 值 */
                     <?php printf(esc_html__('商品搜索：%s', 'moonlight-shop'), esc_html($search)); ?>
                 <?php elseif ($term) : ?>
                     <?php echo esc_html($term->name); ?>
@@ -35,6 +36,7 @@ $search = get_search_query();
                     <?php
                     global $wp_query;
                     $total = $wp_query->found_posts;
+                    /* translators: %d: 数量 */
                     printf(esc_html__('共 %d 件商品', 'moonlight-shop'), (int) $total);
                     ?>
                 </span>

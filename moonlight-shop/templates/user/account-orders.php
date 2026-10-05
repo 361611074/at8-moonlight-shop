@@ -13,28 +13,28 @@ if (!defined('ABSPATH')) {
 
 $gateways = class_exists('MLUC_Payment_Manager') ? MLUC_Payment_Manager::get_instance()->get_all() : array();
 $status_labels = array(
-    'pending'   => mluc_ui_label('buy_st_pending', __('Pending', 'moonlight-user-center')),
-    'paid'      => mluc_ui_label('buy_st_paid', __('Paid', 'moonlight-user-center')),
-    'cancelled' => mluc_ui_label('buy_st_cancelled', __('Cancelled', 'moonlight-user-center')),
+    'pending'   => mluc_ui_label('buy_st_pending', __('Pending', 'moonlight-shop')),
+    'paid'      => mluc_ui_label('buy_st_paid', __('Paid', 'moonlight-shop')),
+    'cancelled' => mluc_ui_label('buy_st_cancelled', __('Cancelled', 'moonlight-shop')),
 );
 ?>
 <div class="mluc-orders">
 
-    <section class="mluc-card" aria-label="<?php echo esc_attr(mluc_ui_label('od_title', __('My Orders', 'moonlight-user-center'))); ?>">
-        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('od_title', __('My Orders', 'moonlight-user-center'))); ?></h3>
+    <section class="mluc-card" aria-label="<?php echo esc_attr(mluc_ui_label('od_title', __('My Orders', 'moonlight-shop'))); ?>">
+        <h3 class="mluc-card-title"><?php echo esc_html(mluc_ui_label('od_title', __('My Orders', 'moonlight-shop'))); ?></h3>
         <?php if (empty($orders)) : ?>
-            <p class="mluc-empty"><?php echo esc_html(mluc_ui_label('od_empty', __('You have no orders yet.', 'moonlight-user-center'))); ?></p>
+            <p class="mluc-empty"><?php echo esc_html(mluc_ui_label('od_empty', __('You have no orders yet.', 'moonlight-shop'))); ?></p>
         <?php else : ?>
             <div class="mluc-table-scroll">
                 <table class="mluc-table">
                     <thead>
                         <tr>
-                            <th><?php echo esc_html(mluc_ui_label('od_th_no', __('Order No.', 'moonlight-user-center'))); ?></th>
-                            <th><?php echo esc_html(mluc_ui_label('od_th_item', __('Item', 'moonlight-user-center'))); ?></th>
-                            <th><?php echo esc_html(mluc_ui_label('buy_th_amount', __('Amount', 'moonlight-user-center'))); ?></th>
-                            <th><?php echo esc_html(mluc_ui_label('od_th_gateway', __('Method', 'moonlight-user-center'))); ?></th>
-                            <th><?php echo esc_html(mluc_ui_label('th_status', __('Status', 'moonlight-user-center'))); ?></th>
-                            <th><?php echo esc_html(mluc_ui_label('buy_th_date', __('Date', 'moonlight-user-center'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('od_th_no', __('Order No.', 'moonlight-shop'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('od_th_item', __('Item', 'moonlight-shop'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('buy_th_amount', __('Amount', 'moonlight-shop'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('od_th_gateway', __('Method', 'moonlight-shop'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('th_status', __('Status', 'moonlight-shop'))); ?></th>
+                            <th><?php echo esc_html(mluc_ui_label('buy_th_date', __('Date', 'moonlight-shop'))); ?></th>
                         </tr>
                     </thead>
                     <tbody>

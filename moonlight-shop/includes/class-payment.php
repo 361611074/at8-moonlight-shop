@@ -133,6 +133,7 @@ class MLSHOP_Payment
         if (!is_user_logged_in() && !$guest_allowed) {
             $login = function_exists('mluc_get_account_url') ? mluc_get_account_url() : wp_login_url(mlshop_get_page_url('checkout'));
             return '<p class="mlshop-message">' .
+                /* translators: %s: 值 */
                 sprintf(esc_html__('请先 %s 后再结算。', 'moonlight-shop'), '<a href="' . esc_url($login) . '">' . esc_html__('登录', 'moonlight-shop') . '</a>') .
                 '</p>';
         }
@@ -297,6 +298,7 @@ class MLSHOP_Payment
                     $missing[] = __('详细地址', 'moonlight-shop');
                 }
                 if (!empty($missing)) {
+                    /* translators: %s: 值 */
                     mlshop_send_json(false, sprintf(__('请完整填写收货信息：%s。', 'moonlight-shop'), implode('、', $missing)));
                 }
 

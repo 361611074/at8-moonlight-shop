@@ -75,6 +75,7 @@ class MLSHOP_Ajax
                 }
             }
             if ($in_cart >= $stock) {
+                /* translators: %d: 数量 */
                 mlshop_send_json(false, sprintf(__('库存不足，仅剩 %d 件。', 'moonlight-shop'), $stock));
             }
             if ($in_cart + $qty > $stock) {

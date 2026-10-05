@@ -224,6 +224,7 @@ class MLSHOP_Bulk_Email
 
                 <div class="mlshop-field">
                     <label class="mlshop-label" for="mlshop_bulk_subject"><?php esc_html_e('邮件主题', 'moonlight-shop'); ?></label>
+                    /* translators: %s: 值 */
                     <input type="text" id="mlshop_bulk_subject" class="large-text" value="<?php echo esc_attr(sprintf(__('来自 %s 的最新消息', 'moonlight-shop'), wp_specialchars_decode(get_bloginfo('name'), ENT_QUOTES))); ?>">
                 </div>
 
@@ -370,6 +371,7 @@ class MLSHOP_Bulk_Email
         $from_email = isset($_POST['from_email']) ? sanitize_email(wp_unslash($_POST['from_email'])) : '';
         $ok = mlshop_send_html_mail($admin->user_email, $subj, $body, $from_name, $from_email);
         if ($ok) {
+            /* translators: %s: 值 */
             wp_send_json_success(array('msg' => sprintf(__('测试邮件已发送到 %s。', 'moonlight-shop'), $admin->user_email)));
         }
         wp_send_json_error(__('测试邮件发送失败，请检查服务器邮件配置。', 'moonlight-shop'));

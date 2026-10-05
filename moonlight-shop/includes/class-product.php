@@ -425,7 +425,9 @@ class MLSHOP_Product
                         <?php foreach ($ship_templates as $tpl) :
                             if (!is_array($tpl) || empty($tpl['id'])) { continue; }
                             $mode_label = (isset($tpl['mode']) && 'piece' === $tpl['mode'])
-                                ? sprintf(__('按件（首件 %s / 續件 %s）', 'moonlight-shop'), (float) $tpl['first_item_fee'], (float) $tpl['extra_item_fee'])
+                                /* translators: %1$s: 首件费, %2$s: 续件费 */
+                                ? sprintf(__('按件（首件 %1$s / 續件 %2$s）', 'moonlight-shop'), (float) $tpl['first_item_fee'], (float) $tpl['extra_item_fee'])
+                                /* translators: %s: 金额 */
                                 : sprintf(__('固定 %s', 'moonlight-shop'), (float) $tpl['flat_fee']);
                             ?>
                             <option value="<?php echo esc_attr($tpl['id']); ?>" <?php selected($ship_tpl, (string) $tpl['id']); ?>>
@@ -433,6 +435,7 @@ class MLSHOP_Product
                                 $label = esc_html($tpl['name']) . '（' . esc_html($mode_label);
                                 $threshold = isset($tpl['free_threshold']) ? (float) $tpl['free_threshold'] : 0;
                                 if ($threshold > 0) {
+                                    /* translators: %s: 值 */
                                     $label .= sprintf(esc_html__('，滿 %s 免郵', 'moonlight-shop'), $threshold);
                                 }
                                 echo $label . '）';
@@ -594,7 +597,7 @@ class MLSHOP_Product
                 $clean = array_slice($clean, 0, $max_lines);
             }
             if (!empty($clean)) {
-                Moonlight_Card_Stock::import($post_id, $clean, '商品编辑导入 ' . date('Ymd-His'));
+                Moonlight_Card_Stock::import($post_id, $clean, '商品编辑导入 ' . wp_date('Ymd-His'));
             }
         }
     }

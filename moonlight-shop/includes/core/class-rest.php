@@ -534,6 +534,7 @@ class Moonlight_REST
         $stock = (int) get_post_meta($product_id, '_mlshop_stock', true);
         if ($stock > 0) {
             if ($in_cart >= $stock) {
+                /* translators: %d: 数量 */
                 return Moonlight_Rest_Helpers::err('moonlight_stock_insufficient', sprintf(__('库存不足，仅剩 %d 件。', 'moonlight-shop'), $stock), 409);
             }
             if ($in_cart + $qty > $stock) {

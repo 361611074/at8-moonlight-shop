@@ -42,7 +42,7 @@ class MLUC_OAuth
     {
         return apply_filters('mluc_oauth_providers', array(
             'wechat' => array(
-                'label' => __('微信', 'moonlight-user-center'),
+                'label' => __('微信', 'moonlight-shop'),
                 'color' => '#07c160',
                 'icon_svg' => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#fff" d="M8.69 4C4.54 4 1.2 6.94 1.2 10.5c0 2.04 1.08 3.86 2.76 5.08L3.04 18l2.62-1.36c.9.25 1.86.39 2.86.39.26 0 .51-.01.76-.03a5.7 5.7 0 0 1-.34-1.96c0-3.39 3.22-6.09 7.2-6.09.26 0 .51.01.76.04C16.62 6.27 13.1 4 8.69 4zm-2.29 4.6a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4.6 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/><path fill="#fff" d="M22.8 14.5c0-2.9-2.82-5.25-6.3-5.25s-6.3 2.35-6.3 5.25 2.82 5.25 6.3 5.25c.74 0 1.46-.1 2.12-.3l2.02 1.05-.55-1.86c1.44-1.02 2.41-2.5 2.41-4.14zm-8.3-.9a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6zm3.9 0a.8.8 0 1 1 0-1.6.8.8 0 0 1 0 1.6z"/></svg>',
                 'auth_url'   => 'https://open.weixin.qq.com/connect/qrconnect',
@@ -53,7 +53,7 @@ class MLUC_OAuth
                 'type'       => 'wechat',
             ),
             'qq' => array(
-                'label' => __('QQ', 'moonlight-user-center'),
+                'label' => __('QQ', 'moonlight-shop'),
                 'color' => '#12b7f5',
                 'icon_svg' => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#fff" d="M12 2.2c-3.6 0-6.4 2.9-6.4 6.6 0 1.4.4 2.7 1.1 3.8-.9 1.2-1.5 2.7-1.5 3.9 0 .7.2 1.3.6 1.8-.2.5-.2 1.1 0 1.7.3.9 1.2 1.6 2.3 1.6.6 1.1 1.9 1.9 3.5 1.9.9 0 1.7-.2 2.4-.5.5.1 1 .3 1.6.3.7 0 1.4-.2 2-.5.7.3 1.6.5 2.4.5 1.6 0 2.9-.8 3.5-1.9 1.1 0 2-.7 2.3-1.6.2-.6.2-1.2 0-1.7.4-.5.6-1.1.6-1.8 0-1.2-.6-2.7-1.5-3.9.7-1.1 1.1-2.4 1.1-3.8 0-3.7-2.8-6.6-6.4-6.6zm-2.6 9.2c.6 0 1 .5 1 1.1s-.4 1.1-1 1.1-1-.5-1-1.1.4-1.1 1-1.1zm5.2 0c.6 0 1 .5 1 1.1s-.4 1.1-1 1.1-1-.5-1-1.1.4-1.1 1-1.1z"/></svg>',
                 'auth_url'   => 'https://graph.qq.com/oauth2.0/authorize',
@@ -64,7 +64,7 @@ class MLUC_OAuth
                 'type'       => 'qq',
             ),
             'github' => array(
-                'label' => __('GitHub', 'moonlight-user-center'),
+                'label' => __('GitHub', 'moonlight-shop'),
                 'color' => '#24292e',
                 'icon_svg' => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#fff" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>',
                 'auth_url'   => 'https://github.com/login/oauth/authorize',
@@ -75,7 +75,7 @@ class MLUC_OAuth
                 'type'       => 'github',
             ),
             'google' => array(
-                'label' => __('Google', 'moonlight-user-center'),
+                'label' => __('Google', 'moonlight-shop'),
                 'color' => '#ea4335',
                 'icon_svg' => '<svg viewBox="0 0 48 48" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>',
                 'auth_url'   => 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -87,7 +87,7 @@ class MLUC_OAuth
                 'type'       => 'google',
             ),
             'apple' => array(
-                'label' => __('Apple', 'moonlight-user-center'),
+                'label' => __('Apple', 'moonlight-shop'),
                 'color' => '#000000',
                 'icon_svg' => '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="#fff" d="M17.05 12.04c-.03-2.65 2.16-3.92 2.26-3.98-1.23-1.8-3.15-2.05-3.83-2.08-1.63-.16-3.18.96-4.01.96-.83 0-2.11-.94-3.47-.91-1.78.03-3.43 1.04-4.35 2.64-1.86 3.23-.48 8.01 1.34 10.63.89 1.28 1.95 2.72 3.34 2.67 1.34-.05 1.85-.87 3.47-.87 1.62 0 2.08.87 3.49.84 1.44-.03 2.35-1.31 3.23-2.6 1.02-1.49 1.44-2.93 1.46-3.01-.03-.01-2.8-1.08-2.83-4.27zM14.6 4.59c.73-.89 1.22-2.12 1.09-3.35-1.05.04-2.32.7-3.08 1.58-.68.78-1.27 2.04-1.11 3.24 1.17.09 2.37-.6 3.1-1.47z"/></svg>',
                 'auth_url'   => 'https://appleid.apple.com/auth/authorize',
@@ -233,12 +233,13 @@ class MLUC_OAuth
             $redirect_to = esc_url_raw($_GET['redirect_to']);
         }
         echo '<div class="mluc-oauth">';
-        echo '<div class="mluc-oauth-divider"><span>' . esc_html__('或使用第三方账号登录', 'moonlight-user-center') . '</span></div>';
+        echo '<div class="mluc-oauth-divider"><span>' . esc_html__('或使用第三方账号登录', 'moonlight-shop') . '</span></div>';
         echo '<div class="mluc-oauth-buttons">';
         foreach ($enabled as $id => $p) {
             $url  = esc_url($this->get_auth_url($id, $redirect_to));
             $svg  = isset($p['icon_svg']) ? $p['icon_svg'] : '';
-            $aria = sprintf(esc_attr__('使用 %s 登录', 'moonlight-user-center'), $p['label']);
+            /* translators: %s: 值 */
+            $aria = sprintf(esc_attr__('使用 %s 登录', 'moonlight-shop'), $p['label']);
             printf(
                 '<a class="mluc-oauth-btn mluc-oauth-%s" href="%s" style="background:%s" aria-label="%s" rel="noopener">%s<span>%s</span></a>',
                 esc_attr($id),
@@ -271,13 +272,13 @@ class MLUC_OAuth
         }
         $providers = self::providers();
         if (!isset($providers[$id])) {
-            $this->oauth_fail('unsupported', __('不支持的登录方式。', 'moonlight-user-center'));
+            $this->oauth_fail('unsupported', __('不支持的登录方式。', 'moonlight-shop'));
         }
 
         // 用户取消授权（各平台回传 error 参数）
         $error = isset($_GET['error']) ? sanitize_text_field($_GET['error']) : (isset($_POST['error']) ? sanitize_text_field($_POST['error']) : '');
         if ($error) {
-            $this->oauth_fail('cancelled', __('已取消授权，请重试或使用其他方式登录。', 'moonlight-user-center'));
+            $this->oauth_fail('cancelled', __('已取消授权，请重试或使用其他方式登录。', 'moonlight-shop'));
         }
 
         // 兼容 GET（多数平台）与 POST（Apple form_post）两种回传方式
@@ -286,20 +287,20 @@ class MLUC_OAuth
 
         $st = $state ? get_transient('mluc_oauth_state_' . $state) : null;
         if (!$code || !$state || !is_array($st) || empty($st['provider']) || $st['provider'] !== $id) {
-            $this->oauth_fail('state', __('安全校验失败（state 无效），请重试。', 'moonlight-user-center'));
+            $this->oauth_fail('state', __('安全校验失败（state 无效），请重试。', 'moonlight-shop'));
         }
         // 安全校验一：state 必须来自本浏览器会话（本浏览器确实发起过这次授权），
         // 防止攻击者用自己的 state+code 构造回调链接让他人点击（登录 CSRF）。
         $cookie_state = isset($_COOKIE['mluc_oauth_state']) ? sanitize_text_field(wp_unslash($_COOKIE['mluc_oauth_state'])) : '';
         if ('' === $cookie_state || !hash_equals((string) $cookie_state, (string) $state)) {
             $this->clear_state_cookie();
-            $this->oauth_fail('state', __('安全校验失败（state 不匹配），请重试。', 'moonlight-user-center'));
+            $this->oauth_fail('state', __('安全校验失败（state 不匹配），请重试。', 'moonlight-shop'));
         }
         // 安全校验二：已登录时，发起授权的身份必须与当前身份一致，
         // 否则就是别人的授权流程被套用到当前账户上（账户绑定劫持）。
         if (is_user_logged_in() && isset($st['init_user']) && (int) $st['init_user'] !== get_current_user_id()) {
             $this->clear_state_cookie();
-            $this->oauth_fail('state', __('安全校验失败（登录身份不一致），请重试。', 'moonlight-user-center'));
+            $this->oauth_fail('state', __('安全校验失败（登录身份不一致），请重试。', 'moonlight-shop'));
         }
         delete_transient('mluc_oauth_state_' . $state);
         $this->clear_state_cookie();
@@ -362,7 +363,7 @@ class MLUC_OAuth
         $raw  = wp_remote_retrieve_body($response);
         $data = ('query' === $p['format']) ? wp_parse_args($raw) : json_decode($raw, true);
         if (!is_array($data) || empty($data['access_token'])) {
-            return new WP_Error('oauth_token', __('换取令牌失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_token', __('换取令牌失败。', 'moonlight-shop'));
         }
         return $data;
     }
@@ -380,7 +381,7 @@ class MLUC_OAuth
         switch ($p['type']) {
             case 'wechat':
                 if (empty($token['openid'])) {
-                    return new WP_Error('oauth_openid', __('获取微信 openid 失败。', 'moonlight-user-center'));
+                    return new WP_Error('oauth_openid', __('获取微信 openid 失败。', 'moonlight-shop'));
                 }
                 $profile['provider_id'] = $token['openid'];
                 $info = $this->get_json('https://api.weixin.qq.com/sns/userinfo', array(
@@ -399,7 +400,7 @@ class MLUC_OAuth
                     return $me;
                 }
                 if (!preg_match('/"openid"\s*:\s*"([^"]+)"/', wp_remote_retrieve_body($me), $m)) {
-                    return new WP_Error('oauth_openid', __('获取 QQ openid 失败。', 'moonlight-user-center'));
+                    return new WP_Error('oauth_openid', __('获取 QQ openid 失败。', 'moonlight-shop'));
                 }
                 $openid = $m[1];
                 $profile['provider_id'] = $openid;
@@ -415,7 +416,7 @@ class MLUC_OAuth
                 break;
 
             case 'github':
-                $user = $this->get_json('https://api.github.com/user', array(), array('Authorization' => 'Bearer ' . $access_token, 'User-Agent' => 'moonlight-user-center', 'Accept' => 'application/vnd.github+json'));
+                $user = $this->get_json('https://api.github.com/user', array(), array('Authorization' => 'Bearer ' . $access_token, 'User-Agent' => 'moonlight-shop', 'Accept' => 'application/vnd.github+json'));
                 if (is_wp_error($user)) {
                     return $user;
                 }
@@ -426,7 +427,7 @@ class MLUC_OAuth
                 // 仅采用已验证邮箱，避免用他人未验证邮箱接管账户
                 $profile['email_verified'] = !empty($user['email']) && !empty($user['email_verified']);
                 if (empty($profile['email'])) {
-                    $emails = $this->get_json('https://api.github.com/user/emails', array(), array('Authorization' => 'Bearer ' . $access_token, 'User-Agent' => 'moonlight-user-center', 'Accept' => 'application/vnd.github+json'));
+                    $emails = $this->get_json('https://api.github.com/user/emails', array(), array('Authorization' => 'Bearer ' . $access_token, 'User-Agent' => 'moonlight-shop', 'Accept' => 'application/vnd.github+json'));
                     if (!is_wp_error($emails) && is_array($emails)) {
                         foreach ($emails as $e) {
                             if (!empty($e['email']) && !empty($e['verified']) && !empty($e['primary'])) {
@@ -459,14 +460,14 @@ class MLUC_OAuth
             case 'apple':
                 // Apple 通过 id_token(JWT) 返回 sub 与 email；必须校验签名，否则可伪造身份接管账户。
                 if (empty($token['id_token'])) {
-                    return new WP_Error('oauth_apple', __('获取 Apple 用户信息失败。', 'moonlight-user-center'));
+                    return new WP_Error('oauth_apple', __('获取 Apple 用户信息失败。', 'moonlight-shop'));
                 }
                 $payload = $this->verify_apple_id_token($token['id_token']);
                 if (is_wp_error($payload)) {
                     return $payload;
                 }
                 if (empty($payload['sub'])) {
-                    return new WP_Error('oauth_apple', __('解析 Apple 身份失败。', 'moonlight-user-center'));
+                    return new WP_Error('oauth_apple', __('解析 Apple 身份失败。', 'moonlight-shop'));
                 }
                 $profile['provider_id'] = $payload['sub'];
                 $profile['email'] = isset($payload['email']) ? $payload['email'] : '';
@@ -474,16 +475,16 @@ class MLUC_OAuth
                 $profile['email_verified'] = !empty($profile['email']) && false === strpos($profile['email'], '@privaterelay.appleid.com');
                 $profile['name']  = isset($_POST['user']) && is_array($_POST['user']) ? trim($_POST['user']['firstName'] . ' ' . $_POST['user']['lastName']) : '';
                 if (empty($profile['name'])) {
-                    $profile['name'] = $profile['email'] ? strtok($profile['email'], '@') : __('Apple 用户', 'moonlight-user-center');
+                    $profile['name'] = $profile['email'] ? strtok($profile['email'], '@') : __('Apple 用户', 'moonlight-shop');
                 }
                 break;
 
             default:
-                return new WP_Error('oauth_unsupported', __('暂不支持该登录方式。', 'moonlight-user-center'));
+                return new WP_Error('oauth_unsupported', __('暂不支持该登录方式。', 'moonlight-shop'));
         }
 
         if (empty($profile['provider_id'])) {
-            return new WP_Error('oauth_noid', __('未能获取第三方用户标识。', 'moonlight-user-center'));
+            return new WP_Error('oauth_noid', __('未能获取第三方用户标识。', 'moonlight-shop'));
         }
         return $profile;
     }
@@ -522,7 +523,7 @@ class MLUC_OAuth
 
         // 自动注册新用户
         if (!get_option('users_can_register')) {
-            $this->oauth_fail('register_closed', __('站点已关闭注册，且未找到匹配的账号。', 'moonlight-user-center'));
+            $this->oauth_fail('register_closed', __('站点已关闭注册，且未找到匹配的账号。', 'moonlight-shop'));
         }
         $login = $this->generate_login($id, $profile);
         // 无邮箱的提供商（微信/QQ）必须保证邮箱唯一，否则第二个用户会撞 @oauth.local 导致注册失败。
@@ -579,7 +580,7 @@ class MLUC_OAuth
         }
         $data = json_decode(wp_remote_retrieve_body($response), true);
         if (!is_array($data)) {
-            return new WP_Error('oauth_json', __('第三方返回数据解析失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_json', __('第三方返回数据解析失败。', 'moonlight-shop'));
         }
         return $data;
     }
@@ -592,16 +593,16 @@ class MLUC_OAuth
     {
         $parts = explode('.', $jwt);
         if (count($parts) !== 3) {
-            return new WP_Error('oauth_apple', __('Apple 令牌格式错误。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌格式错误。', 'moonlight-shop'));
         }
         list($head_b64, $payload_b64, $sig_b64) = $parts;
         $header = json_decode($this->b64url($head_b64), true);
         if (empty($header['kid']) || empty($header['alg']) || 'RS256' !== $header['alg']) {
-            return new WP_Error('oauth_apple', __('Apple 令牌算法不支持。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌算法不支持。', 'moonlight-shop'));
         }
         $keys = $this->get_json('https://appleid.apple.com/auth/keys');
         if (is_wp_error($keys) || empty($keys['keys'])) {
-            return new WP_Error('oauth_apple', __('无法获取 Apple 公钥。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('无法获取 Apple 公钥。', 'moonlight-shop'));
         }
         $pub = null;
         foreach ($keys['keys'] as $k) {
@@ -611,36 +612,36 @@ class MLUC_OAuth
             }
         }
         if (empty($pub['n']) || empty($pub['e'])) {
-            return new WP_Error('oauth_apple', __('Apple 公钥不匹配。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 公钥不匹配。', 'moonlight-shop'));
         }
         $pem = $this->rsa_pem_from_mod_exp($pub['n'], $pub['e']);
         if (!$pem) {
-            return new WP_Error('oauth_apple', __('构建 Apple 公钥失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('构建 Apple 公钥失败。', 'moonlight-shop'));
         }
         $key = openssl_pkey_get_public($pem);
         if (!$key) {
-            return new WP_Error('oauth_apple', __('加载 Apple 公钥失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('加载 Apple 公钥失败。', 'moonlight-shop'));
         }
         $signing = $head_b64 . '.' . $payload_b64;
         $sig = $this->b64url_raw($sig_b64);
         $ok = openssl_verify($signing, $sig, $key, OPENSSL_ALGO_SHA256);
         openssl_free_key($key);
         if (1 !== $ok) {
-            return new WP_Error('oauth_apple', __('Apple 令牌签名校验失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌签名校验失败。', 'moonlight-shop'));
         }
         $payload = json_decode($this->b64url($payload_b64), true);
         if (!is_array($payload)) {
-            return new WP_Error('oauth_apple', __('Apple 令牌解析失败。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌解析失败。', 'moonlight-shop'));
         }
         $client_id = $this->get_creds('apple')['client_id'];
         if ($client_id && (!empty($payload['aud']) && $payload['aud'] !== $client_id)) {
-            return new WP_Error('oauth_apple', __('Apple 令牌受众不符。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌受众不符。', 'moonlight-shop'));
         }
         if (empty($payload['iss']) || 'https://appleid.apple.com' !== $payload['iss']) {
-            return new WP_Error('oauth_apple', __('Apple 令牌签发方不符。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌签发方不符。', 'moonlight-shop'));
         }
         if (!empty($payload['exp']) && (int) $payload['exp'] < time()) {
-            return new WP_Error('oauth_apple', __('Apple 令牌已过期。', 'moonlight-user-center'));
+            return new WP_Error('oauth_apple', __('Apple 令牌已过期。', 'moonlight-shop'));
         }
         return $payload;
     }

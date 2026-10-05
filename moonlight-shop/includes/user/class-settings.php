@@ -47,8 +47,8 @@ class MLUC_Settings
         if ('submenu' === self::resolve_menu_mode()) {
             add_submenu_page(
                 self::submenu_parent_slug(),
-                __('会员与账户', 'moonlight-user-center'),
-                __('会员与账户', 'moonlight-user-center'),
+                __('会员与账户', 'moonlight-shop'),
+                __('会员与账户', 'moonlight-shop'),
                 'manage_options',
                 'mluc-settings',
                 array($this, 'render_settings_page')
@@ -57,8 +57,8 @@ class MLUC_Settings
         }
 
         add_menu_page(
-            __('用户中心', 'moonlight-user-center'),
-            __('用户中心', 'moonlight-user-center'),
+            __('用户中心', 'moonlight-shop'),
+            __('用户中心', 'moonlight-shop'),
             'manage_options',
             'mluc-settings',
             array($this, 'render_settings_page'),
@@ -70,8 +70,8 @@ class MLUC_Settings
         // 顶级菜单链接会变成头像库、设置页本身不显示。
         add_submenu_page(
             'mluc-settings',
-            __('设置', 'moonlight-user-center'),
-            __('设置', 'moonlight-user-center'),
+            __('设置', 'moonlight-shop'),
+            __('设置', 'moonlight-shop'),
             'manage_options',
             'mluc-settings',
             array($this, 'render_settings_page')
@@ -123,7 +123,7 @@ class MLUC_Settings
         );
         // 设置页锚点导航标题走翻译（JS 里的 '页面导航' 仅作无 localize 时的兜底）。
         wp_localize_script('mluc-admin', 'mlucSettingsNavTitle', array(
-            'title' => __('页面导航', 'moonlight-user-center'),
+            'title' => __('页面导航', 'moonlight-shop'),
         ));
     }
 
@@ -133,7 +133,7 @@ class MLUC_Settings
     public function add_action_links($links)
     {
         $url = admin_url('admin.php?page=mluc-settings');
-        $links[] = '<a href="' . esc_url($url) . '">' . esc_html__('设置', 'moonlight-user-center') . '</a>';
+        $links[] = '<a href="' . esc_url($url) . '">' . esc_html__('设置', 'moonlight-shop') . '</a>';
         return $links;
     }
 
@@ -148,16 +148,16 @@ class MLUC_Settings
 
         add_settings_section(
             'mluc_general',
-            __('常规设置', 'moonlight-user-center'),
+            __('常规设置', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
 
         $page_fields = array(
-            'account_page_id'      => __('账户中心页面', 'moonlight-user-center'),
-            'login_page_id'        => __('登录页面', 'moonlight-user-center'),
-            'register_page_id'     => __('注册页面', 'moonlight-user-center'),
-            'lostpassword_page_id' => __('找回密码页面', 'moonlight-user-center'),
+            'account_page_id'      => __('账户中心页面', 'moonlight-shop'),
+            'login_page_id'        => __('登录页面', 'moonlight-shop'),
+            'register_page_id'     => __('注册页面', 'moonlight-shop'),
+            'lostpassword_page_id' => __('找回密码页面', 'moonlight-shop'),
         );
         foreach ($page_fields as $key => $label) {
             add_settings_field(
@@ -172,7 +172,7 @@ class MLUC_Settings
 
         add_settings_field(
             'mluc_redirect_after_login',
-            __('登录后重定向', 'moonlight-user-center'),
+            __('登录后重定向', 'moonlight-shop'),
             array($this, 'render_redirect_field'),
             'mluc-settings',
             'mluc_general'
@@ -180,7 +180,7 @@ class MLUC_Settings
 
         add_settings_field(
             'mluc_enable_avatar',
-            __('头像上传', 'moonlight-user-center'),
+            __('头像上传', 'moonlight-shop'),
             array($this, 'render_avatar_field'),
             'mluc-settings',
             'mluc_general'
@@ -189,13 +189,13 @@ class MLUC_Settings
         // 会员等级定义
         add_settings_section(
             'mluc_membership',
-            __('会员等级定义', 'moonlight-user-center'),
+            __('会员等级定义', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_membership_levels',
-            __('等级配置', 'moonlight-user-center'),
+            __('等级配置', 'moonlight-shop'),
             array($this, 'render_membership_field'),
             'mluc-settings',
             'mluc_membership'
@@ -204,13 +204,13 @@ class MLUC_Settings
         // 邮件通知
         add_settings_section(
             'mluc_email',
-            __('邮件通知', 'moonlight-user-center'),
+            __('邮件通知', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_email',
-            __('通知开关', 'moonlight-user-center'),
+            __('通知开关', 'moonlight-shop'),
             array($this, 'render_email_field'),
             'mluc-settings',
             'mluc_email'
@@ -221,13 +221,13 @@ class MLUC_Settings
         // 侧栏菜单图标（前端账户中心左侧导航）
         add_settings_section(
             'mluc_nav_icons',
-            __('侧栏菜单图标', 'moonlight-user-center'),
+            __('侧栏菜单图标', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_nav_icons',
-            __('菜单图标', 'moonlight-user-center'),
+            __('菜单图标', 'moonlight-shop'),
             array($this, 'render_nav_icons_field'),
             'mluc-settings',
             'mluc_nav_icons'
@@ -236,13 +236,13 @@ class MLUC_Settings
         // 界面文案（账户中心侧栏与提示文字，可改成英文等其他语言）
         add_settings_section(
             'mluc_ui_labels',
-            __('界面文案（账户中心）', 'moonlight-user-center'),
+            __('界面文案（账户中心）', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_ui_labels',
-            __('文字自定义', 'moonlight-user-center'),
+            __('文字自定义', 'moonlight-shop'),
             array($this, 'render_ui_labels_field'),
             'mluc-settings',
             'mluc_ui_labels'
@@ -251,13 +251,13 @@ class MLUC_Settings
         // 第三方登录
         add_settings_section(
             'mluc_oauth',
-            __('第三方登录', 'moonlight-user-center'),
+            __('第三方登录', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_oauth',
-            __('OAuth 应用凭据', 'moonlight-user-center'),
+            __('OAuth 应用凭据', 'moonlight-shop'),
             array($this, 'render_oauth_field'),
             'mluc-settings',
             'mluc_oauth'
@@ -266,13 +266,13 @@ class MLUC_Settings
         // 会员头像库入口（合并自独立 CPT 菜单项）
         add_settings_section(
             'mluc_avatar',
-            __('会员头像库', 'moonlight-user-center'),
+            __('会员头像库', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_avatar',
-            __('头像库', 'moonlight-user-center'),
+            __('头像库', 'moonlight-shop'),
             array($this, 'render_avatar_library_field'),
             'mluc-settings',
             'mluc_avatar'
@@ -281,13 +281,13 @@ class MLUC_Settings
         // 积分与签到（并入模块 MLUC_Checkin；积分账本 = 商城 mlshop_credit_balance）
         add_settings_section(
             'mluc_checkin',
-            __('积分与签到', 'moonlight-user-center'),
+            __('积分与签到', 'moonlight-shop'),
             '__return_false',
             'mluc-settings'
         );
         add_settings_field(
             'mluc_checkin',
-            __('签到奖励', 'moonlight-user-center'),
+            __('签到奖励', 'moonlight-shop'),
             array($this, 'render_checkin_field'),
             'mluc-settings',
             'mluc_checkin'
@@ -309,35 +309,35 @@ class MLUC_Settings
         $extra     = max(0, (int) mluc_get_option('checkin_extra', 20));
         ?>
         <p class="description">
-            <?php esc_html_e('积分账本与商城积分（充值 / 积分支付）共用同一本账；开启后签到所得可直接用于下单。', 'moonlight-user-center'); ?>
+            <?php esc_html_e('积分账本与商城积分（充值 / 积分支付）共用同一本账；开启后签到所得可直接用于下单。', 'moonlight-shop'); ?>
         </p>
         <p>
             <label>
                 <input type="checkbox" name="mluc_options[credit_enabled]" value="1" <?php checked($credit_on); ?>>
-                <?php esc_html_e('启用积分体系（签到入账的前提）', 'moonlight-user-center'); ?>
+                <?php esc_html_e('启用积分体系（签到入账的前提）', 'moonlight-shop'); ?>
             </label>
         </p>
         <p>
             <label>
                 <input type="checkbox" name="mluc_options[checkin_enabled]" value="1" <?php checked($on); ?>>
-                <?php esc_html_e('启用每日签到送积分（账户中心 → 积分余额 Tab 展示签到入口）', 'moonlight-user-center'); ?>
+                <?php esc_html_e('启用每日签到送积分（账户中心 → 积分余额 Tab 展示签到入口）', 'moonlight-shop'); ?>
             </label>
         </p>
         <p>
-            <label><?php esc_html_e('基础奖励', 'moonlight-user-center'); ?>
+            <label><?php esc_html_e('基础奖励', 'moonlight-shop'); ?>
                 <input type="number" name="mluc_options[checkin_base]" min="0" step="1" value="<?php echo esc_attr((string) $base); ?>" class="small-text">
             </label>
-            <?php esc_html_e('积分 / 天', 'moonlight-user-center'); ?>
+            <?php esc_html_e('积分 / 天', 'moonlight-shop'); ?>
         </p>
         <p>
-            <label><?php esc_html_e('连续每', 'moonlight-user-center'); ?>
+            <label><?php esc_html_e('连续每', 'moonlight-shop'); ?>
                 <input type="number" name="mluc_options[checkin_every]" min="0" step="1" value="<?php echo esc_attr((string) $every); ?>" class="small-text">
             </label>
-            <?php esc_html_e('天额外加成', 'moonlight-user-center'); ?>
+            <?php esc_html_e('天额外加成', 'moonlight-shop'); ?>
             <label>
                 <input type="number" name="mluc_options[checkin_extra]" min="0" step="1" value="<?php echo esc_attr((string) $extra); ?>" class="small-text">
             </label>
-            <?php esc_html_e('积分（间隔填 0 表示不加成）', 'moonlight-user-center'); ?>
+            <?php esc_html_e('积分（间隔填 0 表示不加成）', 'moonlight-shop'); ?>
         </p>
         <?php
     }
@@ -352,12 +352,13 @@ class MLUC_Settings
         wp_dropdown_pages(array(
             'name'              => 'mluc_options[' . $key . ']',
             'selected'          => $value,
-            'show_option_none'  => __('— 选择页面 —', 'moonlight-user-center'),
+            'show_option_none'  => __('— 选择页面 —', 'moonlight-shop'),
             'option_none_value' => 0,
         ));
         $code = '[' . esc_html($this->shortcode_for($key)) . ']';
         echo '<p class="description">' .
-             sprintf(esc_html__('该页面需包含短代码 %s。', 'moonlight-user-center'), '<code>' . $code . '</code>') .
+             /* translators: %s: 值 */
+             sprintf(esc_html__('该页面需包含短代码 %s。', 'moonlight-shop'), '<code>' . $code . '</code>') .
              '</p>';
     }
 
@@ -381,7 +382,7 @@ class MLUC_Settings
         echo '<input type="url" name="mluc_options[redirect_after_login]" value="' .
              esc_attr($value) . '" class="regular-text" />';
         echo '<p class="description">' .
-             esc_html__('留空则登录后跳转到账户中心页面。', 'moonlight-user-center') . '</p>';
+             esc_html__('留空则登录后跳转到账户中心页面。', 'moonlight-shop') . '</p>';
     }
 
     /**
@@ -392,11 +393,11 @@ class MLUC_Settings
         $value = mluc_get_option('enable_avatar', 1);
         echo '<label><input type="checkbox" name="mluc_options[enable_avatar]" value="1" ' .
              checked(1, $value, false) . ' /> ' .
-             esc_html__('启用会员头像库：管理员在「会员头像库」上传头像，用户在前端账户中心选择', 'moonlight-user-center') . '</label>';
+             esc_html__('启用会员头像库：管理员在「会员头像库」上传头像，用户在前端账户中心选择', 'moonlight-shop') . '</label>';
         // checkbox 取消勾选时不会随表单提交，需补 hidden 同键置 0
         echo '<input type="hidden" name="mluc_options[enable_avatar]" value="0" />';
         echo '<p class="description">' .
-             esc_html__('启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。', 'moonlight-user-center') . '</p>';
+             esc_html__('启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。', 'moonlight-shop') . '</p>';
     }
 
     /**
@@ -408,7 +409,7 @@ class MLUC_Settings
     public function render_membership_field()
     {
         if (!class_exists('MLUC_Membership')) {
-            echo '<p class="description">' . esc_html__('会员模块未加载。', 'moonlight-user-center') . '</p>';
+            echo '<p class="description">' . esc_html__('会员模块未加载。', 'moonlight-shop') . '</p>';
             return;
         }
         $levels = MLUC_Membership::get_levels();
@@ -424,25 +425,25 @@ class MLUC_Settings
         <p>
             <label>
                 <input type="checkbox" name="mluc_options[free_level_enabled]" value="1"<?php checked((bool) $free_on); ?>>
-                <strong><?php esc_html_e('启用普通会员（免费基座等级）', 'moonlight-user-center'); ?></strong>
+                <strong><?php esc_html_e('启用普通会员（免费基座等级）', 'moonlight-shop'); ?></strong>
             </label>
         </p>
         <p class="description">
-            <?php esc_html_e('关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。', 'moonlight-user-center'); ?>
+            <?php esc_html_e('关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。', 'moonlight-shop'); ?>
         </p>
         <p class="description">
-            <?php esc_html_e('在此新增、编辑或删除会员等级（含 free 基座等级）。删除某等级后，原拥有该等级的用户会自动降级；删除 free 等级则未付费用户视为无任何等级身份，重新勾选上方「启用普通会员」即可恢复。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。', 'moonlight-user-center'); ?>
+            <?php esc_html_e('在此新增、编辑或删除会员等级（含 free 基座等级）。删除某等级后，原拥有该等级的用户会自动降级；删除 free 等级则未付费用户视为无任何等级身份，重新勾选上方「启用普通会员」即可恢复。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。', 'moonlight-shop'); ?>
         </p>
         <table class="mluc-membership-table widefat">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('等级标识', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('显示名称', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('价格', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('有效期（天）', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('标识颜色', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('排序', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('操作', 'moonlight-user-center'); ?></th>
+                    <th><?php esc_html_e('等级标识', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('显示名称', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('价格', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('有效期（天）', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('标识颜色', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('排序', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('操作', 'moonlight-shop'); ?></th>
                 </tr>
             </thead>
             <tbody id="mluc-levels-tbody">
@@ -459,34 +460,34 @@ class MLUC_Settings
                     <tr>
                         <td>
                             <code><?php echo esc_html($key); ?></code>
-                            <?php if ($is_free) : ?><span class="mluc-fixed-tag"><?php esc_html_e('默认', 'moonlight-user-center'); ?></span><?php endif; ?>
+                            <?php if ($is_free) : ?><span class="mluc-fixed-tag"><?php esc_html_e('默认', 'moonlight-shop'); ?></span><?php endif; ?>
                         </td>
                         <td><input type="text" class="regular-text" name="<?php echo esc_attr($np); ?>[label]" value="<?php echo esc_attr($label); ?>"></td>
                         <td><?php if ($is_free) : ?>—<?php else : ?><input type="number" step="0.01" min="0" class="small-text" name="<?php echo esc_attr($np); ?>[price]" value="<?php echo esc_attr($price); ?>"><?php endif; ?></td>
-                        <td><?php if ($is_free) : ?><?php esc_html_e('永久', 'moonlight-user-center'); ?><?php else : ?><input type="number" min="0" class="small-text" name="<?php echo esc_attr($np); ?>[validity]" value="<?php echo esc_attr($validity); ?>"><?php endif; ?></td>
+                        <td><?php if ($is_free) : ?><?php esc_html_e('永久', 'moonlight-shop'); ?><?php else : ?><input type="number" min="0" class="small-text" name="<?php echo esc_attr($np); ?>[validity]" value="<?php echo esc_attr($validity); ?>"><?php endif; ?></td>
                         <td><input type="color" name="<?php echo esc_attr($np); ?>[color]" value="<?php echo esc_attr($color); ?>"></td>
                         <td><input type="number" min="0" class="small-text" name="<?php echo esc_attr($np); ?>[sort_order]" value="<?php echo esc_attr($sort); ?>"></td>
                         <td>
-                            <button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-user-center'); ?></button>
-                            <label class="mluc-del-check"><input type="checkbox" name="<?php echo esc_attr($np); ?>[delete]" value="1"> <?php esc_html_e('删除', 'moonlight-user-center'); ?></label>
-                            <?php if ($is_free) : ?><span class="description"><?php esc_html_e('删除 free 等同关闭普通会员基座', 'moonlight-user-center'); ?></span><?php endif; ?>
+                            <button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-shop'); ?></button>
+                            <label class="mluc-del-check"><input type="checkbox" name="<?php echo esc_attr($np); ?>[delete]" value="1"> <?php esc_html_e('删除', 'moonlight-shop'); ?></label>
+                            <?php if ($is_free) : ?><span class="description"><?php esc_html_e('删除 free 等同关闭普通会员基座', 'moonlight-shop'); ?></span><?php endif; ?>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <p><button type="button" class="button" id="mluc-add-level"><?php esc_html_e('+ 添加等级', 'moonlight-user-center'); ?></button></p>
+        <p><button type="button" class="button" id="mluc-add-level"><?php esc_html_e('+ 添加等级', 'moonlight-shop'); ?></button></p>
 
         <!-- 新增行模板（克隆用，不随表单直接提交） -->
         <template id="mluc-level-row-tpl">
             <tr>
                 <td><input type="text" class="regular-text" data-name="mluc_options[membership_levels][__NEWKEY__][key]" placeholder="level_key"></td>
-                <td><input type="text" class="regular-text" data-name="mluc_options[membership_levels][__NEWKEY__][label]" placeholder="<?php esc_attr_e('显示名称', 'moonlight-user-center'); ?>"></td>
+                <td><input type="text" class="regular-text" data-name="mluc_options[membership_levels][__NEWKEY__][label]" placeholder="<?php esc_attr_e('显示名称', 'moonlight-shop'); ?>"></td>
                 <td><input type="number" step="0.01" min="0" class="small-text" data-name="mluc_options[membership_levels][__NEWKEY__][price]" value="0"></td>
                 <td><input type="number" min="0" class="small-text" data-name="mluc_options[membership_levels][__NEWKEY__][validity]" value="30"></td>
                 <td><input type="color" data-name="mluc_options[membership_levels][__NEWKEY__][color]" value="#2f6fed"></td>
                 <td><input type="number" min="0" class="small-text" data-name="mluc_options[membership_levels][__NEWKEY__][sort_order]" value="50"></td>
-                <td><button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-user-center'); ?></button></td>
+                <td><button type="button" class="mluc-del-level"><?php esc_html_e('删除', 'moonlight-shop'); ?></button></td>
             </tr>
         </template>
         <script>
@@ -531,7 +532,7 @@ class MLUC_Settings
     public function render_ui_labels_field()
     {
         $fields = array(
-            __('侧栏与通用', 'moonlight-user-center') => array(
+            __('侧栏与通用', 'moonlight-shop') => array(
                 'tab_overview' => array('t' => '概览（侧栏）', 'd' => 'Overview'),
                 'tab_profile' => array('t' => '个人资料（侧栏）', 'd' => 'Profile'),
                 'tab_membership' => array('t' => '會員等級（侧栏）', 'd' => 'Membership Level'),
@@ -546,7 +547,7 @@ class MLUC_Settings
                 'purchases_empty' => array('t' => '已购空提示', 'd' => 'You have no purchased content yet.'),
                 'purchases_login' => array('t' => '已购登录提示', 'd' => 'Please log in first to view your purchased content.'),
             ),
-            __('概览页', 'moonlight-user-center') => array(
+            __('概览页', 'moonlight-shop') => array(
                 'greet_dawn' => array('t' => '凌晨好', 'd' => 'Good early morning'),
                 'greet_morning' => array('t' => '早上好', 'd' => 'Good morning'),
                 'greet_noon' => array('t' => '中午好', 'd' => 'Good midday'),
@@ -567,7 +568,7 @@ class MLUC_Settings
                 'ov_stat_posts' => array('t' => '發布文章', 'd' => 'Posts'),
                 'ov_stat_comments' => array('t' => '評論', 'd' => 'Comments'),
             ),
-            __('个人资料页', 'moonlight-user-center') => array(
+            __('个人资料页', 'moonlight-shop') => array(
                 'pf_avatar_title' => array('t' => '頭像（标题）', 'd' => 'Avatar'),
                 'pf_avatar_sub' => array('t' => '头像区说明', 'd' => 'Choose one from the avatar library below; avatars are maintained by the administrator.'),
                 'pf_avatar_current' => array('t' => '當前頭像', 'd' => 'Current Avatar'),
@@ -598,7 +599,7 @@ class MLUC_Settings
                 'pf_new_pass_sub' => array('t' => '新密码说明', 'd' => 'At least 6 characters.'),
                 'pf_pass_save' => array('t' => '更新密碼（按钮）', 'd' => 'Update Password'),
             ),
-            __('会员等级页', 'moonlight-user-center') => array(
+            __('会员等级页', 'moonlight-shop') => array(
                 'mb_current_title' => array('t' => '當前會員等級（标题）', 'd' => 'Current Membership'),
                 'mb_free_tip' => array('t' => 'Free 会员提示', 'd' => 'You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos.'),
                 'mb_none_tip' => array('t' => '未开通提示', 'd' => 'You do not have a membership yet. Upgrade to unlock more materials and demo videos.'),
@@ -613,7 +614,7 @@ class MLUC_Settings
                 'mb_st_locked' => array('t' => '未解鎖', 'd' => 'Locked'),
                 'mb_upgrade_title' => array('t' => '開通 / 升級會員（标题）', 'd' => 'Buy / Upgrade Membership'),
             ),
-            __('已购内容页', 'moonlight-user-center') => array(
+            __('已购内容页', 'moonlight-shop') => array(
                 'pu_th_item' => array('t' => '教材（表头）', 'd' => 'Item'),
                 'pu_th_type' => array('t' => '類型（表头）', 'd' => 'Type'),
                 'pu_th_date' => array('t' => '購買日期（表头）', 'd' => 'Purchase Date'),
@@ -622,7 +623,7 @@ class MLUC_Settings
                 'pu_type_virtual' => array('t' => '虛擬下載', 'd' => 'Download'),
                 'pu_view_order' => array('t' => '查看訂單（按钮）', 'd' => 'View Order'),
             ),
-            __('购买卡（开通/升级会员）', 'moonlight-user-center') => array(
+            __('购买卡（开通/升级会员）', 'moonlight-shop') => array(
                 'buy_ok' => array('t' => '付款成功提示', 'd' => 'Payment successful. Your membership has been activated.'),
                 'buy_failed' => array('t' => '付款失败提示', 'd' => 'Payment was not completed or verification failed. Please try again or contact the administrator.'),
                 'buy_cancelled' => array('t' => '已取消支付提示', 'd' => 'Payment cancelled. The order remains pending.'),
@@ -661,7 +662,7 @@ class MLUC_Settings
                 'buy_pp_goto' => array('t' => '请完成 PayPal 付款提示', 'd' => 'Please complete the PayPal payment below.'),
                 'buy_net_error' => array('t' => '網絡異常提示', 'd' => 'Network error. Please try again later.'),
             ),
-            __('我的订单 / 我的 License 页', 'moonlight-user-center') => array(
+            __('我的订单 / 我的 License 页', 'moonlight-shop') => array(
                 'od_title' => array('t' => '我的订单（标题）', 'd' => 'My Orders'),
                 'od_empty' => array('t' => '无订单提示', 'd' => 'You have no orders yet.'),
                 'od_th_no' => array('t' => '订单号（表头）', 'd' => 'Order No.'),
@@ -679,13 +680,13 @@ class MLUC_Settings
                 'lic_st_revoked' => array('t' => '已撤销', 'd' => 'Revoked'),
                 'lic_st_suspended' => array('t' => '已暂停', 'd' => 'Suspended'),
             ),
-            __('隐藏内容锁定卡（hidecontent）', 'moonlight-user-center') => array(
+            __('隐藏内容锁定卡（hidecontent）', 'moonlight-shop') => array(
                 'hc_title_reply' => array('t' => '评论后可查看（卡片标题）', 'd' => 'Comment to View'),
                 'hc_title_logged' => array('t' => '登录后可查看（卡片标题）', 'd' => 'Log in to View'),
                 'hc_title_vip1' => array('t' => '会员可查看（卡片标题）', 'd' => 'Members Only'),
                 'hc_title_payshow' => array('t' => '付费后可查看（卡片标题）', 'd' => 'Purchase to View'),
             ),
-            __('付费墙（文章付费）', 'moonlight-user-center') => array(
+            __('付费墙（文章付费）', 'moonlight-shop') => array(
                 'pw_mode_read' => array('t' => '付费阅读（标签）', 'd' => 'Paid Read'),
                 'pw_mode_download' => array('t' => '付费下载（标签）', 'd' => 'Paid Download'),
                 'pw_mode_image' => array('t' => '付费图片（标签）', 'd' => 'Paid Gallery'),
@@ -718,7 +719,7 @@ class MLUC_Settings
                 'pw_locked_video' => array('t' => '锁定视频占位文字', 'd' => 'Locked video. Purchase to watch.'),
                 'pw_ok_reload' => array('t' => '支付成功提示', 'd' => 'Payment successful. Reloading…'),
             ),
-            __('登录 / 注册 / 找回密码页', 'moonlight-user-center') => array(
+            __('登录 / 注册 / 找回密码页', 'moonlight-shop') => array(
                 'lg_title' => array('t' => '登录（标题）', 'd' => 'Log In'),
                 'lg_user' => array('t' => '用户名或邮箱', 'd' => 'Username or Email'),
                 'lg_pass' => array('t' => '密码', 'd' => 'Password'),
@@ -737,7 +738,7 @@ class MLUC_Settings
                 'rg_btn' => array('t' => '注册（按钮）', 'd' => 'Register'),
                 'rg_login' => array('t' => '已有账户？去登录', 'd' => 'Already have an account? Log in'),
             ),
-            __('操作提示（保存/修改密码等）', 'moonlight-user-center') => array(
+            __('操作提示（保存/修改密码等）', 'moonlight-shop') => array(
                 'msg_login_required' => array('t' => '请先登录。', 'd' => 'Please log in first.'),
                 'msg_account_login' => array('t' => '请先 %s 后查看账户中心。（%s 为登录链接）', 'd' => 'Please %s to view the account center.'),
                 'msg_login_link' => array('t' => '登录（链接文字）', 'd' => 'log in'),
@@ -753,7 +754,7 @@ class MLUC_Settings
         if (!is_array($saved)) {
             $saved = array();
         }
-        echo '<p class="description">' . esc_html__('修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。', 'moonlight-user-center') . '</p>';
+        echo '<p class="description">' . esc_html__('修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。', 'moonlight-shop') . '</p>';
         echo '<table class="form-table" role="presentation">';
         foreach ($fields as $group => $items) {
             printf('<tr><th colspan="2" style="text-align:left;background:#f6f7f7;"><strong>%s</strong></th></tr>', esc_html($group));
@@ -777,7 +778,7 @@ class MLUC_Settings
     public function render_nav_icons_field()
     {
         if (!class_exists('MLUC_Account')) {
-            echo '<p class="description">' . esc_html__('账户中心模块未加载。', 'moonlight-user-center') . '</p>';
+            echo '<p class="description">' . esc_html__('账户中心模块未加载。', 'moonlight-shop') . '</p>';
             return;
         }
         $tabs   = MLUC_Account::get_instance()->get_tabs();
@@ -817,10 +818,10 @@ class MLUC_Settings
         <table class="mluc-nav-icons-table widefat">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('菜单项', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('标识', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('图标', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('预览', 'moonlight-user-center'); ?></th>
+                    <th><?php esc_html_e('菜单项', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('标识', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('图标', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('预览', 'moonlight-shop'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -842,11 +843,11 @@ class MLUC_Settings
                                 <legend class="screen-reader-text"><?php echo esc_html(isset($tab['title']) ? $tab['title'] : $key); ?></legend>
                                 <label class="mluc-icon-type">
                                     <input type="radio" name="mluc_options[nav_icons][<?php echo esc_attr($cur_key); ?>][type]" value="dashicon" <?php checked($cur['type'], 'dashicon'); ?>>
-                                    <?php esc_html_e('Dashicons 类', 'moonlight-user-center'); ?>
+                                    <?php esc_html_e('Dashicons 类', 'moonlight-shop'); ?>
                                 </label>
                                 <label class="mluc-icon-type">
                                     <input type="radio" name="mluc_options[nav_icons][<?php echo esc_attr($cur_key); ?>][type]" value="image" <?php checked($cur['type'], 'image'); ?>>
-                                    <?php esc_html_e('自定义图片', 'moonlight-user-center'); ?>
+                                    <?php esc_html_e('自定义图片', 'moonlight-shop'); ?>
                                 </label>
                                 <div class="mluc-icon-dashicon" <?php echo 'dashicon' !== $cur['type'] ? 'hidden' : ''; ?>>
                                     <input type="text" class="regular-text mluc-icon-input"
@@ -864,9 +865,9 @@ class MLUC_Settings
                                             <img src="<?php echo esc_url($img_url); ?>" alt="" />
                                         <?php endif; ?>
                                     </span>
-                                    <button type="button" class="button mluc-icon-upload"><?php esc_html_e('上传/选择图片', 'moonlight-user-center'); ?></button>
-                                    <button type="button" class="button-link-delete mluc-icon-remove"><?php esc_html_e('移除', 'moonlight-user-center'); ?></button>
-                                    <p class="description" style="flex-basis:100%;margin:4px 0 0;"><?php esc_html_e('支持 PNG / SVG / JPG。建议 24×24 或 32×32 的方形图标。', 'moonlight-user-center'); ?></p>
+                                    <button type="button" class="button mluc-icon-upload"><?php esc_html_e('上传/选择图片', 'moonlight-shop'); ?></button>
+                                    <button type="button" class="button-link-delete mluc-icon-remove"><?php esc_html_e('移除', 'moonlight-shop'); ?></button>
+                                    <p class="description" style="flex-basis:100%;margin:4px 0 0;"><?php esc_html_e('支持 PNG / SVG / JPG。建议 24×24 或 32×32 的方形图标。', 'moonlight-shop'); ?></p>
                                 </div>
                             </fieldset>
                         </td>
@@ -887,7 +888,7 @@ class MLUC_Settings
             <?php endforeach; ?>
         </datalist>
         <p class="description">
-            <?php esc_html_e('为每个菜单项选择内置 Dashicons 类，或上传自定义 PNG / SVG / JPG 图片。留空时使用插件内置默认图标。', 'moonlight-user-center'); ?>
+            <?php esc_html_e('为每个菜单项选择内置 Dashicons 类，或上传自定义 PNG / SVG / JPG 图片。留空时使用插件内置默认图标。', 'moonlight-shop'); ?>
         </p>
         <?php
     }
@@ -898,7 +899,7 @@ class MLUC_Settings
     public function render_oauth_field()
     {
         if (!class_exists('MLUC_OAuth')) {
-            echo '<p class="description">' . esc_html__('OAuth 模块未加载。', 'moonlight-user-center') . '</p>';
+            echo '<p class="description">' . esc_html__('OAuth 模块未加载。', 'moonlight-shop') . '</p>';
             return;
         }
         $providers = MLUC_OAuth::providers();
@@ -911,15 +912,15 @@ class MLUC_Settings
         <p class="description">
             <?php
             /* translators: %s = 回调地址示例 */
-            printf(esc_html__('在对应开放平台填写回调地址（示例）：%s。仅填写了 Client ID 与 Secret 的提供商才会出现在前端登录按钮。', 'moonlight-user-center'), '<code>' . esc_url($callback) . '</code>');
+            printf(esc_html__('在对应开放平台填写回调地址（示例）：%s。仅填写了 Client ID 与 Secret 的提供商才会出现在前端登录按钮。', 'moonlight-shop'), '<code>' . esc_url($callback) . '</code>');
             ?>
         </p>
         <table class="mluc-oauth-table widefat">
             <thead>
                 <tr>
-                    <th><?php esc_html_e('提供商', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('Client ID / App ID', 'moonlight-user-center'); ?></th>
-                    <th><?php esc_html_e('Client Secret', 'moonlight-user-center'); ?></th>
+                    <th><?php esc_html_e('提供商', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('Client ID / App ID', 'moonlight-shop'); ?></th>
+                    <th><?php esc_html_e('Client Secret', 'moonlight-shop'); ?></th>
                 </tr>
             </thead>
             <tbody>
@@ -961,9 +962,9 @@ class MLUC_Settings
         $auto_levels = (array) mluc_get_option('license_auto_levels', array());
         ?>
         <p>
-            <label for="mluc_lic_auto"><strong><?php esc_html_e('支付成功自动颁发 License 的会员等级', 'moonlight-user-center'); ?></strong></label><br>
+            <label for="mluc_lic_auto"><strong><?php esc_html_e('支付成功自动颁发 License 的会员等级', 'moonlight-shop'); ?></strong></label><br>
             <input type="text" id="mluc_lic_auto" class="regular-text code" name="mluc_options[license_auto_levels_csv]" value="<?php echo esc_attr(implode(',', $auto_levels)); ?>" placeholder="monthly,gold">
-            <span class="description"><?php echo esc_html__('填等级标识（会员等级定义中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 Pro License（到期时长跟随等级有效期）。', 'moonlight-user-center'); ?></span>
+            <span class="description"><?php echo esc_html__('填等级标识（会员等级定义中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 Pro License（到期时长跟随等级有效期）。', 'moonlight-shop'); ?></span>
         </p>
         <?php
     }
@@ -977,13 +978,13 @@ class MLUC_Settings
         <p>
             <label>
                 <input type="checkbox" name="mluc_options[email_purchase_enabled]" value="1" <?php checked(!empty(mluc_get_option('email_purchase_enabled', 1))); ?>>
-                <?php esc_html_e('支付成功后向购买用户发送邮件', 'moonlight-user-center'); ?>
+                <?php esc_html_e('支付成功后向购买用户发送邮件', 'moonlight-shop'); ?>
             </label>
         </p>
         <p>
             <label>
                 <input type="checkbox" name="mluc_options[email_license_reminder_enabled]" value="1" <?php checked(!empty(mluc_get_option('email_license_reminder_enabled', 1))); ?>>
-                <?php esc_html_e('License 到期前 7 天发送续费提醒邮件（每日检查一次）', 'moonlight-user-center'); ?>
+                <?php esc_html_e('License 到期前 7 天发送续费提醒邮件（每日检查一次）', 'moonlight-shop'); ?>
             </label>
         </p>
         <?php
@@ -1223,7 +1224,7 @@ class MLUC_Settings
     public function render_avatar_library_field()
     {
         if (!class_exists('MLUC_Avatar')) {
-            echo '<p class="description">' . esc_html__('头像库模块未加载。', 'moonlight-user-center') . '</p>';
+            echo '<p class="description">' . esc_html__('头像库模块未加载。', 'moonlight-shop') . '</p>';
             return;
         }
         $avatars = MLUC_Avatar::get_library();
@@ -1235,7 +1236,7 @@ class MLUC_Settings
             <p class="description" style="margin-top:0;">
                 <?php echo esc_html(sprintf(
                     /* translators: %d: 头像总数 */
-                    __('当前头像库共 %d 张可选头像；用户在账户中心「个人资料」页从这些头像中选择一个作为自己的头像。', 'moonlight-user-center'),
+                    __('当前头像库共 %d 张可选头像；用户在账户中心「个人资料」页从这些头像中选择一个作为自己的头像。', 'moonlight-shop'),
                     $count
                 )); ?>
             </p>
@@ -1246,11 +1247,11 @@ class MLUC_Settings
                     <?php endforeach; ?>
                 </ul>
             <?php else : ?>
-                <p class="description"><?php esc_html_e('头像库为空。点击下方按钮上传头像。', 'moonlight-user-center'); ?></p>
+                <p class="description"><?php esc_html_e('头像库为空。点击下方按钮上传头像。', 'moonlight-shop'); ?></p>
             <?php endif; ?>
             <p>
                 <a href="<?php echo esc_url($manage_url); ?>" class="button button-primary">
-                    <?php esc_html_e('前往头像库管理 →', 'moonlight-user-center'); ?>
+                    <?php esc_html_e('前往头像库管理 →', 'moonlight-shop'); ?>
                 </a>
             </p>
         </div>
@@ -1267,7 +1268,7 @@ class MLUC_Settings
         }
         ?>
         <div class="wrap mluc-settings-wrap">
-            <h1><?php echo esc_html__('用户中心设置', 'moonlight-user-center'); ?></h1>
+            <h1><?php echo esc_html__('用户中心设置', 'moonlight-shop'); ?></h1>
             <form method="post" action="options.php">
                 <?php
                 settings_fields('mluc_settings');

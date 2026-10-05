@@ -602,16 +602,19 @@ class MLSHOP_Pay_Access
         $notes = array();
         $sales = self::get_sales_count($post_id);
         if ($sales > 0) {
+            /* translators: %d: 数量 */
             $notes['sales'] = sprintf(__('已售 %d 份', 'moonlight-shop'), $sales);
         }
         if (MLSHOP_Product_Pay_Meta::get($post_id, 'order_expire_enabled', '0')) {
             $value = (int) MLSHOP_Product_Pay_Meta::get($post_id, 'order_expire_value', 0);
             $unit  = MLSHOP_Product_Pay_Meta::get($post_id, 'order_expire_unit', 'day');
             $unit_label = isset(MLSHOP_Product_Pay_Meta::$expire_units[$unit]) ? MLSHOP_Product_Pay_Meta::$expire_units[$unit] : '';
-            $notes['expire'] = sprintf(__('购买后 %d%s 内有效，逾期需重新购买', 'moonlight-shop'), $value, $unit_label);
+            /* translators: %1$$d: 数量, %2$$s: 值 */
+            $notes['expire'] = sprintf(__('购买后 %1$d%2$s 内有效，逾期需重新购买', 'moonlight-shop'), $value, $unit_label);
         }
         $aff = (float) MLSHOP_Product_Pay_Meta::get($post_id, 'aff_discount', 0);
         if ($aff > 0) {
+            /* translators: %s: 值 */
             $notes['aff'] = sprintf(__('推广链接购买可享 %s%% 折扣', 'moonlight-shop'), $aff);
         }
         if (MLSHOP_Product_Pay_Meta::get($post_id, 'allow_coupon', '0')) {
@@ -619,6 +622,7 @@ class MLSHOP_Pay_Access
         }
         $free_dl = (int) MLSHOP_Product_Pay_Meta::get($post_id, 'free_downloads', 0);
         if ($free_dl > 0) {
+            /* translators: %d: 数量 */
             $notes['free_dl'] = sprintf(__('提供 %d 次免费下载机会', 'moonlight-shop'), $free_dl);
         }
 
@@ -684,7 +688,8 @@ class MLSHOP_Pay_Access
             }
             if (!MLSHOP_Credit::can_spend($user_id, $price)) {
                 mlshop_send_json(false, sprintf(
-                    __('积分不足，需要 %s %s，当前余额 %s。', 'moonlight-shop'),
+                    /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
+                    __('积分不足，需要 %1$s %2$s，当前余额 %3$s。', 'moonlight-shop'),
                     $price, mlshop_get_option('credit_name', __('积分', 'moonlight-shop')), MLSHOP_Credit::get_balance($user_id)
                 ));
             }
@@ -692,10 +697,12 @@ class MLSHOP_Pay_Access
             // 预检通过而实扣失败（被并发请求抢先扣走）时绝不能发货。
             // 反向双击场景由 is_unlocked 幂等重载兜底（两次实扣、一次交付有损可接受面），
             // 但「零扣分交付」绝不允许。
+            /* translators: %d: 数量 */
             $remaining = MLSHOP_Credit::spend($user_id, $price, sprintf(__('解锁内容 #%d', 'moonlight-shop'), $post_id));
             if (false === $remaining) {
                 mlshop_send_json(false, sprintf(
-                    __('积分不足，需要 %s %s，当前余额 %s。', 'moonlight-shop'),
+                    /* translators: %1$$s: 值, %2$$s: 值, %3$$s: 值 */
+                    __('积分不足，需要 %1$s %2$s，当前余额 %3$s。', 'moonlight-shop'),
                     $price, mlshop_get_option('credit_name', __('积分', 'moonlight-shop')), MLSHOP_Credit::get_balance($user_id)
                 ));
             }
