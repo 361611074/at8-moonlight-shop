@@ -215,6 +215,16 @@ class MLSHOP_Credit_UI
         if (!current_user_can('manage_options') || !class_exists('MLSHOP_Credit')) {
             return;
         }
+        // 展示上次保存的调整结果提示（扣减失败 / 备注缺失等，见 save_admin_adjust）
+        $adjust_notice = get_transient('mlshop_credit_adjust_notice_' . get_current_user_id());
+        if (is_array($adjust_notice) && !empty($adjust_notice['message'])) {
+            delete_transient('mlshop_credit_adjust_notice_' . get_current_user_id());
+            printf(
+                '<div class="notice %s is-dismissible"><p>%s</p></div>',
+                esc_attr(empty($adjust_notice['error']) ? 'notice-success' : 'notice-error'),
+                esc_html($adjust_notice['message'])
+            );
+        }
         $balance     = MLSHOP_Credit::get_balance($user->ID);
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
         ?>
@@ -269,9 +279,13 @@ class MLSHOP_Credit_UI
         }
         $dir  = ('deduct' === ($_POST['mlshop_credit_adjust_dir'] ?? '')) ? 'deduct' : 'add';
         $note = sanitize_text_field(wp_unslash($_POST['mlshop_credit_adjust_note'] ?? ''));
+        // 拒绝无备注的调整：结果通过资料页提示告知（取代 error_log 静默记录）
         if ('' === $note) {
-            // 拒绝无备注的调整：资料页本身没有报错通道，静默跳过并留系统日志痕迹
-            error_log(sprintf('[moonlight-shop] credit adjust skipped for user #%d: empty note', $user_id));
+            set_transient(
+                'mlshop_credit_adjust_notice_' . get_current_user_id(),
+                array('success' => false, 'message' => __('未填写调整备注，本次未做任何调整。', 'moonlight-shop')),
+                60
+            );
             return false;
         }
         $credit_name = mlshop_get_option('credit_name', __('积分', 'moonlight-shop'));
@@ -280,7 +294,7 @@ class MLSHOP_Credit_UI
             // 审计 L2：扣减失败（余额不足）必须让管理员看见，不能静默丢弃
             if (false === $remaining) {
                 set_transient(
-                    'mluc_admin_notice_' . get_current_user_id(),
+                    'mlshop_credit_adjust_notice_' . get_current_user_id(),
                     array('success' => false, 'message' => sprintf(__('扣减失败：该用户%1$s余额不足 %2$s，未做任何调整。', 'moonlight-shop'), $credit_name, $amount)),
                     60
                 );

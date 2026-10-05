@@ -1,3 +1,30 @@
+## [3.2.2] - 2026-10-04（WordPress.org 上架合规）
+
+对照 WordPress.org 审核流程（Plugin Check 机器检查 + 人工复审）修复必改项：
+
+### Free（moonlight-shop）
+
+### 修复
+- **移除 extract()**（Plugin Check ERROR 级）：`mlshop_get_template()` 与
+  `mluc_get_template()` 的模板变量展开改为显式 foreach 赋值（跳过 slug/args
+  内部变量与下划线开头键），include 内可见的变量语义不变。
+- **移除无条件的 error_log**（审核视为遗留调试）：管理员调账「未填备注跳过」
+  改为后台可见的 transient 提示；支付宝 / 微信的 error_log 本就在 WP_DEBUG
+  条件内，维持不变。
+- **主文件头补 `Requires at least: 5.8` / `Requires PHP: 7.4`**。
+- **readme.txt 规范化**：补 `== Installation ==` / `== FAQ ==` / `== Screenshots ==`
+  / `== Upgrade Notice ==` 标准段落；Description 增加第三方服务数据披露
+  （支付网关 / 快递100 / 授权中心各自的传输内容与触发条件）；Changelog 补齐
+  3.2.1 / 3.2.0 / 3.1.x / 3.0 / 2.x 条目，与 Stable tag 对齐。
+
+### 构建工具
+- `tools/mkzip.php` 打包前自动把 `languages/*.po` 编译为 .mo（修复干净检出
+  构建后翻译全部失效的流程缺陷）；`tools/i18n.php` 新增 `compile-dir` 子命令。
+
+### 兼容性
+- 无行为变更（模板变量展开与 extract 等价；error_log 替换为用户可见提示）；
+  WordPress 5.8+ / PHP 7.4+。
+
 ## [3.2.1] - 2026-10-04（多语言跟随系统修复）
 
 **根因**：用户报告「系统是繁体，设置页仍是简体中文」。排查发现 i18n 工具链与语言包各有一层问题，叠加导致所有翻译死码：

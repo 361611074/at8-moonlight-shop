@@ -3,7 +3,9 @@
  * Plugin Name:      漫步白月光电子商城
  * Plugin URI:       https://www.at8.fun/
  * Description:       轻量、主题无关的电子商城系统，兼容 Astra 主题与 Elementor。支持实物 / 虚拟下载 / 卡密商品，提供购物车、结算、订单全流程；支付网关内置支付宝 / 微信（预留）、PayPal、Stripe、余额、积分、货到付款与线下转账；支持运费模板、物流轨迹查询与售后退款；与「漫步白月光用户中心」账户中心无缝集成。
- * Version:          3.2.1
+ * Version:          3.2.2
+ * Requires at least: 5.8
+ * Requires PHP:      7.4
  * Author:           漫步白月光
  * Author URI:       https://www.at8.fun/
  * License:          GPL-2.0-or-later
@@ -18,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('MLSHOP_VERSION', '3.2.1');
+define('MLSHOP_VERSION', '3.2.2');
 define('MLSHOP_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('MLSHOP_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('MLSHOP_PLUGIN_FILE', __FILE__);

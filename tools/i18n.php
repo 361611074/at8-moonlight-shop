@@ -30,6 +30,13 @@ switch ($cmd) {
             compile($po);
         }
         break;
+    case 'compile-dir':
+        // 供 tools/mkzip.php 打包前调用：把插件 languages/*.po 全部编译为 .mo
+        $dir = rtrim($args[0], '/\\');
+        foreach (glob($dir . '/languages/*.po') as $po) {
+            compile($po);
+        }
+        break;
     default:
         exit("Usage: php i18n.php makepot|update-po|compile ...\n");
 }

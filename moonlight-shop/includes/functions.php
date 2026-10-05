@@ -92,8 +92,15 @@ function mlshop_format_price($price)
 
 function mlshop_get_template($slug, $args = array())
 {
+    // Plugin Check 禁用 extract()：显式展开模板变量到本函数作用域（include 可见）。
+    // 跳过 slug/args 两个内部变量与以 _ 开头的键，防止覆盖实现细节。
     if (is_array($args)) {
-        extract($args);
+        foreach ($args as $tpl_var => $tpl_val) {
+            if (is_string($tpl_var) && '' !== $tpl_var && '_' !== $tpl_var[0]
+                && !in_array($tpl_var, array('slug', 'args'), true)) {
+                ${$tpl_var} = $tpl_val;
+            }
+        }
     }
     $theme_file  = get_stylesheet_directory() . '/mlshop/' . $slug . '.php';
     $plugin_file = MLSHOP_PLUGIN_DIR . 'templates/' . $slug . '.php';
@@ -929,8 +936,14 @@ if (!mlshop_mluc_legacy_active()) {
          */
         function mluc_get_template($slug, $args = array())
         {
+            // Plugin Check 禁用 extract()：显式展开模板变量（跳过内部变量保护键）
             if (is_array($args)) {
-                extract($args);
+                foreach ($args as $tpl_var => $tpl_val) {
+                    if (is_string($tpl_var) && '' !== $tpl_var && '_' !== $tpl_var[0]
+                        && !in_array($tpl_var, array('slug', 'args'), true)) {
+                        ${$tpl_var} = $tpl_val;
+                    }
+                }
             }
 
             $theme_file = get_stylesheet_directory() . '/mluc/' . $slug . '.php';
