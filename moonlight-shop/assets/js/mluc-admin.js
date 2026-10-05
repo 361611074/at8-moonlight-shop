@@ -147,7 +147,7 @@
         }
 
         var $nav = $('<nav>', { 'class': 'mluc-settings-nav' })
-            .append('<div class="mluc-settings-nav-title">' + (window.mlucSettingsNavTitle || '页面导航') + '</div>')
+            .append('<div class="mluc-settings-nav-title">' + (window.mlucSettingsNavTitle && window.mlucSettingsNavTitle.title ? window.mlucSettingsNavTitle.title : '页面导航') + '</div>')
             .append('<ul class="mluc-settings-nav-list"></ul>');
         var $list = $nav.find('ul');
 

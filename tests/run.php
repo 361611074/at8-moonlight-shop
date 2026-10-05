@@ -2189,16 +2189,35 @@ foreach (array('mluc.js', 'mluc-admin.js', 'mluc-pw-admin.js', 'mluc-tinymce.js'
     check("并入脚本 {$__f} 存在", file_exists(__DIR__ . '/../moonlight-shop/assets/js/' . $__f));
 }
 foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
-    // .mo 不入库（languages/.gitignore）：只提交 .po，由部署脚本在服务器端 msgfmt 编译。
-    // 断言 .po 存在即可；.mo 若存在则顺带校验其 magic 是 PHP 能读的小端序（de 12 04 95）。
-    $__po = __DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.po";
-    $__mo = __DIR__ . "/../moonlight-shop/languages/moonlight-user-center-{$__loc}.mo";
-    $__ok = file_exists($__po);
-    if ($__ok && file_exists($__mo)) {
-        $__raw = file_get_contents($__mo);
-        $__ok   = (substr($__raw, 0, 4) === "\xde\x12\x04\x95");
+    // 语言包完整性（i18n 编译器四连 bug 修复后的回归，见 CHANGELOG 3.2.1）：
+    // .po 为唯一权威源；.mo 必须存在且为 PHP 可读的小端序（de 12 04 95）。
+    foreach (array('moonlight-shop', 'moonlight-user-center') as $__dom) {
+        $__po = __DIR__ . "/../moonlight-shop/languages/{$__dom}-{$__loc}.po";
+        $__mo = __DIR__ . "/../moonlight-shop/languages/{$__dom}-{$__loc}.mo";
+        $__ok = file_exists($__po);
+        $__ok = $__ok && file_exists($__mo)
+            && (substr(file_get_contents($__mo), 0, 4) === "\xde\x12\x04\x95");
+        check("语言包 {$__dom}-{$__loc}：.po + 小端 .mo 齐备", $__ok);
     }
-    check("并入语言包 moonlight-user-center-{$__loc}.po 存在", $__ok);
+}
+// 关键界面词条必须有非空译文（entry 级精确匹配；此前 zh_TW 站设置页导航露出简体，
+// 且 .mo 编译器四 bug 导致所有翻译死码——见 CHANGELOG 3.2.1）
+foreach (array(
+    array('moonlight-user-center-zh_TW.po', '常规设置'),
+    array('moonlight-user-center-zh_TW.po', '积分与签到'),
+    array('moonlight-user-center-zh_TW.po', '会员等级定义'),
+    array('moonlight-user-center-zh_TW.po', '页面导航'),
+    array('moonlight-user-center-zh_CN.po', '常规设置'),
+    array('moonlight-user-center-zh_CN.po', '积分与签到'),
+    array('moonlight-shop-zh_TW.po', '允许订单使用积分支付'),
+    array('moonlight-shop-zh_TW.po', '每日签到'),
+    array('moonlight-shop-zh_CN.po', '商城設定'),
+    array('moonlight-shop-zh_CN.po', '每日签到'),
+) as $__t) {
+    $__raw = str_replace("\r\n", "\n", (string) file_get_contents(__DIR__ . '/../moonlight-shop/languages/' . $__t[0])) . "\n";
+    // 独立条目 + 非空 msgstr（避免 strstr 撞上其它含同样子串的长文案）
+    $__ok = preg_match('/\nmsgid "' . preg_quote($__t[1], '/') . '"\s*\nmsgstr "[^"]+"/', $__raw) === 1;
+    check("关键词条已译：{$__t[0]} | {$__t[1]}", $__ok);
 }
 // 单插件形态：不再有独立用户中心插件，改验「并入模块自带让位守卫」——
 // 引擎缺席时商城补齐 MLUC_* 常量与加载器，存在旧插件时才让位。

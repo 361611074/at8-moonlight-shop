@@ -121,6 +121,10 @@ class MLUC_Settings
             MLUC_VERSION,
             true
         );
+        // 设置页锚点导航标题走翻译（JS 里的 '页面导航' 仅作无 localize 时的兜底）。
+        wp_localize_script('mluc-admin', 'mlucSettingsNavTitle', array(
+            'title' => __('页面导航', 'moonlight-user-center'),
+        ));
     }
 
     /**

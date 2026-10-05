@@ -1,0 +1,1560 @@
+# Moonlight Shop 翻译模板（由 tools/i18n.php 自动提取）。
+# 新增源串 msgstr 留空即回退英文/中文源串。
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Language: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "%1$s 仅支持 %2$s 结算，请先在后台调整货币代码。"
+msgstr ""
+
+msgid "+ 添加等级"
+msgstr ""
+
+msgid "0 = 永久；License 创建后立即绑定当前站点并生效。"
+msgstr ""
+
+msgid "Account Security"
+msgstr ""
+
+msgid "Account Stats"
+msgstr ""
+
+msgid "Action"
+msgstr ""
+
+msgid "Active"
+msgstr ""
+
+msgid "Already have an account? Log in"
+msgstr ""
+
+msgid "Amount"
+msgstr ""
+
+msgid "Apple"
+msgstr ""
+
+msgid "Apple 令牌受众不符。"
+msgstr ""
+
+msgid "Apple 令牌已过期。"
+msgstr ""
+
+msgid "Apple 令牌格式错误。"
+msgstr ""
+
+msgid "Apple 令牌签发方不符。"
+msgstr ""
+
+msgid "Apple 令牌签名校验失败。"
+msgstr ""
+
+msgid "Apple 令牌算法不支持。"
+msgstr ""
+
+msgid "Apple 令牌解析失败。"
+msgstr ""
+
+msgid "Apple 公钥不匹配。"
+msgstr ""
+
+msgid "Apple 用户"
+msgstr ""
+
+msgid "At least 6 characters."
+msgstr ""
+
+msgid "Authorization cancelled. Please try again or use another method."
+msgstr ""
+
+msgid "Automatic registration failed. Please try again later or contact the administrator."
+msgstr ""
+
+msgid "Avatar"
+msgstr ""
+
+msgid "Back to Log In"
+msgstr ""
+
+msgid "Basic Information"
+msgstr ""
+
+msgid "Benefits / Upgrade"
+msgstr ""
+
+msgid "Bio"
+msgstr ""
+
+msgid "Browse basic content and purchase paid materials."
+msgstr ""
+
+msgid "Buy"
+msgstr ""
+
+msgid "Buy / Upgrade Membership"
+msgstr ""
+
+msgid "Buy Now"
+msgstr ""
+
+msgid "Cancelled"
+msgstr ""
+
+msgid "Card Key"
+msgstr ""
+
+msgid "Change Password"
+msgstr ""
+
+msgid "Choose one from the avatar library below; avatars are maintained by the administrator."
+msgstr ""
+
+msgid "Click any avatar below to switch instantly, no save needed."
+msgstr ""
+
+msgid "Client ID / App ID"
+msgstr ""
+
+msgid "Client Secret"
+msgstr ""
+
+msgid "Comments"
+msgstr ""
+
+msgid "Compare the benefits and your current status of each level."
+msgstr ""
+
+msgid "Confirming payment..."
+msgstr ""
+
+msgid "Create Account"
+msgstr ""
+
+msgid "Current"
+msgstr ""
+
+msgid "Current Avatar"
+msgstr ""
+
+msgid "Current Membership"
+msgstr ""
+
+msgid "Current Password"
+msgstr ""
+
+msgid "Dashicons 类"
+msgstr ""
+
+msgid "Date"
+msgstr ""
+
+msgid "Description"
+msgstr ""
+
+msgid "Display Name"
+msgstr ""
+
+msgid "Download"
+msgstr ""
+
+msgid "Edit Profile"
+msgstr ""
+
+msgid "Email"
+msgstr ""
+
+msgid "Expired"
+msgstr ""
+
+msgid "Expires"
+msgstr ""
+
+msgid "Expires %s"
+msgstr ""
+
+msgid "Expires: %s"
+msgstr ""
+
+msgid "Failed to load PayPal. Please refresh the page and try again."
+msgstr ""
+
+msgid "Failed to retrieve account info. Please try again."
+msgstr ""
+
+msgid "For account security, change your password regularly. You will need to log in again after changing it."
+msgstr ""
+
+msgid "Forgot password?"
+msgstr ""
+
+msgid "GitHub"
+msgstr ""
+
+msgid "Good afternoon"
+msgstr ""
+
+msgid "Good early morning"
+msgstr ""
+
+msgid "Good evening"
+msgstr ""
+
+msgid "Good midday"
+msgstr ""
+
+msgid "Good morning"
+msgstr ""
+
+msgid "Google"
+msgstr ""
+
+msgid "Inactive"
+msgstr ""
+
+msgid "Included"
+msgstr ""
+
+msgid "Incorrect username or password."
+msgstr ""
+
+msgid "Item"
+msgstr ""
+
+msgid "Level"
+msgstr ""
+
+msgid "License"
+msgstr ""
+
+msgid "License / Pro"
+msgstr ""
+
+msgid "License Key"
+msgstr ""
+
+msgid "License Key 不存在，请核对后重试。"
+msgstr ""
+
+msgid "License Server 地址"
+msgstr ""
+
+msgid "License 不存在。"
+msgstr ""
+
+msgid "License 产品标识无效。"
+msgstr ""
+
+msgid "License 列表"
+msgstr ""
+
+msgid "License 到期前 7 天发送续费提醒邮件（每日检查一次）"
+msgstr ""
+
+msgid "License 已签发：%s（已绑定当前站点并生效）。"
+msgstr ""
+
+msgid "License 总数 / 有效"
+msgstr ""
+
+msgid "License 授权"
+msgstr ""
+
+msgid "License 操作成功。"
+msgstr ""
+
+msgid "License 数"
+msgstr ""
+
+msgid "License 管理"
+msgstr ""
+
+msgid "Lifetime member"
+msgstr ""
+
+msgid "Locked"
+msgstr ""
+
+msgid "Log In"
+msgstr ""
+
+msgid "Log Out"
+msgstr ""
+
+msgid "Log in to view the content below."
+msgstr ""
+
+msgid "Lost Password"
+msgstr ""
+
+msgid "Membership"
+msgstr ""
+
+msgid "Membership Level"
+msgstr ""
+
+msgid "Membership Levels"
+msgstr ""
+
+msgid "Method"
+msgstr ""
+
+msgid "My Licenses"
+msgstr ""
+
+msgid "My Orders"
+msgstr ""
+
+msgid "My Purchase History"
+msgstr ""
+
+msgid "Network error. Please try again later."
+msgstr ""
+
+msgid "New Password"
+msgstr ""
+
+msgid "Nickname"
+msgstr ""
+
+msgid "Nickname / Phone / Bio"
+msgstr ""
+
+msgid "Nickname cannot be empty."
+msgstr ""
+
+msgid "No avatars have been uploaded yet. Please contact the administrator."
+msgstr ""
+
+msgid "No payment method is available. Please contact the administrator."
+msgstr ""
+
+msgid "Non-member"
+msgstr ""
+
+msgid "OAuth 应用凭据"
+msgstr ""
+
+msgid "OAuth 模块未加载。"
+msgstr ""
+
+msgid "OpenSSL 不可用"
+msgstr ""
+
+msgid "OpenSSL 扩展（支付宝 RSA2）"
+msgstr ""
+
+msgid "Order"
+msgstr ""
+
+msgid "Order No."
+msgstr ""
+
+msgid "Overview"
+msgstr ""
+
+msgid "PHP 版本"
+msgstr ""
+
+msgid "Paid"
+msgstr ""
+
+msgid "Password"
+msgstr ""
+
+msgid "Password / Login"
+msgstr ""
+
+msgid "Password changed. Please log in again."
+msgstr ""
+
+msgid "PayPal payment error. Please try again or contact the administrator."
+msgstr ""
+
+msgid "Payment Instructions"
+msgstr ""
+
+msgid "Payment cancelled. The order remains pending."
+msgstr ""
+
+msgid "Payment successful. Your membership has been activated."
+msgstr ""
+
+msgid "Payment was not completed or verification failed. Please try again or contact the administrator."
+msgstr ""
+
+msgid "Pending"
+msgstr ""
+
+msgid "Permanent"
+msgstr ""
+
+msgid "Phone"
+msgstr ""
+
+msgid "Phone: "
+msgstr ""
+
+msgid "Please %s to view the account center."
+msgstr ""
+
+msgid "Please complete the PayPal payment below."
+msgstr ""
+
+msgid "Please enter your current and new password."
+msgstr ""
+
+msgid "Please log in first to view your purchased content."
+msgstr ""
+
+msgid "Please log in first."
+msgstr ""
+
+msgid "Post a Comment"
+msgstr ""
+
+msgid "Posts"
+msgstr ""
+
+msgid "Pro 扩展插件"
+msgstr ""
+
+msgid "Product"
+msgstr ""
+
+msgid "Profile"
+msgstr ""
+
+msgid "Profile updated."
+msgstr ""
+
+msgid "Purchase Date"
+msgstr ""
+
+msgid "Purchase to view the content below."
+msgstr ""
+
+msgid "Purchased Content"
+msgstr ""
+
+msgid "QQ"
+msgstr ""
+
+msgid "Quick Actions"
+msgstr ""
+
+msgid "Quick Sign Up (Email Only)"
+msgstr ""
+
+msgid "Register"
+msgstr ""
+
+msgid "Registered on"
+msgstr ""
+
+msgid "Registration failed. Please try again."
+msgstr ""
+
+msgid "Registration is closed and no matching account was found."
+msgstr ""
+
+msgid "Remember Me"
+msgstr ""
+
+msgid "Revoked"
+msgstr ""
+
+msgid "Save Changes"
+msgstr ""
+
+msgid "Secret Key 未配置"
+msgstr ""
+
+msgid "Security check failed (invalid state). Please try again."
+msgstr ""
+
+msgid "Send Reset Link"
+msgstr ""
+
+msgid "Site"
+msgstr ""
+
+msgid "Status"
+msgstr ""
+
+msgid "Stripe Webhook"
+msgstr ""
+
+msgid "Suspended"
+msgstr ""
+
+msgid "The current password is incorrect."
+msgstr ""
+
+msgid "The new password must be at least 6 characters."
+msgstr ""
+
+msgid "Third-party login failed. Please try again."
+msgstr ""
+
+msgid "This content is for Monthly members and above."
+msgstr ""
+
+msgid "This information appears on your public profile and article bylines."
+msgstr ""
+
+msgid "To change your email, please contact the administrator."
+msgstr ""
+
+msgid "Token exchange failed. Please try again later."
+msgstr ""
+
+msgid "Type"
+msgstr ""
+
+msgid "Unsupported login method."
+msgstr ""
+
+msgid "Update Password"
+msgstr ""
+
+msgid "Upgrade Membership"
+msgstr ""
+
+msgid "Username"
+msgstr ""
+
+msgid "Username or Email"
+msgstr ""
+
+msgid "Valid for %d days"
+msgstr ""
+
+msgid "View Order"
+msgstr ""
+
+msgid "Website"
+msgstr ""
+
+msgid "WordPress 版本"
+msgstr ""
+
+msgid "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
+msgstr ""
+
+msgid "You do not have a membership yet. Upgrade to unlock more materials and demo videos."
+msgstr ""
+
+msgid "You have no licenses yet. Purchase a Pro plan to get one."
+msgstr ""
+
+msgid "You have no orders yet."
+msgstr ""
+
+msgid "You have no purchased content yet."
+msgstr ""
+
+msgid "Your comment must be approved before the content is revealed."
+msgstr ""
+
+msgid "Your membership has expired. Please renew to continue."
+msgstr ""
+
+msgid "[%1$s] License 即将到期提醒"
+msgstr ""
+
+msgid "[%1$s] 购买成功：%2$s"
+msgstr ""
+
+msgid "e.g. 9123 4567"
+msgstr ""
+
+msgid "log in"
+msgstr ""
+
+msgid "— 选择页面 —"
+msgstr ""
+
+msgid "…等共 %d 位用户。"
+msgstr ""
+
+msgid "「用户中心」功能已并入 Moonlight Shop。此处核对旧数据并决定是否把旧会员订单复制为商城订单；迁移只复制不删除，原数据始终保留。"
+msgstr ""
+
+msgid "【重置密码】"
+msgstr ""
+
+msgid "上传/选择图片"
+msgstr ""
+
+msgid "上传到此头像"
+msgstr ""
+
+msgid "下載"
+msgstr ""
+
+msgid "下載 PDF / 工作紙"
+msgstr ""
+
+msgid "下载 Pro 安装包（最新版）"
+msgstr ""
+
+msgid "不可用，支付宝网关无法工作"
+msgstr ""
+
+msgid "不支持的登录方式。"
+msgstr ""
+
+msgid "不限次"
+msgstr ""
+
+msgid "个人资料页"
+msgstr ""
+
+msgid "为每个菜单项选择内置 Dashicons 类，或上传自定义 PNG / SVG / JPG 图片。留空时使用插件内置默认图标。"
+msgstr ""
+
+msgid "产品"
+msgstr ""
+
+msgid "亲爱的 %s："
+msgstr ""
+
+msgid "仅未登录访客"
+msgstr ""
+
+msgid "仅登录用户"
+msgstr ""
+
+msgid "今天已经签到过了，明天再来吧。"
+msgstr ""
+
+msgid "付费墙（文章付费）"
+msgstr ""
+
+msgid "价格"
+msgstr ""
+
+msgid "会员与账户"
+msgstr ""
+
+msgid "会员头像"
+msgstr ""
+
+msgid "会员头像库"
+msgstr ""
+
+msgid "会员模块未加载。"
+msgstr ""
+
+msgid "会员用户数"
+msgstr ""
+
+msgid "会员等级"
+msgstr ""
+
+msgid "会员等级定义"
+msgstr ""
+
+msgid "会员等级页"
+msgstr ""
+
+msgid "低于最低要求 5.8"
+msgstr ""
+
+msgid "低于最低要求 7.4"
+msgstr ""
+
+msgid "使用 %s 登录"
+msgstr ""
+
+msgid "使用情况"
+msgstr ""
+
+msgid "侧栏与通用"
+msgstr ""
+
+msgid "侧栏菜单图标"
+msgstr ""
+
+msgid "修改密码"
+msgstr ""
+
+msgid "修改账户中心全部前台文字。留空直接显示英文默认值；填写后优先显示填写内容（中文或其他语言均可）。保存后刷新前台页面生效。"
+msgstr ""
+
+msgid "公開（免費）"
+msgstr ""
+
+msgid "关联订单"
+msgstr ""
+
+msgid "关闭"
+msgstr ""
+
+msgid "关闭后站点仅保留付费等级：未购买会员的用户不再显示「普通会员」身份；标记为 free 的公开内容仍对所有人可见。"
+msgstr ""
+
+msgid "其中已复制为商城订单"
+msgstr ""
+
+msgid "凭据未配置完整"
+msgstr ""
+
+msgid "删除"
+msgstr ""
+
+msgid "删除 free 等同关闭普通会员基座"
+msgstr ""
+
+msgid "到期"
+msgstr ""
+
+msgid "到期后对应 Pro 功能将停止，请及时续费。"
+msgstr ""
+
+msgid "到期日"
+msgstr ""
+
+msgid "前往头像库管理 →"
+msgstr ""
+
+msgid "剩餘 %1$s / %2$s 次"
+msgstr ""
+
+msgid "加载 Apple 公钥失败。"
+msgstr ""
+
+msgid "勾选「永不过期」时忽略日期；不勾选则到期时间为该日 23:59（站点时区）。"
+msgstr ""
+
+msgid "可用"
+msgstr ""
+
+msgid "可选等级由后台「会员等级定义」配置。"
+msgstr ""
+
+msgid "启用会员头像库：管理员在「会员头像库」上传头像，用户在前端账户中心选择"
+msgstr ""
+
+msgid "启用后：后台「用户中心 → 会员头像库」可上传多张头像；用户在前端账户中心从列表中选择一个作为自己的头像（无需自行上传）。"
+msgstr ""
+
+msgid "启用普通会员（免费基座等级）"
+msgstr ""
+
+msgid "启用每日签到送积分（账户中心 → 积分余额 Tab 展示签到入口）"
+msgstr ""
+
+msgid "启用积分体系（签到入账的前提）"
+msgstr ""
+
+msgid "商品："
+msgstr ""
+
+msgid "回收站中暂无头像"
+msgstr ""
+
+msgid "回调地址"
+msgstr ""
+
+msgid "图标"
+msgstr ""
+
+msgid "在对应开放平台填写回调地址（示例）：%s。仅填写了 Client ID 与 Secret 的提供商才会出现在前端登录按钮。"
+msgstr ""
+
+msgid "在此新增、编辑或删除会员等级（含 free 基座等级）。删除某等级后，原拥有该等级的用户会自动降级；删除 free 等级则未付费用户视为无任何等级身份，重新勾选上方「启用普通会员」即可恢复。价格与有效期将用于「升级会员」购买流程（后续阶段接入）。"
+msgstr ""
+
+msgid "基础奖励"
+msgstr ""
+
+msgid "基础资料"
+msgstr ""
+
+msgid "填等级标识（会员等级定义中的 key），英文逗号分隔，留空 = 不自动颁发。用户购买这些等级并支付成功后，自动为其创建 / 续期 Pro License（到期时长跟随等级有效期）。"
+msgstr ""
+
+msgid "天额外加成"
+msgstr ""
+
+msgid "头像上传"
+msgstr ""
+
+msgid "头像功能未启用。"
+msgstr ""
+
+msgid "头像图片加载失败。"
+msgstr ""
+
+msgid "头像属性"
+msgstr ""
+
+msgid "头像已更新。"
+msgstr ""
+
+msgid "头像已添加。"
+msgstr ""
+
+msgid "头像已移至回收站。"
+msgstr ""
+
+msgid "头像库"
+msgstr ""
+
+msgid "头像库为空。点击下方按钮上传头像。"
+msgstr ""
+
+msgid "头像库模块未加载。"
+msgstr ""
+
+msgid "头像选择"
+msgstr ""
+
+msgid "如果该账户存在，重置链接已发送至邮箱。"
+msgstr ""
+
+msgid "始终显示"
+msgstr ""
+
+msgid "存在（会员等级/OAuth 等配置由商城直接沿用）"
+msgstr ""
+
+msgid "安全校驗失敗。"
+msgstr ""
+
+msgid "安全校验失败。"
+msgstr ""
+
+msgid "安全校验失败（state 不匹配），请重试。"
+msgstr ""
+
+msgid "安全校验失败（state 无效），请重试。"
+msgstr ""
+
+msgid "安全校验失败（登录身份不一致），请重试。"
+msgstr ""
+
+msgid "密码至少 6 位。"
+msgstr ""
+
+msgid "密码错误。"
+msgstr ""
+
+msgid "尝试过于频繁，请稍后再试。"
+msgstr ""
+
+msgid "嵌入 URL（YouTube / Vimeo / 直接 mp4）"
+msgstr ""
+
+msgid "工作紙 / 教材"
+msgstr ""
+
+msgid "已取消授权，请重试或使用其他方式登录。"
+msgstr ""
+
+msgid "已启用但不可用"
+msgstr ""
+
+msgid "已安装"
+msgstr ""
+
+msgid "已开启（排查用，建议平时关闭）"
+msgstr ""
+
+msgid "已授权（迁移已执行/可重复执行）"
+msgstr ""
+
+msgid "已撤销"
+msgstr ""
+
+msgid "已暂停"
+msgstr ""
+
+msgid "已绑定站点"
+msgstr ""
+
+msgid "已购内容页"
+msgstr ""
+
+msgid "已跳过"
+msgstr ""
+
+msgid "已跳过迁移。后续可在本页随时重新授权。"
+msgstr ""
+
+msgid "已过期"
+msgstr ""
+
+msgid "已退出登录。"
+msgstr ""
+
+msgid "已達下載次數上限。"
+msgstr ""
+
+msgid "已配置"
+msgstr ""
+
+msgid "常规设置"
+msgstr ""
+
+msgid "开发环境"
+msgstr ""
+
+msgid "当前 %d 位用户在用此头像。"
+msgstr ""
+
+msgid "当前头像库共 %d 张可选头像；用户在账户中心「个人资料」页从这些头像中选择一个作为自己的头像。"
+msgstr ""
+
+msgid "当前站点已关闭注册。"
+msgstr ""
+
+msgid "当前站点未启用本地授权管理。"
+msgstr ""
+
+msgid "影片設定"
+msgstr ""
+
+msgid "微信"
+msgstr ""
+
+msgid "恢复"
+msgstr ""
+
+msgid "您在「%1$s」的购买已完成支付。"
+msgstr ""
+
+msgid "您好，%s："
+msgstr ""
+
+msgid "您已登录，前往 %s 或 %s。"
+msgstr ""
+
+msgid "您的 License（%1$s，产品：%2$s）将于 %3$s 到期。"
+msgstr ""
+
+msgid "感谢您的支持！"
+msgstr ""
+
+msgid "我们收到您的找回密码请求，请点击以下链接重置密码："
+msgstr ""
+
+msgid "我的授权"
+msgstr ""
+
+msgid "我的订单 / 我的 License 页"
+msgstr ""
+
+msgid "或使用第三方账号登录"
+msgstr ""
+
+msgid "所有头像"
+msgstr ""
+
+msgid "所选头像无效。"
+msgstr ""
+
+msgid "找回密码页面"
+msgstr ""
+
+msgid "换取令牌失败。"
+msgstr ""
+
+msgid "授权不存在或无权操作。"
+msgstr ""
+
+msgid "授权中心插件未启用，无法解绑。"
+msgstr ""
+
+msgid "授权商店"
+msgstr ""
+
+msgid "授权码"
+msgstr ""
+
+msgid "授权迁移（复制旧订单为商城订单）"
+msgstr ""
+
+msgid "排序"
+msgstr ""
+
+msgid "提供商"
+msgstr ""
+
+msgid "插入到头像"
+msgstr ""
+
+msgid "搜索"
+msgstr ""
+
+msgid "搜索头像"
+msgstr ""
+
+msgid "撤销"
+msgstr ""
+
+msgid "操作"
+msgstr ""
+
+msgid "操作已过期，请重试。"
+msgstr ""
+
+msgid "操作提示（保存/修改密码等）"
+msgstr ""
+
+msgid "支付宝仅支持 CNY；切换为 CNY 后购买页才会出现支付宝选项"
+msgstr ""
+
+msgid "支付宝异步通知（notify_url）"
+msgstr ""
+
+msgid "支付宝网关可用"
+msgstr ""
+
+msgid "支付成功后向购买用户发送邮件"
+msgstr ""
+
+msgid "支付成功自动颁发 License 的会员等级"
+msgstr ""
+
+msgid "支付方式无效。"
+msgstr ""
+
+msgid "支付网关"
+msgstr ""
+
+msgid "支付调试日志"
+msgstr ""
+
+msgid "支持 PNG / SVG / JPG。建议 24×24 或 32×32 的方形图标。"
+msgstr ""
+
+msgid "教材"
+msgstr ""
+
+msgid "教材不存在。"
+msgstr ""
+
+msgid "教材設定"
+msgstr ""
+
+msgid "文件未配置。"
+msgstr ""
+
+msgid "文件網址（PDF / ZIP）"
+msgstr ""
+
+msgid "文字自定义"
+msgstr ""
+
+msgid "新增教材"
+msgstr ""
+
+msgid "新增示範影片"
+msgstr ""
+
+msgid "新头像"
+msgstr ""
+
+msgid "新建影片"
+msgstr ""
+
+msgid "新建教材"
+msgstr ""
+
+msgid "无"
+msgstr ""
+
+msgid "无法获取 Apple 公钥。"
+msgstr ""
+
+msgid "旧会员订单（mluc_order）"
+msgstr ""
+
+msgid "旧配置（mluc_options）"
+msgstr ""
+
+msgid "时间："
+msgstr ""
+
+msgid "显示名称"
+msgstr ""
+
+msgid "暂不支持该登录方式。"
+msgstr ""
+
+msgid "暂无 License。"
+msgstr ""
+
+msgid "暂无头像"
+msgstr ""
+
+msgid "暂无授权。前往商店查看 Pro 产品："
+msgstr ""
+
+msgid "暂无记录。"
+msgstr ""
+
+msgid "暂未绑定站点：在目标站点安装对应的 Pro 插件并输入授权码即可。"
+msgstr ""
+
+msgid "暫無可下載的教材。"
+msgstr ""
+
+msgid "暫無可觀看的示範影片。"
+msgstr ""
+
+msgid "暫無教材可下載。"
+msgstr ""
+
+msgid "最低訪問等級"
+msgstr ""
+
+msgid "有效"
+msgstr ""
+
+msgid "有效期（天）"
+msgstr ""
+
+msgid "未启用"
+msgstr ""
+
+msgid "未安装（Free 功能不受影响）"
+msgstr ""
+
+msgid "未授权"
+msgstr ""
+
+msgid "未激活"
+msgstr ""
+
+msgid "未知操作。"
+msgstr ""
+
+msgid "未能获取第三方用户标识。"
+msgstr ""
+
+msgid "未配置（本地验证模式）"
+msgstr ""
+
+msgid "未配置，支付回跳将回退到 /account/"
+msgstr ""
+
+msgid "权限不足。"
+msgstr ""
+
+msgid "权限不足或校验失败。"
+msgstr ""
+
+msgid "构建 Apple 公钥失败。"
+msgstr ""
+
+msgid "查看头像"
+msgstr ""
+
+msgid "标识"
+msgstr ""
+
+msgid "标识颜色"
+msgstr ""
+
+msgid "概览页"
+msgstr ""
+
+msgid "權限不足，無法下載。"
+msgstr ""
+
+msgid "權限不足，無法檢視此教材。"
+msgstr ""
+
+msgid "權限不足，無法觀看此影片。"
+msgstr ""
+
+msgid "此影片需要 %s 會員等級，請升級以觀看。"
+msgstr ""
+
+msgid "每日签到（连续 %1$d 天）"
+msgstr ""
+
+msgid "每用戶下載次數上限（0 = 不限）"
+msgstr ""
+
+msgid "永不过期"
+msgstr ""
+
+msgid "永久"
+msgstr ""
+
+msgid "注册成功，正在跳转…"
+msgstr ""
+
+msgid "注册页面"
+msgstr ""
+
+msgid "注意：父项被隐藏时其整组子菜单一并隐藏。魔法链接：#mluc-login / #mluc-register / #mluc-account / #mluc-lostpassword / #mluc-logout（自定义链接 URL 填此占位符，前台自动替换为真实地址）"
+msgstr ""
+
+msgid "添加头像"
+msgstr ""
+
+msgid "满足最低要求 5.8"
+msgstr ""
+
+msgid "满足最低要求 7.4"
+msgstr ""
+
+msgid "激活"
+msgstr ""
+
+msgid "激活数量上限"
+msgstr ""
+
+msgid "状态"
+msgstr ""
+
+msgid "环境"
+msgstr ""
+
+msgid "生成重置密钥失败，请稍后再试。"
+msgstr ""
+
+msgid "用户"
+msgstr ""
+
+msgid "用户中心"
+msgstr ""
+
+msgid "用户中心 · 显示条件"
+msgstr ""
+
+msgid "用户中心设置"
+msgstr ""
+
+msgid "用户名不存在。"
+msgstr ""
+
+msgid "界面文案（账户中心）"
+msgstr ""
+
+msgid "留空则登录后跳转到账户中心页面。"
+msgstr ""
+
+msgid "登入後下載"
+msgstr ""
+
+msgid "登录 / 注册 / 找回密码页"
+msgstr ""
+
+msgid "登录后重定向"
+msgstr ""
+
+msgid "登录成功，正在跳转…"
+msgstr ""
+
+msgid "登录页面"
+msgstr ""
+
+msgid "确认撤销该 License？撤销后立即失效。"
+msgstr ""
+
+msgid "确认解绑该站点？解绑后可在新站点重新激活。"
+msgstr ""
+
+msgid "示範影片"
+msgstr ""
+
+msgid "积分"
+msgstr ""
+
+msgid "积分 / 天"
+msgstr ""
+
+msgid "积分与签到"
+msgstr ""
+
+msgid "积分账本与商城积分（充值 / 积分支付）共用同一本账；开启后签到所得可直接用于下单。"
+msgstr ""
+
+msgid "积分（间隔填 0 表示不加成）"
+msgstr ""
+
+msgid "移除"
+msgstr ""
+
+msgid "站点已关闭注册，且未找到匹配的账号。"
+msgstr ""
+
+msgid "站点已解绑，可在新站点重新激活。"
+msgstr ""
+
+msgid "站点绑定不存在。"
+msgstr ""
+
+msgid "站点额度"
+msgstr ""
+
+msgid "第三方登录"
+msgstr ""
+
+msgid "第三方返回数据解析失败。"
+msgstr ""
+
+msgid "等級"
+msgstr ""
+
+msgid "等级"
+msgstr ""
+
+msgid "等级标识"
+msgstr ""
+
+msgid "等级配置"
+msgstr ""
+
+msgid "签到功能未启用。"
+msgstr ""
+
+msgid "签到奖励"
+msgstr ""
+
+msgid "签到奖励配置无效，请联系管理员。"
+msgstr ""
+
+msgid "签到成功，获得 %1$s %2$s！已连续签到 %3$d 天。"
+msgstr ""
+
+msgid "签到正在处理中，请勿重复提交。"
+msgstr ""
+
+msgid "签发 License"
+msgstr ""
+
+msgid "系统状态"
+msgstr ""
+
+msgid "編輯教材"
+msgstr ""
+
+msgid "編輯示範影片"
+msgstr ""
+
+msgid "线下转账开关未开启"
+msgstr ""
+
+msgid "终身"
+msgstr ""
+
+msgid "绑定用户"
+msgstr ""
+
+msgid "绑定站点"
+msgstr ""
+
+msgid "结算货币代码"
+msgstr ""
+
+msgid "续期(天)"
+msgstr ""
+
+msgid "编辑头像"
+msgstr ""
+
+msgid "网关"
+msgstr ""
+
+msgid "网关未并入（Phase C）"
+msgstr ""
+
+msgid "自定义图片"
+msgstr ""
+
+msgid "自訂縮圖網址（選填）"
+msgstr ""
+
+msgid "若非本人操作，请忽略本邮件。"
+msgstr ""
+
+msgid "获取 Apple 用户信息失败。"
+msgstr ""
+
+msgid "获取 QQ openid 失败。"
+msgstr ""
+
+msgid "获取微信 openid 失败。"
+msgstr ""
+
+msgid "菜单图标"
+msgstr ""
+
+msgid "菜单项"
+msgstr ""
+
+msgid "解析 Apple 身份失败。"
+msgstr ""
+
+msgid "解绑"
+msgstr ""
+
+msgid "解绑失败，请联系管理员。"
+msgstr ""
+
+msgid "請先登入。"
+msgstr ""
+
+msgid "订单号："
+msgstr ""
+
+msgid "设置"
+msgstr ""
+
+msgid "该 License 已绑定到其他站点（%s）。如需迁移，请先在原站点停用。"
+msgstr ""
+
+msgid "该 License 已被撤销，请联系管理员。"
+msgstr ""
+
+msgid "该 License 已被暂停，请联系管理员。"
+msgstr ""
+
+msgid "该 License 已过期，请续费后重新激活。"
+msgstr ""
+
+msgid "该 License 未绑定当前站点。"
+msgstr ""
+
+msgid "该 License 的激活数量已达上限。"
+msgstr ""
+
+msgid "该头像尚未设置图片。"
+msgstr ""
+
+msgid "该支付方式当前不可用。"
+msgstr ""
+
+msgid "该用户名已被使用。"
+msgstr ""
+
+msgid "该邮箱已被注册。"
+msgstr ""
+
+msgid "该页面需包含短代码 %s。"
+msgstr ""
+
+msgid "说明"
+msgstr ""
+
+msgid "请为头像设置「特色图片」（≥256×256 的 PNG/JPG/WebP），未设置时不会出现在用户的选择列表中。"
+msgstr ""
+
+msgid "请先登录。"
+msgstr ""
+
+msgid "请先设置「特色图片」再发布。"
+msgstr ""
+
+msgid "请填写用户名、邮箱和密码。"
+msgstr ""
+
+msgid "请输入密码。"
+msgstr ""
+
+msgid "请输入用户名。"
+msgstr ""
+
+msgid "请输入用户名或邮箱。"
+msgstr ""
+
+msgid "请输入账号和密码。"
+msgstr ""
+
+msgid "请选择一种隐藏类型…"
+msgstr ""
+
+msgid "账户中心"
+msgstr ""
+
+msgid "账户中心模块未加载。"
+msgstr ""
+
+msgid "账户中心页面"
+msgstr ""
+
+msgid "账户概览"
+msgstr ""
+
+msgid "购买卡（开通/升级会员）"
+msgstr ""
+
+msgid "跳过迁移"
+msgstr ""
+
+msgid "迁移已执行。"
+msgstr ""
+
+msgid "迁移已执行：%s。原订单保留未动。"
+msgstr ""
+
+msgid "迁移执行出错：%s（数据未受影响，可重试）"
+msgstr ""
+
+msgid "迁移授权状态"
+msgstr ""
+
+msgid "迁移日志（最近 10 条）"
+msgstr ""
+
+msgid "迁移状态"
+msgstr ""
+
+msgid "连续每"
+msgstr ""
+
+msgid "退出登录"
+msgstr ""
+
+msgid "选择头像"
+msgstr ""
+
+msgid "通知开关"
+msgstr ""
+
+msgid "邮件通知"
+msgstr ""
+
+msgid "邮箱格式不正确。"
+msgstr ""
+
+msgid "配置未完整（App ID / 私钥 / 支付宝公钥）"
+msgstr ""
+
+msgid "金额："
+msgstr ""
+
+msgid "隐藏内容"
+msgstr ""
+
+msgid "隐藏内容锁定卡（hidecontent）"
+msgstr ""
+
+msgid "页面导航"
+msgstr ""
+
+msgid "预览"
+msgstr ""
+
+msgid "默认"
+msgstr ""
+
+msgid "默认为 Pro 扩展产品标识，一般无需修改。"
+msgstr ""
+
+msgid "（不绑定用户）"
+msgstr ""
+
+msgid "（無會員等級）"
+msgstr ""
+

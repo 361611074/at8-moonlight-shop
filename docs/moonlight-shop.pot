@@ -43,6 +43,12 @@ msgstr ""
 msgid "0 表示不限次数。当前已用：%d"
 msgstr ""
 
+msgid "1 – 2000 张。"
+msgstr ""
+
+msgid "8 – 64 位，不含前缀。"
+msgstr ""
+
 msgid "APIv3 密鑰（32 位）"
 msgstr ""
 
@@ -68,6 +74,12 @@ msgid "Live Publishable Key"
 msgstr ""
 
 msgid "Live Secret Key"
+msgstr ""
+
+msgid "Moonlight Shop Pro 已啟動"
+msgstr ""
+
+msgid "Moonlight Shop Pro 已激活"
 msgstr ""
 
 msgid "Native（PC 掃碼）"
@@ -142,7 +154,16 @@ msgstr ""
 msgid "Webhook Signing Secret"
 msgstr ""
 
+msgid "Webhook 出站通知"
+msgstr ""
+
+msgid "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
+msgstr ""
+
 msgid "Webhook 頭部不完整。"
+msgstr ""
+
+msgid "Webhook（订单事件实时推送到你的系统）"
 msgstr ""
 
 msgid "WooCommerce 没有商品标签，无需同步。"
@@ -185,6 +206,9 @@ msgid "【訂單確認】#%s 訂單已提交 — 待付款"
 msgstr ""
 
 msgid "【訂單確認】#{order_number} 付款完成"
+msgstr ""
+
+msgid "一鍵匯出 Excel，便於對帳與交稅。"
 msgstr ""
 
 msgid "一键将站内全部 WooCommerce 商品（当前 %d 个已发布）迁入月光商城：标题/内容/图片/分类/标签/价格/库存/SKU 自动映射；可重复执行，已迁入的商品更新而非重建。"
@@ -262,6 +286,9 @@ msgstr ""
 msgid "买过指定商品的客户"
 msgstr ""
 
+msgid "了解并购买 Pro"
+msgstr ""
+
 msgid "交付内容"
 msgstr ""
 
@@ -277,6 +304,9 @@ msgstr ""
 msgid "亲爱的 {customer_name}：\n\n感谢您一直以来的支持！\n\n{site_name}"
 msgstr ""
 
+msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+msgstr ""
+
 msgid "仅百分比类型生效，0 表示不限。"
 msgstr ""
 
@@ -284,6 +314,9 @@ msgid "仅钻石会员可购买此内容，请先升级会员。"
 msgstr ""
 
 msgid "今天"
+msgstr ""
+
+msgid "今日已签到"
 msgstr ""
 
 msgid "今日销售额"
@@ -415,6 +448,9 @@ msgstr ""
 msgid "作用于全部「加入购物车 / 选择套餐」按钮（商品卡片、相关商品、详情页），改完保存刷新前台即见。"
 msgstr ""
 
+msgid "你的授权签发站点地址（在授权中心「设置」页查看）。"
+msgstr ""
+
 msgid "使用 %s %s 解锁"
 msgstr ""
 
@@ -505,10 +541,22 @@ msgstr ""
 msgid "免費"
 msgstr ""
 
+msgid "免費版已能完整賣貨。升級 Pro 後，多出這些站內能力："
+msgstr ""
+
+msgid "免费版已可正常卖货。升级 Pro 解锁："
+msgstr ""
+
+msgid "入库失败："
+msgstr ""
+
 msgid "全局兑换比例：多少积分 = 1 个货币单位。例：10 表示 10 积分 = 1 元。同时作用于：自定义充值金额、积分支付订单换算、以及未手填积分价的商品/付费内容自动换算（见下方开关）。"
 msgstr ""
 
 msgid "全部"
+msgstr ""
+
+msgid "全部 %d 张与既有卡密重复。"
 msgstr ""
 
 msgid "全部商品"
@@ -601,6 +649,9 @@ msgstr ""
 msgid "到店自提（免運費）"
 msgstr ""
 
+msgid "到期时间"
+msgstr ""
+
 msgid "前 %d 张免费，剩余 %d 张购买后查看。"
 msgstr ""
 
@@ -608,6 +659,15 @@ msgid "前台公開支付方式"
 msgstr ""
 
 msgid "前台展示名（可選）"
+msgstr ""
+
+msgid "前台顯示名稱"
+msgstr ""
+
+msgid "前台顯示說明"
+msgstr ""
+
+msgid "前缀"
 msgstr ""
 
 msgid "剩余 %d 次"
@@ -628,10 +688,16 @@ msgstr ""
 msgid "包裹已交运（%1$s %2$s）"
 msgstr ""
 
+msgid "升級 Pro 解鎖完整能力"
+msgstr ""
+
 msgid "升级"
 msgstr ""
 
 msgid "升级价格无效。"
+msgstr ""
+
+msgid "升级到 Moonlight Shop Pro"
 msgstr ""
 
 msgid "升级模块不可用。"
@@ -688,7 +754,19 @@ msgstr ""
 msgid "卡密明文（已记录审计）："
 msgstr ""
 
+msgid "卡密管理"
+msgstr ""
+
+msgid "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
+msgstr ""
+
 msgid "卡密解密失败，请联系站长。"
+msgstr ""
+
+msgid "卡密长度"
+msgstr ""
+
+msgid "卡密长度需在 8 – 64 之间。"
 msgstr ""
 
 msgid "卡密（掩码）"
@@ -760,10 +838,16 @@ msgstr ""
 msgid "可售卡密"
 msgstr ""
 
+msgid "可自定义，但 0/O/1/I/l 会被自动剔除（客服沟通易混淆）。可用字符需 ≥ 8 种。"
+msgstr ""
+
 msgid "可退金额不足（累计退款已接近订单总额）。"
 msgstr ""
 
 msgid "可选，写入轨迹首条"
+msgstr ""
+
+msgid "可选，如 VIP-"
 msgstr ""
 
 msgid "右"
@@ -827,6 +911,9 @@ msgid "售后申请已提交，管理员会尽快处理。"
 msgstr ""
 
 msgid "商品"
+msgstr ""
+
+msgid "商品 #%d 库存不足，无法重新打开订单。"
 msgstr ""
 
 msgid "商品/付费内容未手填积分价时，按「货币价 × 兑换比例」自动换算（向上取整）"
@@ -991,6 +1078,9 @@ msgstr ""
 msgid "商城·购物车"
 msgstr ""
 
+msgid "商城付款成功后会自动向授权中心请求签发授权码。"
+msgstr ""
+
 msgid "商城仪表盘"
 msgstr ""
 
@@ -1060,6 +1150,15 @@ msgstr ""
 msgid "圆通速递"
 msgstr ""
 
+msgid "圓角"
+msgstr ""
+
+msgid "圖標尺寸"
+msgstr ""
+
+msgid "圖標顏色"
+msgstr ""
+
 msgid "在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID："
 msgstr ""
 
@@ -1114,6 +1213,9 @@ msgstr ""
 msgid "基本設定"
 msgstr ""
 
+msgid "填 50 為正圓，填 0 為方角。"
+msgstr ""
+
 msgid "增加"
 msgstr ""
 
@@ -1127,6 +1229,12 @@ msgid "备注"
 msgstr ""
 
 msgid "复制"
+msgstr ""
+
+msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+msgstr ""
+
+msgid "天（0 = 永不过期）"
 msgstr ""
 
 msgid "失败信息"
@@ -1145,6 +1253,15 @@ msgid "如：积分 / Z币 / 金币。显示在产品 Meta Box 和前端。"
 msgstr ""
 
 msgid "字号"
+msgstr ""
+
+msgid "字符集"
+msgstr ""
+
+msgid "字符集可用字符不足 8 个，请更换。"
+msgstr ""
+
+msgid "字符集里没有足够的可用字符（已剔除 0/O/1/I/l），请更换。"
 msgstr ""
 
 msgid "字重"
@@ -1300,6 +1417,12 @@ msgstr ""
 msgid "已滿 %2$s，享 %1$s 免運費。"
 msgstr ""
 
+msgid "已激活"
+msgstr ""
+
+msgid "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字符集 %4$s。"
+msgstr ""
+
 msgid "已确认收货，感谢您的购买！"
 msgstr ""
 
@@ -1307,6 +1430,9 @@ msgid "已移除。"
 msgstr ""
 
 msgid "已签收"
+msgstr ""
+
+msgid "已购买？上传 Pro 插件"
 msgstr ""
 
 msgid "已跳过网关（仅标记退款）。"
@@ -1318,10 +1444,16 @@ msgstr ""
 msgid "已过期/停用"
 msgstr ""
 
+msgid "已连续签到 %d 天"
+msgstr ""
+
 msgid "已退款"
 msgstr ""
 
 msgid "已退款累计：%1$s %2$s / %3$s %4$s"
+msgstr ""
+
+msgid "已配置"
 msgstr ""
 
 msgid "布局"
@@ -1358,6 +1490,9 @@ msgid "开始群发"
 msgstr ""
 
 msgid "异常"
+msgstr ""
+
+msgid "当前 Pro 授权"
 msgstr ""
 
 msgid "当前%1$s余额：%2$s（%3$s %1$s = 1 货币单位）"
@@ -1528,6 +1663,9 @@ msgstr ""
 msgid "應用私鑰"
 msgstr ""
 
+msgid "懸停背景"
+msgstr ""
+
 msgid "我已完成支付"
 msgstr ""
 
@@ -1585,6 +1723,9 @@ msgstr ""
 msgid "扣减"
 msgstr ""
 
+msgid "扣减失败：该用户%1$s余额不足 %2$s，未做任何调整。"
+msgstr ""
+
 msgid "执行退款"
 msgstr ""
 
@@ -1607,6 +1748,9 @@ msgid "批次已启用。"
 msgstr ""
 
 msgid "批次状态更新失败。"
+msgstr ""
+
+msgid "批次產生 / 匯入卡密，支援餘額、會員、積分三種兌換類型，餘額自動入帳。"
 msgstr ""
 
 msgid "批量导入卡密"
@@ -1636,13 +1780,37 @@ msgstr ""
 msgid "按日期筛选订单"
 msgstr ""
 
+msgid "按规则批量生成卡密并直接入池（加密存储，明文不落库）。生成后可在下方批次列表查看或导出。"
+msgstr ""
+
+msgid "按鈕尺寸"
+msgstr ""
+
+msgid "按鈕正方形邊長，推薦 32–44。"
+msgstr ""
+
+msgid "按鈕背景"
+msgstr ""
+
 msgid "按钮文字"
+msgstr ""
+
+msgid "授权中心地址"
+msgstr ""
+
+msgid "授權中心"
+msgstr ""
+
+msgid "授權橋接模組未載入。"
 msgstr ""
 
 msgid "排序"
 msgstr ""
 
 msgid "排序："
+msgstr ""
+
+msgid "控制頁眉右上角三顆按鈕的外觀。桌面端顯示在頁眉右欄；行動端會自動固定在漢堡選單左側（位置可單獨設定）。留空即用預設值。"
 msgstr ""
 
 msgid "推广链接购买可享 %s%% 折扣"
@@ -1840,6 +2008,9 @@ msgstr ""
 msgid "文字大小"
 msgstr ""
 
+msgid "文字："
+msgstr ""
+
 msgid "新商品"
 msgstr ""
 
@@ -2029,7 +2200,13 @@ msgstr ""
 msgid "會員升級"
 msgstr ""
 
+msgid "會員等級自動頒發"
+msgstr ""
+
 msgid "月費會員"
+msgstr ""
+
+msgid "有效期"
 msgstr ""
 
 msgid "有效期 %d 天"
@@ -2039,6 +2216,9 @@ msgid "有效期至"
 msgstr ""
 
 msgid "有订单的客户"
+msgstr ""
+
+msgid "服务器缺少 random_bytes，无法安全生成卡密。请改用手动导入。"
 msgstr ""
 
 msgid "未分类"
@@ -2062,6 +2242,12 @@ msgstr ""
 msgid "未滿 %3$s，需加收 %1$s 運費 %2$s。"
 msgstr ""
 
+msgid "未激活"
+msgstr ""
+
+msgid "未知错误。"
+msgstr ""
+
 msgid "未註冊訪客填寫電子郵箱即可下單"
 msgstr ""
 
@@ -2072,6 +2258,9 @@ msgid "未達免運門檻時收取的統一運費（例：50 表示順豐統一�
 msgstr ""
 
 msgid "未配置 PayPal Webhook ID。"
+msgstr ""
+
+msgid "未配置（不影响其他功能）"
 msgstr ""
 
 msgid "本内容支持使用优惠码"
@@ -2126,6 +2315,9 @@ msgid "查看完整"
 msgstr ""
 
 msgid "查看批次"
+msgstr ""
+
+msgid "查看授权详情"
 msgstr ""
 
 msgid "查看本次订单"
@@ -2195,6 +2387,9 @@ msgid "每 15 分钟（商城物流查询）"
 msgstr ""
 
 msgid "每个下载链接允许下载的总次数；0 表示不限次数。"
+msgstr ""
+
+msgid "每日签到"
 msgstr ""
 
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。注意：套餐为独立定价（可做充值优惠），不随上方兑换比例自动变化。"
@@ -2284,6 +2479,9 @@ msgstr ""
 msgid "漫步白月光電子商城 設定"
 msgstr ""
 
+msgid "激活 Pro"
+msgstr ""
+
 msgid "点击复制"
 msgstr ""
 
@@ -2329,6 +2527,18 @@ msgstr ""
 msgid "環境模式"
 msgstr ""
 
+msgid "生成失败，未知错误。"
+msgstr ""
+
+msgid "生成并入池"
+msgstr ""
+
+msgid "生成数量"
+msgstr ""
+
+msgid "生成数量需在 1 – 2000 之间。"
+msgstr ""
+
 msgid "生成订单后扫码付款，管理员确认到账后发货。"
 msgstr ""
 
@@ -2369,6 +2579,12 @@ msgid "留空使用默认值。加购按钮 / 加入中 / 已加入提示全站�
 msgstr ""
 
 msgid "留空時取訂單首件商品標題"
+msgstr ""
+
+msgid "留空用默认（大写字母 + 数字，已剔除 0/O/1/I/l）"
+msgstr ""
+
+msgid "留空自动命名（如 自动生成 2026-01-01 12:00（50 张））"
 msgstr ""
 
 msgid "留空自动命名（导入 Ymd-His）"
@@ -2485,6 +2701,9 @@ msgstr ""
 msgid "立即注册"
 msgstr ""
 
+msgid "立即签到"
+msgstr ""
+
 msgid "立即购买"
 msgstr ""
 
@@ -2507,6 +2726,12 @@ msgid "管理员增加：%1$s（by %2$s）"
 msgstr ""
 
 msgid "管理员扣减：%1$s（by %2$s）"
+msgstr ""
+
+msgid "管理密钥"
+msgstr ""
+
+msgid "管理授权"
 msgstr ""
 
 msgid "簽名驗證未通過。"
@@ -2563,6 +2788,9 @@ msgstr ""
 msgid "网格"
 msgstr ""
 
+msgid "网络异常，请重试。"
+msgstr ""
+
 msgid "网络错误，请重试"
 msgstr ""
 
@@ -2576,6 +2804,12 @@ msgid "联络电话"
 msgstr ""
 
 msgid "聯絡電話"
+msgstr ""
+
+msgid "自动生成 %1$s（%2$d 张）"
+msgstr ""
+
+msgid "自动生成卡密"
 msgstr ""
 
 msgid "自动轨迹查询"
@@ -2608,10 +2842,16 @@ msgstr ""
 msgid "虛擬下載 / 卡密類商品會在郵件中附上下載連結或卡密；關閉後不再自動發信。"
 msgstr ""
 
+msgid "行動端位置"
+msgstr ""
+
 msgid "补充卡密"
 msgstr ""
 
 msgid "观看视频"
+msgstr ""
+
+msgid "角標"
 msgstr ""
 
 msgid "解密失败：记录不存在、已损坏或权限不足。"
@@ -2624,6 +2864,12 @@ msgid "訂單 / 下載確認郵件"
 msgstr ""
 
 msgid "訂單不存在。"
+msgstr ""
+
+msgid "訂單付款、取消、退款即時推送到你的系統，對接 ERP / 自動發卡 / 財務。"
+msgstr ""
+
+msgid "訂單匯出"
 msgstr ""
 
 msgid "訂單狀態已更新為「%s」。"
@@ -2677,6 +2923,9 @@ msgstr ""
 msgid "订单"
 msgstr ""
 
+msgid "订单 #%1$s 支付失败回补"
+msgstr ""
+
 msgid "订单 #%d 退款回收充值积分"
 msgstr ""
 
@@ -2708,6 +2957,9 @@ msgid "订单号："
 msgstr ""
 
 msgid "订单商品"
+msgstr ""
+
+msgid "订单导出（Excel）"
 msgstr ""
 
 msgid "订单封面图"
@@ -2956,7 +3208,13 @@ msgstr ""
 msgid "请选择有效商品后再导入。"
 msgstr ""
 
+msgid "请选择有效商品后再生成。"
+msgstr ""
+
 msgid "请选择有效的省份。"
+msgstr ""
+
+msgid "请选择要为其生成卡密的商品。"
 msgstr ""
 
 msgid "请选择该省份下有效的城市。"
@@ -3002,6 +3260,9 @@ msgid "货号"
 msgstr ""
 
 msgid "购买后 %d%s 内有效，逾期需重新购买"
+msgstr ""
+
+msgid "购买并激活 Pro"
 msgstr ""
 
 msgid "购买按钮样式"
@@ -3076,6 +3337,12 @@ msgstr ""
 msgid "还没有收藏的商品。"
 msgstr ""
 
+msgid "连接状态"
+msgstr ""
+
+msgid "连续碰撞未能生成唯一卡密，请缩短长度或更换字符集。"
+msgstr ""
+
 msgid "退款原因"
 msgstr ""
 
@@ -3125,6 +3392,12 @@ msgid "透過 Stripe 安全的支付頁面以信用卡、Apple Pay 或 Google Pa
 msgstr ""
 
 msgid "這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。"
+msgstr ""
+
+msgid "連接你的授權簽發站點：商城訂單付款成功後自動簽發 Pro 授權碼給買家。此處為唯一的授權配置入口。"
+msgstr ""
+
+msgid "連線資訊"
 msgstr ""
 
 msgid "運費"
@@ -3184,6 +3457,9 @@ msgstr ""
 msgid "金额"
 msgstr ""
 
+msgid "銷售額趨勢、熱銷排行、會員增長與轉換率，經營決策有依據。"
+msgstr ""
+
 msgid "销售额"
 msgstr ""
 
@@ -3202,6 +3478,9 @@ msgstr ""
 msgid "长期有效"
 msgstr ""
 
+msgid "間距 / 左邊距"
+msgstr ""
+
 msgid "關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。"
 msgstr ""
 
@@ -3218,6 +3497,9 @@ msgid "關閉後，商品單頁頂部只保留主圖。"
 msgstr ""
 
 msgid "關閉後，摘要區只保留標題 / 價格 / 類型標籤 / 描述 / 加購 / 收藏，更簡潔。「更多信息」標籤頁仍會包含完整資訊表。"
+msgstr ""
+
+msgid "随机源异常，生成已中止。"
 msgstr ""
 
 msgid "隐藏"
@@ -3241,10 +3523,22 @@ msgstr ""
 msgid "韵达快递"
 msgstr ""
 
+msgid "頁眉按鈕"
+msgstr ""
+
+msgid "頁眉按鈕（購物車 / 收藏 / 會員）"
+msgstr ""
+
 msgid "頂部面包屑導航"
 msgstr ""
 
 msgid "順豐速運"
+msgstr ""
+
+msgid "預設會自動對齊漢堡選單；若手動填寫則以此為準。"
+msgstr ""
+
+msgid "顏色："
 msgstr ""
 
 msgid "類型"
@@ -3254,6 +3548,9 @@ msgid "顯示在郵件底部的補充說明（如客服聯絡方式、社群連�
 msgstr ""
 
 msgid "顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。"
+msgstr ""
+
+msgid "顯示購物車 / 收藏數量角標"
 msgstr ""
 
 msgid "顺丰速运"
@@ -3269,6 +3566,15 @@ msgid "驗簽模式：微信支付公鑰序列號"
 msgstr ""
 
 msgid "高級會員"
+msgstr ""
+
+msgid "高級統計"
+msgstr ""
+
+msgid "高级统计（销售额趋势、热销排行）"
+msgstr ""
+
+msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
 msgstr ""
 
 msgid "默認"

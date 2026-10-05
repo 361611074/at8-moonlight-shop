@@ -6,7 +6,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "%1$s不足，本次需 %2$s，当前余额 %3$s。"
-msgstr ""
+msgstr "Not enough %1$s: needs %2$s, current balance %3$s."
 
 msgid "%d 分钟前"
 msgstr "%d minutes ago"
@@ -27,13 +27,13 @@ msgid "%s 您好，感謝您的訂購！"
 msgstr "%s Hello, thank you for your order!"
 
 msgid "%s 管理"
-msgstr ""
+msgstr "%s Management"
 
 msgid "%s支付"
-msgstr ""
+msgstr "%s Payment"
 
 msgid "%s支付需登录后使用。"
-msgstr ""
+msgstr "%s payment requires login."
 
 msgid "0 = 永不过期；大于 0 时整批卡密在该天数后自动停止售卖。"
 msgstr ""
@@ -41,8 +41,35 @@ msgstr ""
 msgid "0 表示不限次数。当前已用：%d"
 msgstr "0 means unlimited. Used so far: %d"
 
+msgid "1 – 2000 张。"
+msgstr "1 – 2000 張。"
+
+msgid "8 – 64 位，不含前缀。"
+msgstr "8 – 64 位，不含前綴。"
+
 msgid "APIv3 密鑰（32 位）"
 msgstr ""
+
+msgid "Access advanced materials and worksheet downloads."
+msgstr "可使用進階教材與工作紙下載。"
+
+msgid "Account Security"
+msgstr "Account Security"
+
+msgid "Account Stats"
+msgstr "Account Stats"
+
+msgid "Action"
+msgstr "Action"
+
+msgid "Active"
+msgstr "Active"
+
+msgid "Already have an account? Log in"
+msgstr "Already have an account? Log in"
+
+msgid "Amount"
+msgstr "Amount"
 
 msgid "AppID（mch 綁定的公眾號 / 小程序 / APP）"
 msgstr ""
@@ -50,11 +77,161 @@ msgstr ""
 msgid "AppID（應用編號）"
 msgstr ""
 
+msgid "Apple"
+msgstr "Apple"
+
+msgid "At least 6 characters."
+msgstr "At least 6 characters."
+
+msgid "Authorization cancelled. Please try again or use another method."
+msgstr "Authorization cancelled. Please try again or use another method."
+
+msgid "Automatic registration failed. Please try again later or contact the administrator."
+msgstr "Automatic registration failed. Please try again later or contact the administrator."
+
+msgid "Avatar"
+msgstr "Avatar"
+
+msgid "Back to Log In"
+msgstr "Back to Log In"
+
+msgid "Basic"
+msgstr "普通"
+
+msgid "Basic Information"
+msgstr "Basic Information"
+
+msgid "Benefits / Upgrade"
+msgstr "Benefits / Upgrade"
+
+msgid "Bio"
+msgstr "Bio"
+
+msgid "Browse basic content and purchase paid materials."
+msgstr "Browse basic content and purchase paid materials."
+
+msgid "Buy"
+msgstr "Buy"
+
+msgid "Buy / Upgrade Membership"
+msgstr "Buy / Upgrade Membership"
+
+msgid "Buy Now"
+msgstr "Buy Now"
+
+msgid "Cancelled"
+msgstr "Cancelled"
+
+msgid "Card Key"
+msgstr "Card Key"
+
+msgid "Change Password"
+msgstr "Change Password"
+
+msgid "Choose one from the avatar library below; avatars are maintained by the administrator."
+msgstr "Choose one from the avatar library below; avatars are maintained by the administrator."
+
+msgid "Click any avatar below to switch instantly, no save needed."
+msgstr "Click any avatar below to switch instantly, no save needed."
+
 msgid "Client ID"
 msgstr "Client ID"
 
+msgid "Comments"
+msgstr "Comments"
+
+msgid "Compare the benefits and your current status of each level."
+msgstr "Compare the benefits and your current status of each level."
+
+msgid "Confirming payment..."
+msgstr "Confirming payment..."
+
+msgid "Create Account"
+msgstr "Create Account"
+
+msgid "Current"
+msgstr "Current"
+
+msgid "Current Avatar"
+msgstr "Current Avatar"
+
+msgid "Current Membership"
+msgstr "Current Membership"
+
+msgid "Current Password"
+msgstr "Current Password"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Description"
+msgstr "Description"
+
+msgid "Diamond"
+msgstr "鑽石"
+
+msgid "Display Name"
+msgstr "Display Name"
+
+msgid "Download"
+msgstr "Download"
+
 msgid "EMS"
 msgstr ""
+
+msgid "Edit Profile"
+msgstr "Edit Profile"
+
+msgid "Email"
+msgstr "Email"
+
+msgid "Expired"
+msgstr "Expired"
+
+msgid "Expires"
+msgstr "Expires"
+
+msgid "Expires %s"
+msgstr "Expires %s"
+
+msgid "Expires: %s"
+msgstr "Expires: %s"
+
+msgid "Failed to load PayPal. Please refresh the page and try again."
+msgstr "Failed to load PayPal. Please refresh the page and try again."
+
+msgid "Failed to retrieve account info. Please try again."
+msgstr "Failed to retrieve account info. Please try again."
+
+msgid "For account security, change your password regularly. You will need to log in again after changing it."
+msgstr "For account security, change your password regularly. You will need to log in again after changing it."
+
+msgid "Forgot password?"
+msgstr "Forgot password?"
+
+msgid "GitHub"
+msgstr "GitHub"
+
+msgid "Gold Member"
+msgstr "高級"
+
+msgid "Good afternoon"
+msgstr "Good afternoon"
+
+msgid "Good early morning"
+msgstr "Good early morning"
+
+msgid "Good evening"
+msgstr "Good evening"
+
+msgid "Good midday"
+msgstr "Good midday"
+
+msgid "Good morning"
+msgstr "Good morning"
+
+msgid "Google"
+msgstr "Google"
 
 msgid "H5（手機瀏覽器跳轉）"
 msgstr ""
@@ -62,17 +239,134 @@ msgstr ""
 msgid "ID"
 msgstr "ID"
 
+msgid "Inactive"
+msgstr "Inactive"
+
+msgid "Included"
+msgstr "Included"
+
+msgid "Incorrect username or password."
+msgstr "Incorrect username or password."
+
+msgid "Item"
+msgstr "Item"
+
+msgid "Level"
+msgstr "Level"
+
+msgid "License"
+msgstr "License"
+
+msgid "License / Pro"
+msgstr "License / Pro"
+
+msgid "Lifetime member"
+msgstr "Lifetime member"
+
 msgid "Live Publishable Key"
 msgstr "Live Publishable Key"
 
 msgid "Live Secret Key"
 msgstr "Live Secret Key"
 
+msgid "Locked"
+msgstr "Locked"
+
+msgid "Log In"
+msgstr "Log In"
+
+msgid "Log Out"
+msgstr "Log Out"
+
+msgid "Log in to view the content below."
+msgstr "Log in to view the content below."
+
+msgid "Lost Password"
+msgstr "Lost Password"
+
+msgid "Membership"
+msgstr "Membership"
+
+msgid "Membership Level"
+msgstr "Membership Level"
+
+msgid "Membership Levels"
+msgstr "Membership Levels"
+
+msgid "Method"
+msgstr "Method"
+
+msgid "Monthly"
+msgstr "月費"
+
+msgid "Moonlight Shop Pro 已啟動"
+msgstr ""
+
+msgid "Moonlight Shop Pro 已激活"
+msgstr "Moonlight Shop Pro 已激活"
+
+msgid "My Licenses"
+msgstr "My Licenses"
+
+msgid "My Orders"
+msgstr "My Orders"
+
+msgid "My Purchase History"
+msgstr "My Purchase History"
+
 msgid "Native（PC 掃碼）"
 msgstr ""
 
+msgid "Network error. Please try again later."
+msgstr "Network error. Please try again later."
+
+msgid "New Password"
+msgstr "New Password"
+
+msgid "Nickname"
+msgstr "Nickname"
+
+msgid "Nickname / Phone / Bio"
+msgstr "Nickname / Phone / Bio"
+
+msgid "Nickname cannot be empty."
+msgstr "Nickname cannot be empty."
+
+msgid "No avatars have been uploaded yet. Please contact the administrator."
+msgstr "No avatars have been uploaded yet. Please contact the administrator."
+
+msgid "No payment method is available. Please contact the administrator."
+msgstr "No payment method is available. Please contact the administrator."
+
+msgid "Non-member"
+msgstr "Non-member"
+
+msgid "Order"
+msgstr "Order"
+
+msgid "Order No."
+msgstr "Order No."
+
+msgid "Overview"
+msgstr "Overview"
+
+msgid "Paid"
+msgstr "Paid"
+
+msgid "Password"
+msgstr "Password"
+
+msgid "Password / Login"
+msgstr "Password / Login"
+
+msgid "Password changed. Please log in again."
+msgstr "Password changed. Please log in again."
+
 msgid "PayPal"
 msgstr "PayPal"
+
+msgid "PayPal payment error. Please try again or contact the administrator."
+msgstr "PayPal payment error. Please try again or contact the administrator."
 
 msgid "PayPal 創建訂單失敗（HTTP %d）"
 msgstr "PayPal failed to create the order (HTTP %d)"
@@ -98,14 +392,125 @@ msgstr "PayPal authentication failed (HTTP %d)"
 msgid "PayPal 退款失敗（HTTP %d）"
 msgstr ""
 
+msgid "Payment Instructions"
+msgstr "Payment Instructions"
+
+msgid "Payment cancelled. The order remains pending."
+msgstr "Payment cancelled. The order remains pending."
+
+msgid "Payment successful. Your membership has been activated."
+msgstr "Payment successful. Your membership has been activated."
+
+msgid "Payment was not completed or verification failed. Please try again or contact the administrator."
+msgstr "Payment was not completed or verification failed. Please try again or contact the administrator."
+
+msgid "Pending"
+msgstr "Pending"
+
+msgid "Permanent"
+msgstr "Permanent"
+
+msgid "Phone"
+msgstr "Phone"
+
+msgid "Phone: "
+msgstr "Phone: "
+
+msgid "Please %s to view the account center."
+msgstr "Please %s to view the account center."
+
+msgid "Please complete the PayPal payment below."
+msgstr "Please complete the PayPal payment below."
+
+msgid "Please enter your current and new password."
+msgstr "Please enter your current and new password."
+
+msgid "Please log in first to view your purchased content."
+msgstr "Please log in first to view your purchased content."
+
+msgid "Please log in first."
+msgstr "Please log in first."
+
+msgid "Post a Comment"
+msgstr "Post a Comment"
+
+msgid "Posts"
+msgstr "Posts"
+
+msgid "Premium"
+msgstr "特級"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Profile"
+msgstr "Profile"
+
+msgid "Profile updated."
+msgstr "Profile updated."
+
+msgid "Purchase Date"
+msgstr "Purchase Date"
+
+msgid "Purchase to view the content below."
+msgstr "Purchase to view the content below."
+
+msgid "Purchased Content"
+msgstr "Purchased Content"
+
+msgid "QQ"
+msgstr "QQ"
+
+msgid "Quick Actions"
+msgstr "Quick Actions"
+
+msgid "Quick Sign Up (Email Only)"
+msgstr "Quick Sign Up (Email Only)"
+
+msgid "Register"
+msgstr "Register"
+
+msgid "Register now"
+msgstr "Register now"
+
+msgid "Registered on"
+msgstr "Registered on"
+
+msgid "Registration failed. Please try again."
+msgstr "Registration failed. Please try again."
+
+msgid "Registration is closed and no matching account was found."
+msgstr "Registration is closed and no matching account was found."
+
+msgid "Remember Me"
+msgstr "Remember Me"
+
+msgid "Revoked"
+msgstr "Revoked"
+
 msgid "SKU"
 msgstr "SKU"
 
 msgid "SKU / 货号"
 msgstr "SKU / Item No."
 
+msgid "Save Changes"
+msgstr "Save Changes"
+
 msgid "Secret"
 msgstr "Secret"
+
+msgid "Security check failed (invalid state). Please try again."
+msgstr "Security check failed (invalid state). Please try again."
+
+msgid "Send Reset Link"
+msgstr "Send Reset Link"
+
+msgid "Site"
+msgstr "Site"
+
+msgid "Status"
+msgstr "Status"
 
 msgid "Stripe"
 msgstr "Stripe"
@@ -128,11 +533,68 @@ msgstr ""
 msgid "Stripe 錯誤（HTTP %d）"
 msgstr "Stripe error (HTTP %d)"
 
+msgid "Suspended"
+msgstr "Suspended"
+
 msgid "Test Publishable Key"
 msgstr "Test Publishable Key"
 
 msgid "Test Secret Key"
 msgstr "Test Secret Key"
+
+msgid "The current password is incorrect."
+msgstr "The current password is incorrect."
+
+msgid "The new password must be at least 6 characters."
+msgstr "The new password must be at least 6 characters."
+
+msgid "Third-party login failed. Please try again."
+msgstr "Third-party login failed. Please try again."
+
+msgid "This content is for Monthly members and above."
+msgstr "This content is for Monthly members and above."
+
+msgid "This information appears on your public profile and article bylines."
+msgstr "This information appears on your public profile and article bylines."
+
+msgid "To change your email, please contact the administrator."
+msgstr "To change your email, please contact the administrator."
+
+msgid "Token exchange failed. Please try again later."
+msgstr "Token exchange failed. Please try again later."
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Unlimited access to all site resources, including new content."
+msgstr "無限使用站內所有資源，含後續新增內容。"
+
+msgid "Unlock all premium materials, demo videos and worksheets."
+msgstr "解鎖全部高級教材、示範影片與工作紙。"
+
+msgid "Unlock monthly materials and demo videos."
+msgstr "解鎖月費會員的教材與示範影片。"
+
+msgid "Unsupported login method."
+msgstr "Unsupported login method."
+
+msgid "Update Password"
+msgstr "Update Password"
+
+msgid "Upgrade Membership"
+msgstr "Upgrade Membership"
+
+msgid "Username"
+msgstr "Username"
+
+msgid "Username or Email"
+msgstr "Username or Email"
+
+msgid "Valid for %d days"
+msgstr "Valid for %d days"
+
+msgid "View Order"
+msgstr "View Order"
 
 msgid "Webhook ID"
 msgstr "Webhook ID"
@@ -140,14 +602,53 @@ msgstr "Webhook ID"
 msgid "Webhook Signing Secret"
 msgstr "Webhook Signing Secret"
 
+msgid "Webhook 出站通知"
+msgstr "Webhook 出站通知"
+
+msgid "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
+msgstr "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
+
 msgid "Webhook 頭部不完整。"
 msgstr "Incomplete Webhook headers."
+
+msgid "Webhook（订单事件实时推送到你的系统）"
+msgstr "Webhook（订单事件实时推送到你的系统）"
+
+msgid "Website"
+msgstr "Website"
 
 msgid "WooCommerce 没有商品标签，无需同步。"
 msgstr "WooCommerce has no product tags; nothing to sync."
 
+msgid "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
+msgstr "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
+
+msgid "You do not have a membership yet. Upgrade to unlock more materials and demo videos."
+msgstr "You do not have a membership yet. Upgrade to unlock more materials and demo videos."
+
+msgid "You have no licenses yet. Purchase a Pro plan to get one."
+msgstr "You have no licenses yet. Purchase a Pro plan to get one."
+
+msgid "You have no orders yet."
+msgstr "You have no orders yet."
+
+msgid "You have no purchased content yet."
+msgstr "You have no purchased content yet."
+
+msgid "Your comment must be approved before the content is revealed."
+msgstr "Your comment must be approved before the content is revealed."
+
+msgid "Your membership has expired. Please renew to continue."
+msgstr "Your membership has expired. Please renew to continue."
+
 msgid "[%1$s] 新售后申请：订单 %2$s"
 msgstr ""
+
+msgid "e.g. 9123 4567"
+msgstr "e.g. 9123 4567"
+
+msgid "log in"
+msgstr "log in"
 
 msgid "— 手動填寫 —"
 msgstr ""
@@ -184,6 +685,12 @@ msgstr "[Order Confirmation] #%s Received — Awaiting Payment"
 
 msgid "【訂單確認】#{order_number} 付款完成"
 msgstr "[Order Confirmation] #{order_number} Paid"
+
+msgid "一鍵匯出 Excel，便於對帳與交稅。"
+msgstr ""
+
+msgid "一键导出 Excel，便于对账与交税。"
+msgstr "一键导出 Excel，便于对账与交税。"
 
 msgid "一键将站内全部 WooCommerce 商品（当前 %d 个已发布）迁入月光商城：标题/内容/图片/分类/标签/价格/库存/SKU 自动映射；可重复执行，已迁入的商品更新而非重建。"
 msgstr ""
@@ -260,6 +767,9 @@ msgstr ""
 msgid "买过指定商品的客户"
 msgstr "Customers who bought selected products"
 
+msgid "了解并购买 Pro"
+msgstr "了解并购买 Pro"
+
 msgid "交付内容"
 msgstr "Deliverables"
 
@@ -278,6 +788,9 @@ msgstr ""
 msgid "亲爱的 {customer_name}：\\\n\\\n感谢您一直以来的支持！\\\n\\\n{site_name}"
 msgstr "Dear {customer_name}:\\\n\\\nThank you for your continued support!\\\n\\\n{site_name}"
 
+msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+msgstr "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
+
 msgid "仅百分比类型生效，0 表示不限。"
 msgstr "Only applies to percentage types; 0 means unlimited."
 
@@ -286,6 +799,9 @@ msgstr "This content is for Diamond members only. Please upgrade first."
 
 msgid "今天"
 msgstr "Today"
+
+msgid "今日已签到"
+msgstr "Checked in today"
 
 msgid "今日销售额"
 msgstr ""
@@ -389,6 +905,9 @@ msgstr "Discount type"
 msgid "会员/付费内容已授予超过退款时限"
 msgstr ""
 
+msgid "会员与账户"
+msgstr "会员与账户"
+
 msgid "会员中心"
 msgstr "Member Center"
 
@@ -419,6 +938,9 @@ msgstr ""
 msgid "作用于全部「加入购物车 / 选择套餐」按钮（商品卡片、相关商品、详情页），改完保存刷新前台即见。"
 msgstr ""
 
+msgid "你的授权签发站点地址（在授权中心「设置」页查看）。"
+msgstr ""
+
 msgid "佣金"
 msgstr "Commission"
 
@@ -435,7 +957,7 @@ msgid "使用次数上限"
 msgstr "Usage limit"
 
 msgid "使用账户%s按比例支付（%s %s = 1 货币单位）。"
-msgstr ""
+msgstr "Pay with your %s at the configured rate (%s %s = 1 currency unit)."
 
 msgid "使用账户余额支付（需站点开通余额功能）。"
 msgstr "Pay with your account balance (site balance feature required)."
@@ -480,13 +1002,13 @@ msgid "允許訪客購買"
 msgstr ""
 
 msgid "允许订单使用积分支付"
-msgstr ""
+msgstr "Allow orders to be paid with points"
 
 msgid "充值不可使用余额支付。"
 msgstr "Top-ups cannot be paid with balance."
 
 msgid "充值不可使用积分支付。"
-msgstr ""
+msgstr "Recharge cannot be paid with points."
 
 msgid "充值到账（订单 #%s）"
 msgstr "Top-up credited (Order #%s)"
@@ -501,7 +1023,7 @@ msgid "充值积分已消费，无法退款"
 msgstr ""
 
 msgid "充值订单不可使用积分支付。"
-msgstr ""
+msgstr "Recharge orders cannot be paid with points."
 
 msgid "充值金额无效。"
 msgstr "Invalid top-up amount."
@@ -518,11 +1040,26 @@ msgstr "Send a test to your own admin email to preview."
 msgid "免費"
 msgstr "Free"
 
-msgid "全局兑换比例：多少积分 = 1 个货币单位。例：10 表示 10 积分 = 1 元。同时作用于：自定义充值金额、积分支付订单换算、以及未手填积分价的商品/付费内容自动换算（见下方开关）。"
+msgid "免費版已能完整賣貨。升級 Pro 後，多出這些站內能力："
 msgstr ""
+
+msgid "免费版已可正常卖货。升级 Pro 解锁："
+msgstr "免费版已可正常卖货。升级 Pro 解锁："
+
+msgid "免费版已能完整卖货。升级 Pro 后，多出这些站内能力："
+msgstr "免费版已能完整卖货。升级 Pro 后，多出这些站内能力："
+
+msgid "入库失败："
+msgstr "入庫失敗："
+
+msgid "全局兑换比例：多少积分 = 1 个货币单位。例：10 表示 10 积分 = 1 元。同时作用于：自定义充值金额、积分支付订单换算、以及未手填积分价的商品/付费内容自动换算（见下方开关）。"
+msgstr "Global rate: how many points = 1 currency unit (e.g. 10 = 10 points per yuan). Applies to custom recharges, points-paid orders, and auto-converted credit prices (see the switch below)."
 
 msgid "全部"
 msgstr "All"
+
+msgid "全部 %d 张与既有卡密重复。"
+msgstr "全部 %d 張與既有卡密重複。"
 
 msgid "全部商品"
 msgstr "All Products"
@@ -620,6 +1157,9 @@ msgstr ""
 msgid "到店自提（免運費）"
 msgstr ""
 
+msgid "到期时间"
+msgstr "到期时间"
+
 msgid "前 %d 张免费，剩余 %d 张购买后查看。"
 msgstr "First %d images are free; the remaining %d are visible after purchase."
 
@@ -628,6 +1168,18 @@ msgstr "Publicly visible payment methods"
 
 msgid "前台展示名（可選）"
 msgstr ""
+
+msgid "前台顯示名稱"
+msgstr ""
+
+msgid "前台顯示說明"
+msgstr ""
+
+msgid "前往购买 Pro"
+msgstr "前往购买 Pro"
+
+msgid "前缀"
+msgstr "前綴"
 
 msgid "剩余 %d 次"
 msgstr ""
@@ -650,14 +1202,23 @@ msgstr "Check the payment methods to show on the front-end checkout; unchecked m
 msgid "包裹已交运（%1$s %2$s）"
 msgstr ""
 
+msgid "升級 Pro 解鎖完整能力"
+msgstr ""
+
 msgid "升級會員"
 msgstr "Upgrade Membership"
 
 msgid "升级"
 msgstr "Upgrade"
 
+msgid "升级 Pro 解锁完整能力"
+msgstr "升级 Pro 解锁完整能力"
+
 msgid "升级价格无效。"
 msgstr "Invalid upgrade price."
+
+msgid "升级到 Moonlight Shop Pro"
+msgstr "升级到 Moonlight Shop Pro"
 
 msgid "升级模块不可用。"
 msgstr "Upgrade module unavailable."
@@ -716,7 +1277,19 @@ msgstr ""
 msgid "卡密池（每行一条，售出后自动扣减）"
 msgstr "Card-key pool (one per line; auto-deducted after sale)"
 
+msgid "卡密管理"
+msgstr "卡密管理"
+
+msgid "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
+msgstr "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
+
 msgid "卡密解密失败，请联系站长。"
+msgstr ""
+
+msgid "卡密长度"
+msgstr "卡密長度"
+
+msgid "卡密长度需在 8 – 64 之间。"
 msgstr ""
 
 msgid "卡密（掩码）"
@@ -797,11 +1370,17 @@ msgstr "A withdrawable balance of %s is required to request a withdrawal."
 msgid "可提现佣金"
 msgstr "Withdrawable commission"
 
+msgid "可自定义，但 0/O/1/I/l 会被自动剔除（客服沟通易混淆）。可用字符需 ≥ 8 种。"
+msgstr "可自定義，但 0/O/1/I/l 會被自動剔除（客服溝通易混淆）。可用字符需 ≥ 8 種。"
+
 msgid "可退金额不足（累计退款已接近订单总额）。"
 msgstr ""
 
 msgid "可选，写入轨迹首条"
 msgstr ""
+
+msgid "可选，如 VIP-"
+msgstr "可選，如 VIP-"
 
 msgid "右"
 msgstr "Right"
@@ -829,6 +1408,9 @@ msgstr "Sync WooCommerce product tags"
 
 msgid "同步完成：共导入 %1$d 个商品标签，为 %2$d 件月光商品标注标签。"
 msgstr "Sync complete: imported %1$d product tags and tagged %2$d Moonlight products."
+
+msgid "启动 Pro"
+msgstr "启动 Pro"
 
 msgid "启用"
 msgstr "Enable"
@@ -878,8 +1460,11 @@ msgstr "Invalid after-sales type."
 msgid "商品"
 msgstr "Product"
 
+msgid "商品 #%d 库存不足，无法重新打开订单。"
+msgstr "Product #%d is out of stock; the order cannot be reopened."
+
 msgid "商品/付费内容未手填积分价时，按「货币价 × 兑换比例」自动换算（向上取整）"
-msgstr ""
+msgstr "When no manual credit price is set, auto-convert from money price × rate (rounded up)"
 
 msgid "商品「%1$s」卡密库存不足，仅剩 %2$d 条，请及时补充（进入后台 → 商城 → 卡密库存 导入新批次）。"
 msgstr ""
@@ -1040,6 +1625,9 @@ msgstr "Shop · My Favorites"
 msgid "商城·购物车"
 msgstr "Shop · Cart"
 
+msgid "商城付款成功后会自动向授权中心请求签发授权码。"
+msgstr ""
+
 msgid "商城仪表盘"
 msgstr ""
 
@@ -1048,6 +1636,9 @@ msgstr "Shop sidebar"
 
 msgid "商城設定"
 msgstr "Shop Settings"
+
+msgid "商城设置"
+msgstr "商城设置"
 
 msgid "商店聯絡電郵"
 msgstr "Shop contact email"
@@ -1109,6 +1700,15 @@ msgstr ""
 msgid "圆通速递"
 msgstr ""
 
+msgid "圓角"
+msgstr ""
+
+msgid "圖標尺寸"
+msgstr ""
+
+msgid "圖標顏色"
+msgstr ""
+
 msgid "在 PayPal Developer → Webhooks 新增端點，並填寫該端點的 Webhook ID："
 msgstr "Add an endpoint under PayPal Developer → Webhooks and fill in its Webhook ID:"
 
@@ -1163,8 +1763,11 @@ msgstr ""
 msgid "基本設定"
 msgstr "General"
 
-msgid "增加"
+msgid "填 50 為正圓，填 0 為方角。"
 msgstr ""
+
+msgid "增加"
+msgstr "Add"
 
 msgid "增加数量"
 msgstr "Increase"
@@ -1177,6 +1780,12 @@ msgstr "Note"
 
 msgid "复制"
 msgstr "Copy"
+
+msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+msgstr "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
+
+msgid "天（0 = 永不过期）"
+msgstr "天（0 = 永不過期）"
 
 msgid "失败"
 msgstr "Failed"
@@ -1198,6 +1807,15 @@ msgstr "e.g. Points / Z-coins / Gold. Shown in the product Meta Box and on the f
 
 msgid "字号"
 msgstr "Font size"
+
+msgid "字符集"
+msgstr "字符集"
+
+msgid "字符集可用字符不足 8 个，请更换。"
+msgstr "字符集可用字符不足 8 個，請更換。"
+
+msgid "字符集里没有足够的可用字符（已剔除 0/O/1/I/l），请更换。"
+msgstr "字符集裡沒有足夠的可用字符（已剔除 0/O/1/I/l），請更換。"
 
 msgid "字重"
 msgstr "Font weight"
@@ -1361,6 +1979,12 @@ msgstr ""
 msgid "已滿 %2$s，享 %1$s 免運費。"
 msgstr "Reached %2$s — %1$s free shipping applies."
 
+msgid "已激活"
+msgstr "已激活"
+
+msgid "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字符集 %4$s。"
+msgstr "已生成 %1$d 張卡密並入池（批次 #%2$d）。長度 %3$d，字符集 %4$s。"
+
 msgid "已确认收货，感谢您的购买！"
 msgstr ""
 
@@ -1370,6 +1994,9 @@ msgstr "Removed."
 msgid "已签收"
 msgstr ""
 
+msgid "已购买？上传 Pro 插件"
+msgstr "已购买？上传 Pro 插件"
+
 msgid "已跳过网关（仅标记退款）。"
 msgstr ""
 
@@ -1378,6 +2005,9 @@ msgstr ""
 
 msgid "已过期/停用"
 msgstr ""
+
+msgid "已连续签到 %d 天"
+msgstr "%d-day streak"
 
 msgid "已退款"
 msgstr "Refunded"
@@ -1390,6 +2020,9 @@ msgstr "Approved"
 
 msgid "已通过售后申请。"
 msgstr "After-sales request approved."
+
+msgid "已配置"
+msgstr ""
 
 msgid "布局"
 msgstr "Layout"
@@ -1427,11 +2060,14 @@ msgstr "Start bulk send"
 msgid "异常"
 msgstr ""
 
+msgid "当前 Pro 授权"
+msgstr "当前 Pro 授权"
+
 msgid "当前%1$s余额：%2$s（%3$s %1$s = 1 货币单位）"
-msgstr ""
+msgstr "Current %1$s balance: %2$s (%3$s %1$s = 1 currency unit)"
 
 msgid "当前%s余额"
-msgstr ""
+msgstr "Current %s balance"
 
 msgid "当前商品（循环中）"
 msgstr "Current product (in loop)"
@@ -1530,10 +2166,10 @@ msgid "微信退款失敗（未返回退款單號）。"
 msgstr ""
 
 msgid "必填（仅在填写了调整数额时），如：活动奖励 / 客服补偿 / 违规扣回。"
-msgstr ""
+msgstr "Required when an amount is entered, e.g. event reward / support compensation."
 
 msgid "快捷入口"
-msgstr ""
+msgstr "Quick Links"
 
 msgid "快递100 Customer 编号"
 msgstr ""
@@ -1601,6 +2237,9 @@ msgstr "Thank you for your support! Your membership has been upgraded to: %s. Ac
 msgid "應用私鑰"
 msgstr ""
 
+msgid "懸停背景"
+msgstr ""
+
 msgid "我已完成支付"
 msgstr ""
 
@@ -1638,13 +2277,13 @@ msgid "所选地址不存在，请重新选择。"
 msgstr ""
 
 msgid "手动调整"
-msgstr ""
+msgstr "Manual adjustment"
 
 msgid "手动输入邮箱"
 msgstr "Enter emails manually"
 
 msgid "手填过积分价（含会员档）的商品仍以手填值优先。修改兑换比例后，所有自动换算的商品积分价即时生效，无需逐个调整。"
-msgstr ""
+msgstr "Manually filled credit prices always win. Changing the rate instantly updates every auto-converted price."
 
 msgid "手工发货"
 msgstr ""
@@ -1662,10 +2301,13 @@ msgid "手机端列数（≤520px）"
 msgstr "Mobile columns (≤520px)"
 
 msgid "扣减"
-msgstr ""
+msgstr "Deduct"
 
 msgid "扣减余额失败，请稍后重试。"
 msgstr "Failed to deduct balance. Please try again later."
+
+msgid "扣减失败：该用户%1$s余额不足 %2$s，未做任何调整。"
+msgstr "Deduction failed: user holds less than %2$s %1$s; nothing was changed."
 
 msgid "执行退款"
 msgstr ""
@@ -1691,8 +2333,14 @@ msgstr ""
 msgid "批次状态更新失败。"
 msgstr ""
 
+msgid "批次產生 / 匯入卡密，支援餘額、會員、積分三種兌換類型，餘額自動入帳。"
+msgstr ""
+
 msgid "批量导入卡密"
 msgstr "批量导入卡密"
+
+msgid "批量生成 / 导入卡密，支持余额、会员、积分三种兑换类型，余额自动入账。"
+msgstr "批量生成 / 导入卡密，支持余额、会员、积分三种兑换类型，余额自动入账。"
 
 msgid "承運商名稱"
 msgstr "Carrier name"
@@ -1707,7 +2355,10 @@ msgid "按 %s %s / 1 货币单位计算"
 msgstr "Calculated at %s %s per 1 currency unit"
 
 msgid "按 %s %s / 货币单位"
-msgstr ""
+msgstr "%s %s per currency unit"
+
+msgid "按付费可购买行为方式"
+msgstr "按付费可购买行为方式"
 
 msgid "按件（首件 %s / 續件 %s）"
 msgstr ""
@@ -1721,14 +2372,41 @@ msgstr ""
 msgid "按日期筛选订单"
 msgstr "Filter orders by date"
 
+msgid "按规则批量生成卡密并直接入池（加密存储，明文不落库）。生成后可在下方批次列表查看或导出。"
+msgstr "按規則批量生成卡密並直接入池（加密存儲，明文不落庫）。生成後可在下方批次列表查看或導出。"
+
+msgid "按鈕尺寸"
+msgstr ""
+
+msgid "按鈕正方形邊長，推薦 32–44。"
+msgstr ""
+
+msgid "按鈕背景"
+msgstr ""
+
 msgid "按钮文字"
 msgstr "Button text"
+
+msgid "授权中心"
+msgstr "授权中心"
+
+msgid "授权中心地址"
+msgstr ""
+
+msgid "授權中心"
+msgstr ""
+
+msgid "授權橋接模組未載入。"
+msgstr ""
 
 msgid "排序"
 msgstr "Sort order"
 
 msgid "排序："
 msgstr "Sort:"
+
+msgid "控制頁眉右上角三顆按鈕的外觀。桌面端顯示在頁眉右欄；行動端會自動固定在漢堡選單左側（位置可單獨設定）。留空即用預設值。"
+msgstr ""
 
 msgid "推广链接购买可享 %s%% 折扣"
 msgstr "Purchases via your affiliate link get %s%% off"
@@ -1794,7 +2472,7 @@ msgid "操作者"
 msgstr ""
 
 msgid "操作过于频繁，请稍后再试。"
-msgstr ""
+msgstr "Too many requests; please try again later."
 
 msgid "支付发起失败。"
 msgstr ""
@@ -1872,7 +2550,7 @@ msgid "支付网关"
 msgstr "Payment Gateway"
 
 msgid "支付订单 #%1$s（%2$s %3$s）"
-msgstr ""
+msgstr "Paid for order #%1$s (%2$s %3$s)"
 
 msgid "支付金额与订单不符，已记录待人工核对。"
 msgstr ""
@@ -1938,6 +2616,9 @@ msgid "文件不存在。"
 msgstr "File not found."
 
 msgid "文字大小"
+msgstr ""
+
+msgid "文字："
 msgstr ""
 
 msgid "新商品"
@@ -2144,8 +2825,14 @@ msgstr "Members only"
 msgid "會員專享內容"
 msgstr "Members-only content"
 
+msgid "會員等級自動頒發"
+msgstr ""
+
 msgid "月費會員"
 msgstr "Monthly member"
+
+msgid "有效期"
+msgstr "有效期"
 
 msgid "有效期 %d 天"
 msgstr "Valid for %d days"
@@ -2155,6 +2842,9 @@ msgstr ""
 
 msgid "有订单的客户"
 msgstr "Customers with orders"
+
+msgid "服务器缺少 random_bytes，无法安全生成卡密。请改用手动导入。"
+msgstr "服務器缺少 random_bytes，無法安全生成卡密。請改用手動導入。"
 
 msgid "未分类"
 msgstr "Uncategorized"
@@ -2180,6 +2870,12 @@ msgstr ""
 msgid "未滿 %3$s，需加收 %1$s 運費 %2$s。"
 msgstr "Below %3$s, a shipping fee of %2$s applies via %1$s."
 
+msgid "未激活"
+msgstr "未激活"
+
+msgid "未知错误。"
+msgstr ""
+
 msgid "未註冊訪客填寫電子郵箱即可下單"
 msgstr ""
 
@@ -2191,6 +2887,9 @@ msgstr "Flat shipping fee when below the free-shipping threshold (e.g. 50 = flat
 
 msgid "未配置 PayPal Webhook ID。"
 msgstr "PayPal Webhook ID not configured."
+
+msgid "未配置（不影响其他功能）"
+msgstr "未配置（不影响其他功能）"
 
 msgid "本内容支持使用优惠码"
 msgstr "This content supports coupon codes"
@@ -2245,6 +2944,9 @@ msgstr ""
 
 msgid "查看批次"
 msgstr ""
+
+msgid "查看授权详情"
+msgstr "查看授权详情"
 
 msgid "查看本次订单"
 msgstr ""
@@ -2318,11 +3020,14 @@ msgstr ""
 msgid "每个下载链接允许下载的总次数；0 表示不限次数。"
 msgstr ""
 
+msgid "每日签到"
+msgstr "Daily Check-in"
+
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。"
 msgstr "One package per line, format: credits|amount (e.g. 100|10). Leave empty for defaults."
 
 msgid "每行一个套餐，格式：积分|金额（例：100|10）。留空则使用默认套餐。注意：套餐为独立定价（可做充值优惠），不随上方兑换比例自动变化。"
-msgstr ""
+msgstr "One package per line, format: points|price (e.g. 100|10). Leave empty for defaults. Packages are priced independently of the rate above."
 
 msgid "每行一条，单次最多 %d 行；保存后立即加密，明文不落库。与已有卡密重复的行会被自动跳过。"
 msgstr ""
@@ -2429,6 +3134,9 @@ msgstr "Moonlight Shop"
 msgid "漫步白月光電子商城 設定"
 msgstr "漫步白月光電子商城 設定"
 
+msgid "激活 Pro"
+msgstr "激活 Pro"
+
 msgid "点击复制"
 msgstr "Click to copy"
 
@@ -2474,6 +3182,18 @@ msgstr "Status"
 msgid "環境模式"
 msgstr ""
 
+msgid "生成失败，未知错误。"
+msgstr "生成失敗，未知錯誤。"
+
+msgid "生成并入池"
+msgstr "生成並入池"
+
+msgid "生成数量"
+msgstr "生成數量"
+
+msgid "生成数量需在 1 – 2000 之间。"
+msgstr ""
+
 msgid "生成订单后扫码付款，管理员确认到账后发货。"
 msgstr "Scan the QR code to pay after ordering; the admin ships after confirming receipt."
 
@@ -2514,7 +3234,7 @@ msgid "电子邮箱"
 msgstr ""
 
 msgid "留空 = 不调整。调整会记入用户积分流水（含操作备注），扣减不会使余额变为负数。"
-msgstr ""
+msgstr "Leave empty for no change. Adjustments are recorded in the points ledger; deductions never go negative."
 
 msgid "留空 = 全额（%s %s）"
 msgstr ""
@@ -2527,6 +3247,12 @@ msgstr ""
 
 msgid "留空時取訂單首件商品標題"
 msgstr ""
+
+msgid "留空用默认（大写字母 + 数字，已剔除 0/O/1/I/l）"
+msgstr "留空用默認（大寫字母 + 數字，已剔除 0/O/1/I/l）"
+
+msgid "留空自动命名（如 自动生成 2026-01-01 12:00（50 张））"
+msgstr "留空自動命名（如 自動生成 2026-01-01 12:00（50 張））"
 
 msgid "留空自动命名（导入 Ymd-His）"
 msgstr ""
@@ -2604,7 +3330,7 @@ msgid "积分价格未设置。"
 msgstr "Credit price not set."
 
 msgid "积分价自动换算"
-msgstr ""
+msgstr "Auto-convert credit prices"
 
 msgid "积分余额"
 msgstr "Credit Balance"
@@ -2616,16 +3342,16 @@ msgid "积分充值套餐"
 msgstr "Credit top-up packages"
 
 msgid "积分兑换比例"
-msgstr ""
+msgstr "Points exchange rate"
 
 msgid "积分名称"
 msgstr "Credits name"
 
 msgid "积分支付"
-msgstr ""
+msgstr "Points Payment"
 
 msgid "积分支付需登录后使用。"
-msgstr ""
+msgstr "Points payment requires login."
 
 msgid "积分流水"
 msgstr "Credit transactions"
@@ -2651,6 +3377,9 @@ msgstr "Download now"
 msgid "立即注册"
 msgstr ""
 
+msgid "立即签到"
+msgstr "Check in"
+
 msgid "立即购买"
 msgstr "Buy Now"
 
@@ -2670,10 +3399,16 @@ msgid "签收后自动完成（天）"
 msgstr ""
 
 msgid "管理员增加：%1$s（by %2$s）"
-msgstr ""
+msgstr "Admin addition: %1$s (by %2$s)"
 
 msgid "管理员扣减：%1$s（by %2$s）"
+msgstr "Admin deduction: %1$s (by %2$s)"
+
+msgid "管理密钥"
 msgstr ""
+
+msgid "管理授权"
+msgstr "管理授权"
 
 msgid "簽名驗證未通過。"
 msgstr "Signature verification failed."
@@ -2700,7 +3435,7 @@ msgid "结算"
 msgstr "Checkout"
 
 msgid "结算页提供「积分支付」方式，按上方比例全额扣除积分（需在「前台公開支付方式」同时勾选）"
-msgstr ""
+msgstr "Show a Points Payment option at checkout deducting points at the rate above (also tick it under Public payment methods)"
 
 msgid "编辑优惠券"
 msgstr "Edit coupon"
@@ -2738,6 +3473,9 @@ msgstr ""
 msgid "网格"
 msgstr "Grid"
 
+msgid "网络异常，请重试。"
+msgstr "Network error, please retry."
+
 msgid "网络错误，请重试"
 msgstr "Network error. Please try again"
 
@@ -2752,6 +3490,12 @@ msgstr ""
 
 msgid "聯絡電話"
 msgstr "Phone"
+
+msgid "自动生成 %1$s（%2$d 张）"
+msgstr "自動生成 %1$s（%2$d 張）"
+
+msgid "自动生成卡密"
+msgstr "自動生成卡密"
 
 msgid "自动轨迹查询"
 msgstr ""
@@ -2786,11 +3530,17 @@ msgstr "Virtual download"
 msgid "虛擬下載 / 卡密類商品會在郵件中附上下載連結或卡密；關閉後不再自動發信。"
 msgstr "Download links or card keys for virtual / card-key products are attached in emails; when off, no automatic email is sent."
 
+msgid "行動端位置"
+msgstr ""
+
 msgid "补充卡密"
 msgstr ""
 
 msgid "观看视频"
 msgstr "Watch video"
+
+msgid "角標"
+msgstr ""
 
 msgid "解密失败：记录不存在、已损坏或权限不足。"
 msgstr ""
@@ -2803,6 +3553,12 @@ msgstr "Order / download confirmation email"
 
 msgid "訂單不存在。"
 msgstr "Order not found."
+
+msgid "訂單付款、取消、退款即時推送到你的系統，對接 ERP / 自動發卡 / 財務。"
+msgstr ""
+
+msgid "訂單匯出"
+msgstr ""
 
 msgid "訂單狀態已更新為「%s」。"
 msgstr "Order status updated to \"%s\"."
@@ -2858,6 +3614,9 @@ msgstr "Please log in to your member account to view this content."
 msgid "订单"
 msgstr "Orders"
 
+msgid "订单 #%1$s 支付失败回补"
+msgstr "Order #%1$s payment failed: points refunded"
+
 msgid "订单 #%d 余额支付"
 msgstr "Order #%d paid with balance"
 
@@ -2868,7 +3627,7 @@ msgid "订单 #%d 退款回补余额"
 msgstr "Order #%d refund: balance restored"
 
 msgid "订单 #%d 退款返还积分"
-msgstr ""
+msgstr "Order #%d refund: points returned"
 
 msgid "订单「已签收」超过该天数且用户未确认收货时，自动转为「已完成」。0 = 不自动完成（仅用户手动确认）。"
 msgstr ""
@@ -2878,6 +3637,9 @@ msgstr ""
 
 msgid "订单不存在或售后模块不可用。"
 msgstr ""
+
+msgid "订单付款、取消、退款即时推送到你的系统，对接 ERP / 自动发卡 / 财务。"
+msgstr "订单付款、取消、退款即时推送到你的系统，对接 ERP / 自动发卡 / 财务。"
 
 msgid "订单信息"
 msgstr "Order Information"
@@ -2896,6 +3658,12 @@ msgstr "Order no.:"
 
 msgid "订单商品"
 msgstr "Order Items"
+
+msgid "订单导出"
+msgstr "订单导出"
+
+msgid "订单导出（Excel）"
+msgstr "订单导出（Excel）"
 
 msgid "订单封面图"
 msgstr "Order cover image"
@@ -2949,7 +3717,7 @@ msgid "订单总数"
 msgstr "Total orders"
 
 msgid "订单所需积分 = 订单金额 × 比例（向上取整）。余额不足时无法提交，支持积分+其他支付方式的订单分别独立。充值订单不可用积分支付。"
-msgstr ""
+msgstr "Points required = order total × rate (rounded up). Recharge orders cannot use points payment."
 
 msgid "订单模块不可用。"
 msgstr "Order module unavailable."
@@ -2985,7 +3753,7 @@ msgid "订单金额"
 msgstr "Order amount"
 
 msgid "订单金额无效，无法使用积分支付。"
-msgstr ""
+msgstr "Invalid order total; cannot pay with points."
 
 msgid "订单金额无效，无法退款。"
 msgstr ""
@@ -3158,14 +3926,20 @@ msgstr "Please choose a payment method."
 msgid "请选择有效商品后再导入。"
 msgstr ""
 
+msgid "请选择有效商品后再生成。"
+msgstr "請選擇有效商品後再生成。"
+
 msgid "请选择有效的省份。"
 msgstr ""
+
+msgid "请选择要为其生成卡密的商品。"
+msgstr "請選擇要為其生成卡密的商品。"
 
 msgid "请选择该省份下有效的城市。"
 msgstr ""
 
 msgid "调整备注"
-msgstr ""
+msgstr "Adjustment note"
 
 msgid "调整每张商品卡之间的空隙。"
 msgstr "Adjust the spacing between product cards."
@@ -3205,6 +3979,9 @@ msgstr "Item No."
 
 msgid "购买后 %d%s 内有效，逾期需重新购买"
 msgstr "Valid for %d%s after purchase; repurchase required after expiry"
+
+msgid "购买并激活 Pro"
+msgstr "购买并激活 Pro"
 
 msgid "购买按钮样式"
 msgstr ""
@@ -3290,6 +4067,15 @@ msgstr "Back to orders"
 msgid "还没有收藏的商品。"
 msgstr "No favorites yet."
 
+msgid "连接信息"
+msgstr "连接信息"
+
+msgid "连接状态"
+msgstr ""
+
+msgid "连续碰撞未能生成唯一卡密，请缩短长度或更换字符集。"
+msgstr "連續碰撞未能生成唯一卡密，請縮短長度或更換字符集。"
+
 msgid "退款"
 msgstr "Refund"
 
@@ -3346,6 +4132,12 @@ msgstr "Pay securely via Stripe with a credit card, Apple Pay or Google Pay."
 
 msgid "這是一封測試郵件，確認您的發信配置正常。購買虛擬商品後，系統會自動把下載連結發送到客戶郵箱。"
 msgstr "This is a test email to confirm your mail configuration works. After purchasing virtual products, download links are emailed to customers automatically."
+
+msgid "連接你的授權簽發站點：商城訂單付款成功後自動簽發 Pro 授權碼給買家。此處為唯一的授權配置入口。"
+msgstr ""
+
+msgid "連線資訊"
+msgstr ""
 
 msgid "運費"
 msgstr "Shipping"
@@ -3404,6 +4196,9 @@ msgstr "Email footer"
 msgid "金额"
 msgstr "Amount"
 
+msgid "銷售額趨勢、熱銷排行、會員增長與轉換率，經營決策有依據。"
+msgstr ""
+
 msgid "销售额"
 msgstr "Sales"
 
@@ -3416,10 +4211,16 @@ msgstr "Sales trend (daily)"
 msgid "销售额走势（按月）"
 msgstr "Sales trend (monthly)"
 
+msgid "销售额趋势、热销排行、会员增长与转换率，经营决策有依据。"
+msgstr "销售额趋势、热销排行、会员增长与转换率，经营决策有依据。"
+
 msgid "销量"
 msgstr "Units sold"
 
 msgid "长期有效"
+msgstr ""
+
+msgid "間距 / 左邊距"
 msgstr ""
 
 msgid "關閉後側邊欄隨內容正常流動。手機端（≤600px）自動停用懸停。"
@@ -3443,6 +4244,9 @@ msgstr "When off, the summary keeps only title / price / type badge / descriptio
 msgid "限定用户类型"
 msgstr "Limit to user types"
 
+msgid "随机源异常，生成已中止。"
+msgstr "隨機源異常，生成已中止。"
+
 msgid "隐藏"
 msgstr "Hide"
 
@@ -3464,11 +4268,23 @@ msgstr "Breadcrumbs"
 msgid "韵达快递"
 msgstr ""
 
+msgid "頁眉按鈕"
+msgstr ""
+
+msgid "頁眉按鈕（購物車 / 收藏 / 會員）"
+msgstr ""
+
 msgid "頂部面包屑導航"
 msgstr "Top breadcrumb navigation"
 
 msgid "順豐速運"
 msgstr "SF Express"
+
+msgid "預設會自動對齊漢堡選單；若手動填寫則以此為準。"
+msgstr ""
+
+msgid "顏色："
+msgstr ""
 
 msgid "類型"
 msgstr "Type"
@@ -3478,6 +4294,9 @@ msgstr "Extra text at the bottom of emails (e.g. support contacts, social links)
 
 msgid "顯示於結算頁、訂單與郵件中的運送說明（例：順豐速運）。"
 msgstr "Carrier note shown at checkout, on orders and in emails (e.g. SF Express)."
+
+msgid "顯示購物車 / 收藏數量角標"
+msgstr ""
 
 msgid "顺丰速运"
 msgstr ""
@@ -3493,6 +4312,18 @@ msgstr ""
 
 msgid "高級會員"
 msgstr "Premium member"
+
+msgid "高級統計"
+msgstr ""
+
+msgid "高级统计"
+msgstr "高级统计"
+
+msgid "高级统计（销售额趋势、热销排行）"
+msgstr "高级统计（销售额趋势、热销排行）"
+
+msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
+msgstr "高级设置（仅当你在本站销售 Pro 授权时才需要）"
 
 msgid "默認"
 msgstr ""
@@ -3590,499 +4421,3 @@ msgstr "(not a physical order; no shipping address)"
 msgid "，滿 %s 免郵"
 msgstr ""
 
-
-msgid "Account Security"
-msgstr "Account Security"
-msgid "Account Stats"
-msgstr "Account Stats"
-msgid "Action"
-msgstr "Action"
-msgid "Active"
-msgstr "Active"
-msgid "Already have an account? Log in"
-msgstr "Already have an account? Log in"
-msgid "Amount"
-msgstr "Amount"
-msgid "Apple"
-msgstr "Apple"
-msgid "At least 6 characters."
-msgstr "At least 6 characters."
-msgid "Authorization cancelled. Please try again or use another method."
-msgstr "Authorization cancelled. Please try again or use another method."
-msgid "Automatic registration failed. Please try again later or contact the administrator."
-msgstr "Automatic registration failed. Please try again later or contact the administrator."
-msgid "Avatar"
-msgstr "Avatar"
-msgid "Back to Log In"
-msgstr "Back to Log In"
-msgid "Basic Information"
-msgstr "Basic Information"
-msgid "Benefits / Upgrade"
-msgstr "Benefits / Upgrade"
-msgid "Bio"
-msgstr "Bio"
-msgid "Browse basic content and purchase paid materials."
-msgstr "Browse basic content and purchase paid materials."
-msgid "Buy"
-msgstr "Buy"
-msgid "Buy / Upgrade Membership"
-msgstr "Buy / Upgrade Membership"
-msgid "Buy Now"
-msgstr "Buy Now"
-msgid "Cancelled"
-msgstr "Cancelled"
-msgid "Card Key"
-msgstr "Card Key"
-msgid "Change Password"
-msgstr "Change Password"
-msgid "Choose one from the avatar library below; avatars are maintained by the administrator."
-msgstr "Choose one from the avatar library below; avatars are maintained by the administrator."
-msgid "Click any avatar below to switch instantly, no save needed."
-msgstr "Click any avatar below to switch instantly, no save needed."
-msgid "Comments"
-msgstr "Comments"
-msgid "Compare the benefits and your current status of each level."
-msgstr "Compare the benefits and your current status of each level."
-msgid "Confirming payment..."
-msgstr "Confirming payment..."
-msgid "Create Account"
-msgstr "Create Account"
-msgid "Current"
-msgstr "Current"
-msgid "Current Avatar"
-msgstr "Current Avatar"
-msgid "Current Membership"
-msgstr "Current Membership"
-msgid "Current Password"
-msgstr "Current Password"
-msgid "Date"
-msgstr "Date"
-msgid "Description"
-msgstr "Description"
-msgid "Display Name"
-msgstr "Display Name"
-msgid "Download"
-msgstr "Download"
-msgid "Edit Profile"
-msgstr "Edit Profile"
-msgid "Email"
-msgstr "Email"
-msgid "Expired"
-msgstr "Expired"
-msgid "Expires"
-msgstr "Expires"
-msgid "Expires %s"
-msgstr "Expires %s"
-msgid "Expires: %s"
-msgstr "Expires: %s"
-msgid "Failed to load PayPal. Please refresh the page and try again."
-msgstr "Failed to load PayPal. Please refresh the page and try again."
-msgid "Failed to retrieve account info. Please try again."
-msgstr "Failed to retrieve account info. Please try again."
-msgid "For account security, change your password regularly. You will need to log in again after changing it."
-msgstr "For account security, change your password regularly. You will need to log in again after changing it."
-msgid "Forgot password?"
-msgstr "Forgot password?"
-msgid "GitHub"
-msgstr "GitHub"
-msgid "Good afternoon"
-msgstr "Good afternoon"
-msgid "Good early morning"
-msgstr "Good early morning"
-msgid "Good evening"
-msgstr "Good evening"
-msgid "Good midday"
-msgstr "Good midday"
-msgid "Good morning"
-msgstr "Good morning"
-msgid "Google"
-msgstr "Google"
-msgid "Inactive"
-msgstr "Inactive"
-msgid "Included"
-msgstr "Included"
-msgid "Incorrect username or password."
-msgstr "Incorrect username or password."
-msgid "Item"
-msgstr "Item"
-msgid "Level"
-msgstr "Level"
-msgid "License"
-msgstr "License"
-msgid "License / Pro"
-msgstr "License / Pro"
-msgid "Lifetime member"
-msgstr "Lifetime member"
-msgid "Locked"
-msgstr "Locked"
-msgid "Log In"
-msgstr "Log In"
-msgid "Log Out"
-msgstr "Log Out"
-msgid "Log in to view the content below."
-msgstr "Log in to view the content below."
-msgid "Lost Password"
-msgstr "Lost Password"
-msgid "Membership"
-msgstr "Membership"
-msgid "Membership Level"
-msgstr "Membership Level"
-msgid "Membership Levels"
-msgstr "Membership Levels"
-msgid "Method"
-msgstr "Method"
-msgid "My Licenses"
-msgstr "My Licenses"
-msgid "My Orders"
-msgstr "My Orders"
-msgid "My Purchase History"
-msgstr "My Purchase History"
-msgid "Network error. Please try again later."
-msgstr "Network error. Please try again later."
-msgid "New Password"
-msgstr "New Password"
-msgid "Nickname"
-msgstr "Nickname"
-msgid "Nickname / Phone / Bio"
-msgstr "Nickname / Phone / Bio"
-msgid "Nickname cannot be empty."
-msgstr "Nickname cannot be empty."
-msgid "No avatars have been uploaded yet. Please contact the administrator."
-msgstr "No avatars have been uploaded yet. Please contact the administrator."
-msgid "No payment method is available. Please contact the administrator."
-msgstr "No payment method is available. Please contact the administrator."
-msgid "Non-member"
-msgstr "Non-member"
-msgid "Order"
-msgstr "Order"
-msgid "Order No."
-msgstr "Order No."
-msgid "Overview"
-msgstr "Overview"
-msgid "Paid"
-msgstr "Paid"
-msgid "Password"
-msgstr "Password"
-msgid "Password / Login"
-msgstr "Password / Login"
-msgid "Password changed. Please log in again."
-msgstr "Password changed. Please log in again."
-msgid "PayPal payment error. Please try again or contact the administrator."
-msgstr "PayPal payment error. Please try again or contact the administrator."
-msgid "Payment Instructions"
-msgstr "Payment Instructions"
-msgid "Payment cancelled. The order remains pending."
-msgstr "Payment cancelled. The order remains pending."
-msgid "Payment successful. Your membership has been activated."
-msgstr "Payment successful. Your membership has been activated."
-msgid "Payment was not completed or verification failed. Please try again or contact the administrator."
-msgstr "Payment was not completed or verification failed. Please try again or contact the administrator."
-msgid "Pending"
-msgstr "Pending"
-msgid "Permanent"
-msgstr "Permanent"
-msgid "Phone"
-msgstr "Phone"
-msgid "Phone: "
-msgstr "Phone: "
-msgid "Please %s to view the account center."
-msgstr "Please %s to view the account center."
-msgid "Please complete the PayPal payment below."
-msgstr "Please complete the PayPal payment below."
-msgid "Please enter your current and new password."
-msgstr "Please enter your current and new password."
-msgid "Please log in first to view your purchased content."
-msgstr "Please log in first to view your purchased content."
-msgid "Please log in first."
-msgstr "Please log in first."
-msgid "Post a Comment"
-msgstr "Post a Comment"
-msgid "Posts"
-msgstr "Posts"
-msgid "Product"
-msgstr "Product"
-msgid "Profile"
-msgstr "Profile"
-msgid "Profile updated."
-msgstr "Profile updated."
-msgid "Purchase Date"
-msgstr "Purchase Date"
-msgid "Purchase to view the content below."
-msgstr "Purchase to view the content below."
-msgid "Purchased Content"
-msgstr "Purchased Content"
-msgid "QQ"
-msgstr "QQ"
-msgid "Quick Actions"
-msgstr "Quick Actions"
-msgid "Register"
-msgstr "Register"
-msgid "Register now"
-msgstr "Register now"
-msgid "Registered on"
-msgstr "Registered on"
-msgid "Registration failed. Please try again."
-msgstr "Registration failed. Please try again."
-msgid "Registration is closed and no matching account was found."
-msgstr "Registration is closed and no matching account was found."
-msgid "Remember Me"
-msgstr "Remember Me"
-msgid "Revoked"
-msgstr "Revoked"
-msgid "Save Changes"
-msgstr "Save Changes"
-msgid "Security check failed (invalid state). Please try again."
-msgstr "Security check failed (invalid state). Please try again."
-msgid "Send Reset Link"
-msgstr "Send Reset Link"
-msgid "Site"
-msgstr "Site"
-msgid "Status"
-msgstr "Status"
-msgid "Suspended"
-msgstr "Suspended"
-msgid "The current password is incorrect."
-msgstr "The current password is incorrect."
-msgid "The new password must be at least 6 characters."
-msgstr "The new password must be at least 6 characters."
-msgid "Third-party login failed. Please try again."
-msgstr "Third-party login failed. Please try again."
-msgid "This content is for Monthly members and above."
-msgstr "This content is for Monthly members and above."
-msgid "This information appears on your public profile and article bylines."
-msgstr "This information appears on your public profile and article bylines."
-msgid "To change your email, please contact the administrator."
-msgstr "To change your email, please contact the administrator."
-msgid "Token exchange failed. Please try again later."
-msgstr "Token exchange failed. Please try again later."
-msgid "Type"
-msgstr "Type"
-msgid "Unsupported login method."
-msgstr "Unsupported login method."
-msgid "Update Password"
-msgstr "Update Password"
-msgid "Upgrade Membership"
-msgstr "Upgrade Membership"
-msgid "Username"
-msgstr "Username"
-msgid "Username or Email"
-msgstr "Username or Email"
-msgid "Valid for %d days"
-msgstr "Valid for %d days"
-msgid "View Order"
-msgstr "View Order"
-msgid "Website"
-msgstr "Website"
-msgid "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
-msgstr "You are currently a Free member. Upgrade to Monthly or Premium to unlock more materials and demo videos."
-msgid "You do not have a membership yet. Upgrade to unlock more materials and demo videos."
-msgstr "You do not have a membership yet. Upgrade to unlock more materials and demo videos."
-msgid "You have no licenses yet. Purchase a Pro plan to get one."
-msgstr "You have no licenses yet. Purchase a Pro plan to get one."
-msgid "You have no orders yet."
-msgstr "You have no orders yet."
-msgid "You have no purchased content yet."
-msgstr "You have no purchased content yet."
-msgid "Your comment must be approved before the content is revealed."
-msgstr "Your comment must be approved before the content is revealed."
-msgid "Your membership has expired. Please renew to continue."
-msgstr "Your membership has expired. Please renew to continue."
-msgid "e.g. 9123 4567"
-msgstr "e.g. 9123 4567"
-msgid "log in"
-msgstr "log in"
-
-msgid "Quick Sign Up (Email Only)"
-msgstr "Quick Sign Up (Email Only)"
-
-msgid "Unlock monthly materials and demo videos."
-msgstr "解鎖月費會員的教材與示範影片。"
-msgid "Access advanced materials and worksheet downloads."
-msgstr "可使用進階教材與工作紙下載。"
-msgid "Unlock all premium materials, demo videos and worksheets."
-msgstr "解鎖全部高級教材、示範影片與工作紙。"
-msgid "Unlimited access to all site resources, including new content."
-msgstr "無限使用站內所有資源，含後續新增內容。"
-msgid "Basic"
-msgstr "普通"
-msgid "Monthly"
-msgstr "月費"
-msgid "Gold Member"
-msgstr "高級"
-msgid "Premium"
-msgstr "特級"
-msgid "Diamond"
-msgstr "鑽石"
-
-msgid "自动生成卡密"
-msgstr "自動生成卡密"
-msgid "按规则批量生成卡密并直接入池（加密存储，明文不落库）。生成后可在下方批次列表查看或导出。"
-msgstr "按規則批量生成卡密並直接入池（加密存儲，明文不落庫）。生成後可在下方批次列表查看或導出。"
-msgid "生成数量"
-msgstr "生成數量"
-msgid "1 – 2000 张。"
-msgstr "1 – 2000 張。"
-msgid "卡密长度"
-msgstr "卡密長度"
-msgid "8 – 64 位，不含前缀。"
-msgstr "8 – 64 位，不含前綴。"
-msgid "字符集"
-msgstr "字符集"
-msgid "留空用默认（大写字母 + 数字，已剔除 0/O/1/I/l）"
-msgstr "留空用默認（大寫字母 + 數字，已剔除 0/O/1/I/l）"
-msgid "可自定义，但 0/O/1/I/l 会被自动剔除（客服沟通易混淆）。可用字符需 ≥ 8 种。"
-msgstr "可自定義，但 0/O/1/I/l 會被自動剔除（客服溝通易混淆）。可用字符需 ≥ 8 種。"
-msgid "前缀"
-msgstr "前綴"
-msgid "可选，如 VIP-"
-msgstr "可選，如 VIP-"
-msgid "留空自动命名（如 自动生成 2026-01-01 12:00（50 张））"
-msgstr "留空自動命名（如 自動生成 2026-01-01 12:00（50 張））"
-msgid "有效期"
-msgstr "有效期"
-msgid "天（0 = 永不过期）"
-msgstr "天（0 = 永不過期）"
-msgid "生成并入池"
-msgstr "生成並入池"
-msgid "请选择有效商品后再生成。"
-msgstr "請選擇有效商品後再生成。"
-msgid "生成失败，未知错误。"
-msgstr "生成失敗，未知錯誤。"
-msgid "请选择要为其生成卡密的商品。"
-msgstr "請選擇要為其生成卡密的商品。"
-msgid "服务器缺少 random_bytes，无法安全生成卡密。请改用手动导入。"
-msgstr "服務器缺少 random_bytes，無法安全生成卡密。請改用手動導入。"
-msgid "随机源异常，生成已中止。"
-msgstr "隨機源異常，生成已中止。"
-msgid "连续碰撞未能生成唯一卡密，请缩短长度或更换字符集。"
-msgstr "連續碰撞未能生成唯一卡密，請縮短長度或更換字符集。"
-msgid "入库失败："
-msgstr "入庫失敗："
-msgid "全部 %d 张与既有卡密重复。"
-msgstr "全部 %d 張與既有卡密重複。"
-msgid "字符集里没有足够的可用字符（已剔除 0/O/1/I/l），请更换。"
-msgstr "字符集裡沒有足夠的可用字符（已剔除 0/O/1/I/l），請更換。"
-msgid "字符集可用字符不足 8 个，请更换。"
-msgstr "字符集可用字符不足 8 個，請更換。"
-msgid "已生成 %1$d 张卡密并入池（批次 #%2$d）。长度 %3$d，字符集 %4$s。"
-msgstr "已生成 %1$d 張卡密並入池（批次 #%2$d）。長度 %3$d，字符集 %4$s。"
-msgid "自动生成 %1$s（%2$d 张）"
-msgstr "自動生成 %1$s（%2$d 張）"
-
-
-msgid "升级到 Moonlight Shop Pro"
-msgstr "升级到 Moonlight Shop Pro"
-
-msgid "Moonlight Shop Pro 已激活"
-msgstr "Moonlight Shop Pro 已激活"
-
-msgid "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
-msgstr "Webhook 出站通知、高级统计、订单导出、卡密管理均已启用。"
-
-msgid "免费版已可正常卖货。升级 Pro 解锁："
-msgstr "免费版已可正常卖货。升级 Pro 解锁："
-
-msgid "Webhook（订单事件实时推送到你的系统）"
-msgstr "Webhook（订单事件实时推送到你的系统）"
-
-msgid "高级统计（销售额趋势、热销排行）"
-msgstr "高级统计（销售额趋势、热销排行）"
-
-msgid "订单导出（Excel）"
-msgstr "订单导出（Excel）"
-
-msgid "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
-msgstr "卡密管理（批量生成 / 导入，余额·会员·积分兑换）"
-
-msgid "管理授权"
-msgstr "管理授权"
-
-msgid "激活 Pro"
-msgstr "激活 Pro"
-
-msgid "了解并购买 Pro"
-msgstr "了解并购买 Pro"
-
-msgid "已购买？上传 Pro 插件"
-msgstr "已购买？上传 Pro 插件"
-
-msgid "授权中心"
-msgstr "授权中心"
-
-msgid "商城设置"
-msgstr "商城设置"
-
-msgid "会员与账户"
-msgstr "会员与账户"
-
-msgid "连接信息"
-msgstr "连接信息"
-
-msgid "升级 Pro 解锁完整能力"
-msgstr "升级 Pro 解锁完整能力"
-
-msgid "前往购买 Pro"
-msgstr "前往购买 Pro"
-
-msgid "启动 Pro"
-msgstr "启动 Pro"
-
-msgid "免费版已能完整卖货。升级 Pro 后，多出这些站内能力："
-msgstr "免费版已能完整卖货。升级 Pro 后，多出这些站内能力："
-
-msgid "卡密管理"
-msgstr "卡密管理"
-
-msgid "批量生成 / 导入卡密，支持余额、会员、积分三种兑换类型，余额自动入账。"
-msgstr "批量生成 / 导入卡密，支持余额、会员、积分三种兑换类型，余额自动入账。"
-
-msgid "Webhook 出站通知"
-msgstr "Webhook 出站通知"
-
-msgid "订单付款、取消、退款即时推送到你的系统，对接 ERP / 自动发卡 / 财务。"
-msgstr "订单付款、取消、退款即时推送到你的系统，对接 ERP / 自动发卡 / 财务。"
-
-msgid "高级统计"
-msgstr "高级统计"
-
-msgid "销售额趋势、热销排行、会员增长与转换率，经营决策有依据。"
-msgstr "销售额趋势、热销排行、会员增长与转换率，经营决策有依据。"
-
-msgid "订单导出"
-msgstr "订单导出"
-
-msgid "一键导出 Excel，便于对账与交税。"
-msgstr "一键导出 Excel，便于对账与交税。"
-
-msgid "按付费可购买行为方式"
-msgstr "按付费可购买行为方式"
-
-msgid "当前 Pro 授权"
-msgstr "当前 Pro 授权"
-
-msgid "已激活"
-msgstr "已激活"
-
-msgid "未激活"
-msgstr "未激活"
-
-msgid "到期时间"
-msgstr "到期时间"
-
-msgid "查看授权详情"
-msgstr "查看授权详情"
-
-msgid "购买并激活 Pro"
-msgstr "购买并激活 Pro"
-
-msgid "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
-msgstr "大多数站点无需任何配置：安装 Pro 插件后，用订单里的授权码激活即可。"
-
-msgid "高级设置（仅当你在本站销售 Pro 授权时才需要）"
-msgstr "高级设置（仅当你在本站销售 Pro 授权时才需要）"
-
-msgid "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
-msgstr "仅当你打算在自己的商城里上架 Pro 授权商品、由授权中心自动发码时才填。普通卖教材的站点请留空。"
-
-msgid "未配置（不影响其他功能）"
-msgstr "未配置（不影响其他功能）"

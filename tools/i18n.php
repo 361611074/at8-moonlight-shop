@@ -115,17 +115,23 @@ function compile($po_file)
     $base_ids = $offset;
     foreach ($ids as $id) {
         $b = $id . "\0";
-        $o_table .= pack('VV', strlen($id), strlen($ids_bin));
+        // GNU MO 的 off 是「绝对文件偏移」：base_ids + 当前数据块内游标
+        // （此前写的是块内相对偏移，读方全部解析失败——第三个编译器 bug）
+        $o_table .= pack('VV', strlen($id), $base_ids + strlen($ids_bin));
         $ids_bin .= $b;
     }
     $base_strs = $base_ids + strlen($ids_bin);
     foreach ($strs as $s) {
-        $t_table .= pack('VV', strlen($s), strlen($strs_bin));
+        $t_table .= pack('VV', strlen($s), $base_strs + strlen($strs_bin));
         $strs_bin .= $s . "\0";
     }
 
-    $mo = pack('N7', 0x950412de, 0, $n, 28, 28 + 8 * $n, 0, 28 + 16 * $n)
-        . $o_table . $ids_bin . $t_table . $strs_bin;
+    // 布局（与 header 偏移一致）：[header 28][原文表 8n][译文表 8n][原文数据][译文数据]
+    // header 第 5 字段 = 译文**表**偏移（28+8n），不是译文数据偏移。
+    // 原实现此处错填 + 拼接顺序矛盾 + 大端 magic + 相对偏移，四 bug 叠加，
+    // 本工具产出的 .mo 从未真正可用（bcb45923 的「复发」实为从未修好过）。
+    $mo = pack('V7', 0x950412de, 0, $n, 28, 28 + 8 * $n, 0, 28 + 16 * $n)
+        . $o_table . $t_table . $ids_bin . $strs_bin;
     file_put_contents($mo_file, $mo);
     echo "MO: {$n} entries -> {$mo_file}\n";
 }
