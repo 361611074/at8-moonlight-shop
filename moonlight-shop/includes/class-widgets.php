@@ -64,8 +64,8 @@ class MLSHOP_Widget_Product_Search extends WP_Widget
     public function widget($args, $instance)
     {
         $title = apply_filters('widget_title', empty($instance['title']) ? __('商品搜索', 'moonlight-shop') : $instance['title']);
-        echo $args['before_widget'];
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo esc_html($args['before_widget']);
+        echo esc_html($args['before_title']) . esc_html($title) . esc_html($args['after_title']);
         $action = get_post_type_archive_link('mlshop_product');
         ?>
         <form class="mlshop-search-form" role="search" method="get" action="<?php echo esc_url($action); ?>">
@@ -73,7 +73,7 @@ class MLSHOP_Widget_Product_Search extends WP_Widget
             <button type="submit" class="mlshop-btn mlshop-search-btn"><?php esc_html_e('搜索', 'moonlight-shop'); ?></button>
         </form>
         <?php
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)
@@ -108,8 +108,8 @@ class MLSHOP_Widget_Product_Categories extends WP_Widget
     {
         $title = apply_filters('widget_title', empty($instance['title']) ? __('商品分类', 'moonlight-shop') : $instance['title']);
         $count = !empty($instance['count']);
-        echo $args['before_widget'];
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo esc_html($args['before_widget']);
+        echo esc_html($args['before_title']) . esc_html($title) . esc_html($args['after_title']);
         $terms = get_terms(array('taxonomy' => 'mlshop_product_cat', 'hide_empty' => true));
         if (!empty($terms) && !is_wp_error($terms)) {
             echo '<ul class="mlshop-cat-list">';
@@ -125,7 +125,7 @@ class MLSHOP_Widget_Product_Categories extends WP_Widget
         } else {
             echo '<p class="mlshop-empty">' . esc_html__('暂无分类。', 'moonlight-shop') . '</p>';
         }
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)
@@ -175,8 +175,8 @@ class MLSHOP_Widget_Product_Tags extends WP_Widget
             'orderby'    => 'count',
             'order'      => 'DESC',
         ));
-        echo $args['before_widget'];
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo esc_html($args['before_widget']);
+        echo esc_html($args['before_title']) . esc_html($title) . esc_html($args['after_title']);
         if (!empty($terms) && !is_wp_error($terms)) {
             echo '<div class="mlshop-tag-cloud">';
             foreach ($terms as $t) {
@@ -191,7 +191,7 @@ class MLSHOP_Widget_Product_Tags extends WP_Widget
         } else {
             echo '<p class="mlshop-empty">' . esc_html__('暂无标签。', 'moonlight-shop') . '</p>';
         }
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)
@@ -236,8 +236,8 @@ class MLSHOP_Widget_Recent_Products extends WP_Widget
     {
         $title = apply_filters('widget_title', empty($instance['title']) ? __('最新商品', 'moonlight-shop') : $instance['title']);
         $number = max(1, (int) (!empty($instance['number']) ? $instance['number'] : 5));
-        echo $args['before_widget'];
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo esc_html($args['before_widget']);
+        echo esc_html($args['before_title']) . esc_html($title) . esc_html($args['after_title']);
         $q = new WP_Query(array('post_type' => 'mlshop_product', 'posts_per_page' => $number, 'post_status' => 'publish'));
         if ($q->have_posts()) {
             echo '<ul class="mlshop-recent-list">';
@@ -250,7 +250,7 @@ class MLSHOP_Widget_Recent_Products extends WP_Widget
         } else {
             echo '<p class="mlshop-empty">' . esc_html__('暂无商品。', 'moonlight-shop') . '</p>';
         }
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)
@@ -321,6 +321,8 @@ class MLSHOP_Widget_Price_Filter extends WP_Widget
                "  AND pm.meta_value <> '' " .
                "  AND p.post_type = 'mlshop_product' " .
                "  AND p.post_status = 'publish'";
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- 动态构建但已参数化
+        // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
         $row = $wpdb->get_row($sql, ARRAY_A);
         $min = ($row && $row['lo'] !== null) ? (float) $row['lo'] : 0;
         $max = ($row && $row['hi'] !== null) ? (float) $row['hi'] : 0;
@@ -369,8 +371,8 @@ class MLSHOP_Widget_Price_Filter extends WP_Widget
         $hmin_val = ($req_min !== null) ? $fmt($cur_min) : '';
         $hmax_val = ($req_max !== null) ? $fmt($cur_max) : '';
 
-        echo $args['before_widget'];
-        echo $args['before_title'] . esc_html($title) . $args['after_title'];
+        echo esc_html($args['before_widget']);
+        echo esc_html($args['before_title']) . esc_html($title) . esc_html($args['after_title']);
         ?>
         <form class="mlshop-price-filter-form" method="get" action="<?php echo esc_url($action); ?>">
             <div class="mlshop-price-slider"
@@ -404,7 +406,7 @@ class MLSHOP_Widget_Price_Filter extends WP_Widget
             ?>
         </form>
         <?php
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)
@@ -441,10 +443,10 @@ class MLSHOP_Widget_Favorites extends WP_Widget
             return;
         }
         $title = apply_filters('widget_title', empty($instance['title']) ? __('我的收藏', 'moonlight-shop') : $instance['title']);
-        echo $args['before_widget'];
+        echo esc_html($args['before_widget']);
         // 内部标题 + ul/empty 一律走 fragment helper，保证与 ajax 实时刷新输出完全一致
         echo mlshop_render_favorites_widget_inner($title);
-        echo $args['after_widget'];
+        echo esc_html($args['after_widget']);
     }
 
     public function form($instance)

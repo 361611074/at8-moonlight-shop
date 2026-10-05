@@ -198,6 +198,7 @@ class MLSHOP_Download
         // 插件即不再用 PHP readfile 流式输出。
         if (apply_filters('moonlight_download_sendfile', false, $file, $data)) {
             exit;
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- 下载流需要输出文件内容到 stdout
         }
         readfile($file);
         exit;

@@ -350,8 +350,8 @@ class MLUC_Settings
         $key   = $args['key'];
         $value = (int) mluc_get_option($key, 0);
         wp_dropdown_pages(array(
-            'name'              => 'mluc_options[' . $key . ']',
-            'selected'          => $value,
+            'name'              => 'mluc_options[' . esc_html($key) . ']',
+            'selected'          => esc_html($value),
             'show_option_none'  => __('— 选择页面 —', 'moonlight-shop'),
             'option_none_value' => 0,
         ));

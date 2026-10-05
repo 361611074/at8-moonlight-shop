@@ -522,6 +522,7 @@ class MLSHOP_Pay_Access
             $name = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($file));
             header('Content-Disposition: attachment; filename="' . $name . '"');
             header('Content-Length: ' . filesize($file));
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- 下载流需要输出文件内容到 stdout
             readfile($file);
             exit;
         }

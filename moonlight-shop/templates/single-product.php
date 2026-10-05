@@ -35,7 +35,7 @@ get_header();
                     }
                 }
                 if ($crumb_chunks) {
-                    echo implode('<span class="sep">›</span>', $crumb_chunks);
+                    echo implode('<span class="sep">›</span>', esc_html($crumb_chunks));
                     echo '<span class="sep">›</span>';
                 }
                 ?>

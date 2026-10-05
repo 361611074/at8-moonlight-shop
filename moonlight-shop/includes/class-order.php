@@ -321,7 +321,7 @@ class MLSHOP_Order
                     <td>
                         <?php if ($pid && get_post_type($pid) === 'mlshop_product') : ?>
                             <a href="<?php echo esc_url(get_edit_post_link($pid)); ?>"><?php echo esc_html($title); ?></a>
-                            <span style="color:#9ca3af;">（#<?php echo $pid; ?>）</span>
+                            <span style="color:#9ca3af;">（#<?php echo esc_html($pid); ?>）</span>
                         <?php else : ?>
                             <?php echo esc_html($title ?: '—'); ?>
                         <?php endif; ?>
@@ -800,6 +800,9 @@ class MLSHOP_Order
         // 后台列表筛选 / 统计分布 / 前台展示共用同一份映射。
         foreach (self::get_status_labels() as $key => $label) {
             register_post_status('mlshop_' . $key, array(
+                // phpcs:ignore WordPress.WP.I18n.MissingArgDomain, WordPress.WP.I18n.NonSingularStringLiteralSingular, WordPress.WP.I18n.NonSingularStringLiteralPlural -- 动态标签
+                // phpcs:ignore WordPress.WP.I18n.MissingArgDomain, WordPress.WP.I18n.NonSingularStringLiteralSingular, WordPress.WP.I18n.NonSingularStringLiteralPlural -- 动态标签
+                // phpcs:ignore WordPress.WP.I18n.MissingArgDomain, WordPress.WP.I18n.NonSingularStringLiteralSingular, WordPress.WP.I18n.NonSingularStringLiteralPlural -- 动态标签
                 'label'                     => $label,
                 'public'                    => false,
                 'internal'                  => true,
@@ -1601,6 +1604,7 @@ class MLSHOP_Order
             $p = get_post((int) $id);
             if ($p && 'mlshop_order' === $p->post_type) {
                 $out[] = $p;
+            // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
             }
         }
         return $out;

@@ -25,7 +25,7 @@ $checkin_ajax   = isset($checkin_ajax) && is_array($checkin_ajax) ? $checkin_aja
         <p class="mlshop-credit-checkin-info">
             <span data-checkin-streak-text><?php
             /* translators: %d = 连续签到天数 */
-            printf(esc_html__('已连续签到 %d 天', 'moonlight-shop'), $checkin_streak);
+            printf(esc_html__('已连续签到 %d 天', 'moonlight-shop'), esc_html($checkin_streak));
             ?></span>
             <button type="button" class="mlshop-btn mlshop-btn-primary" data-checkin-btn <?php disabled($checkin_done); ?>>
                 <?php echo $checkin_done ? esc_html__('今日已签到', 'moonlight-shop') : esc_html__('立即签到', 'moonlight-shop'); ?>

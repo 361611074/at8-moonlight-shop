@@ -164,7 +164,7 @@ class MLSHOP_Header_Actions
         if ('' === $css) {
             return; // 全默认 → 不输出任何 style
         }
-        echo '<style id="mlshop-header-actions-vars">' . $css . '</style>' . "\n";
+        echo '<style id="mlshop-header-actions-vars">' . esc_html($css) . '</style>' . "\n";
     }
 
     /**

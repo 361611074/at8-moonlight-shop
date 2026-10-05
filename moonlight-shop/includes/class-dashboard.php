@@ -277,8 +277,8 @@ class MLSHOP_Dashboard
     {
         $now_ts = current_time('timestamp');
         return array(
-            'today_revenue' => $this->sum_revenue(date('Y-m-d 00:00:00', $now_ts), date('Y-m-d 23:59:59', $now_ts)),
-            'month_revenue' => $this->sum_revenue(date('Y-m-01 00:00:00', $now_ts), date('Y-m-d 23:59:59', $now_ts)),
+            'today_revenue' => $this->sum_revenue(wp_date('Y-m-d 00:00:00', $now_ts), wp_date('Y-m-d 23:59:59', $now_ts)),
+            'month_revenue' => $this->sum_revenue(wp_date('Y-m-01 00:00:00', $now_ts), wp_date('Y-m-d 23:59:59', $now_ts)),
             'orders'        => $this->scan_orders(),
             'product_count' => $this->count_products(),
             'member_count'  => $this->count_members(),

@@ -132,7 +132,7 @@ class MLUC_Licenses_Tab
             echo '<p style="margin:0 0 4px">'
                . '<span style="color:' . esc_attr($status_color) . ';font-weight:600">' . esc_html($license->status) . '</span>'
                . ' ｜ ' . esc_html($license->license_type)
-               . ' ｜ ' . esc_html__('到期', 'moonlight-shop') . '：' . $expires
+               . ' ｜ ' . esc_html__('到期', 'moonlight-shop') . '：' . esc_html($expires)
                . '</p>';
             echo '<p style="margin:0 0 4px;color:#646970">'
                . esc_html__('授权码', 'moonlight-shop') . '：<code>' . esc_html($license->license_key_masked) . '</code>'

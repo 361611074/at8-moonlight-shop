@@ -63,11 +63,11 @@ class MLUC_System_Status
             <table class="widefat striped" style="max-width:900px;">
                 <tbody>
                     <tr><th><?php esc_html_e('WordPress 版本', 'moonlight-shop'); ?></th>
-                        <td><?php echo esc_html(get_bloginfo('version')); ?>（<?php echo version_compare(get_bloginfo('version'), '5.8', '>=') ? $ok . esc_html__('满足最低要求 5.8', 'moonlight-shop') : $bad . esc_html__('低于最低要求 5.8', 'moonlight-shop'); ?>）</td></tr>
+                        <td><?php echo esc_html(get_bloginfo('version')); ?>（<?php echo version_compare(get_bloginfo('version'), '5.8', '>=') ? esc_html($ok) . esc_html__('满足最低要求 5.8', 'moonlight-shop') : esc_html($bad) . esc_html__('低于最低要求 5.8', 'moonlight-shop'); ?>）</td></tr>
                     <tr><th><?php esc_html_e('PHP 版本', 'moonlight-shop'); ?></th>
-                        <td><?php echo esc_html(PHP_VERSION); ?>（<?php echo version_compare(PHP_VERSION, '7.4', '>=') ? $ok . esc_html__('满足最低要求 7.4', 'moonlight-shop') : $bad . esc_html__('低于最低要求 7.4', 'moonlight-shop'); ?>）</td></tr>
+                        <td><?php echo esc_html(PHP_VERSION); ?>（<?php echo version_compare(PHP_VERSION, '7.4', '>=') ? esc_html($ok) . esc_html__('满足最低要求 7.4', 'moonlight-shop') : esc_html($bad) . esc_html__('低于最低要求 7.4', 'moonlight-shop'); ?>）</td></tr>
                     <tr><th><?php esc_html_e('OpenSSL 扩展（支付宝 RSA2）', 'moonlight-shop'); ?></th>
-                        <td><?php echo class_exists('MLUC_Gateway_Alipay') ? (MLUC_Gateway_Alipay::openssl_available() ? $ok . esc_html__('可用', 'moonlight-shop') : $bad . esc_html__('不可用，支付宝网关无法工作', 'moonlight-shop')) : $warn . esc_html__('网关未并入（Phase C）', 'moonlight-shop'); ?></td></tr>
+                        <td><?php echo class_exists('MLUC_Gateway_Alipay') ? (MLUC_Gateway_Alipay::openssl_available() ? esc_html($ok) . esc_html__('可用', 'moonlight-shop') : esc_html($bad) . esc_html__('不可用，支付宝网关无法工作', 'moonlight-shop')) : esc_html($warn) . esc_html__('网关未并入（Phase C）', 'moonlight-shop'); ?></td></tr>
                     <tr><th><?php esc_html_e('结算货币代码', 'moonlight-shop'); ?></th>
                         <td><?php echo esc_html(class_exists('MLUC_Payments') ? MLUC_Payments::currency_code() : '—'); ?>
                             <?php if (class_exists('MLUC_Payments') && 'CNY' === MLUC_Payments::currency_code()) : ?>
@@ -77,9 +77,9 @@ class MLUC_System_Status
                             <?php endif; ?>
                         </td></tr>
                     <tr><th><?php esc_html_e('账户中心页面', 'moonlight-shop'); ?></th>
-                        <td><?php echo (int) mluc_get_option('account_page_id', 0) ? $ok . esc_html__('已配置', 'moonlight-shop') : $warn . esc_html__('未配置，支付回跳将回退到 /account/', 'moonlight-shop'); ?></td></tr>
+                        <td><?php echo (int) mluc_get_option('account_page_id', 0) ? esc_html($ok) . esc_html__('已配置', 'moonlight-shop') : esc_html($warn) . esc_html__('未配置，支付回跳将回退到 /account/', 'moonlight-shop'); ?></td></tr>
                     <tr><th><?php esc_html_e('支付调试日志', 'moonlight-shop'); ?></th>
-                        <td><?php echo MLUC_Payment_Log::debug_enabled() ? $warn . esc_html__('已开启（排查用，建议平时关闭）', 'moonlight-shop') : $ok . esc_html__('关闭', 'moonlight-shop'); ?></td></tr>
+                        <td><?php echo MLUC_Payment_Log::debug_enabled() ? esc_html($warn) . esc_html__('已开启（排查用，建议平时关闭）', 'moonlight-shop') : esc_html($ok) . esc_html__('关闭', 'moonlight-shop'); ?></td></tr>
                 </tbody>
             </table>
 
@@ -118,7 +118,7 @@ class MLUC_System_Status
                         ?>
                         <tr>
                             <td><code><?php echo esc_html($id); ?></code>（<?php echo esc_html($gw->get_name()); ?>）</td>
-                            <td><?php echo $available ? $ok . esc_html__('可用', 'moonlight-shop') : ($enabled ? $warn . esc_html__('已启用但不可用', 'moonlight-shop') : $bad . esc_html__('未启用', 'moonlight-shop')); ?></td>
+                            <td><?php echo $available ? esc_html($ok) . esc_html__('可用', 'moonlight-shop') : ($enabled ? esc_html($warn) . esc_html__('已启用但不可用', 'moonlight-shop') : esc_html($bad) . esc_html__('未启用', 'moonlight-shop')); ?></td>
                             <td><?php echo esc_html($note); ?></td>
                         </tr>
                     <?php endforeach; ?>
@@ -158,7 +158,7 @@ class MLUC_System_Status
                         echo esc_html($total . ' / ' . $active_n);
                         ?></td></tr>
                     <tr><th><?php esc_html_e('Pro 扩展插件', 'moonlight-shop'); ?></th>
-                        <td><?php echo (class_exists('MLUCP_License_Client') || defined('MLUCP_VERSION')) ? $ok . esc_html__('已安装', 'moonlight-shop') : esc_html__('未安装（Free 功能不受影响）', 'moonlight-shop'); ?></td></tr>
+                        <td><?php echo (class_exists('MLUCP_License_Client') || defined('MLUCP_VERSION')) ? esc_html($ok) . esc_html__('已安装', 'moonlight-shop') : esc_html__('未安装（Free 功能不受影响）', 'moonlight-shop'); ?></td></tr>
                 </tbody>
             </table>
         </div>

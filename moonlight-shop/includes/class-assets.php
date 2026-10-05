@@ -177,6 +177,6 @@ class MLSHOP_Assets
             $sidebar_css .= '.mlshop-single-wrap>.mlshop-sidebar,.mlshop-archive-wrap>.mlshop-sidebar{position:sticky;top:90px;align-self:flex-start;}';
         }
 
-        echo '<style id="mlshop-layout-css">' . $css . $sidebar_css . '</style>';
+        echo '<style id="mlshop-layout-css">' . esc_html($css) . esc_html($sidebar_css) . '</style>';
     }
 }

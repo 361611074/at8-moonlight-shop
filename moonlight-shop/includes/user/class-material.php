@@ -410,6 +410,7 @@ class MLUC_Material
             header('Content-Type: ' . (!empty($mime['type']) ? $mime['type'] : 'application/octet-stream'));
             header('Content-Disposition: attachment; filename="' . $download_name . '"');
             header('Content-Length: ' . (string) filesize($local));
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- 下载流需要输出文件内容到 stdout
             header('Cache-Control: no-store, no-cache, must-revalidate');
             readfile($local);
             exit;

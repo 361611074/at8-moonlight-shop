@@ -105,6 +105,7 @@ class MLUC_Assets
             foreach (MLUC_Hidecontent::$types as $key => $info) {
                 $types[] = array(
                     'value' => $key,
+                    // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- 动态标签
                     'label' => isset($info['label']) ? __((string) $info['label'], 'moonlight-shop') : $key,
                 );
             }

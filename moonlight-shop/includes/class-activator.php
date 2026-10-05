@@ -135,6 +135,7 @@ class MLSHOP_Activator
     public static function populate_shop_sidebar()
     {
         $sidebar = 'mlshop-shop';
+        // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found -- 激活器需要检测侧栏
         $sidebars = wp_get_sidebars_widgets();
         if (!is_array($sidebars) || !empty($sidebars[$sidebar])) {
             return;

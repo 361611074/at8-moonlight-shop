@@ -22,7 +22,7 @@ $_expired   = class_exists('MLUC_Membership') ? MLUC_Membership::is_user_expired
 $_display_name = $user->display_name ? $user->display_name : $user->user_login;
 
 // 时段问候（后台「界面文案」可自定义）
-$_hour  = (int) date('G');
+$_hour  = (int) wp_date('G');
 if ($_hour < 5) {
     $_greet = mluc_ui_label('greet_dawn', __('Good early morning', 'moonlight-shop'));
 } elseif ($_hour < 11) {

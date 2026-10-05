@@ -152,7 +152,7 @@ function mlshop_favorite_button($product_id = 0, $echo = true)
         esc_html($label)
     );
     if ($echo) {
-        echo $html;
+        echo esc_html($html);
     }
     return $html;
 }

@@ -127,7 +127,7 @@ class Moonlight_Card_Generator
             $batch_name = sprintf(
                 /* translators: 1: 日期时间 2: 生成数量 */
                 __('自动生成 %1$s（%2$d 张）', 'moonlight-shop'),
-                date('Y-m-d H:i'),
+                wp_date('Y-m-d H:i'),
                 count($keys)
             );
         }

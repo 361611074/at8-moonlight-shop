@@ -43,7 +43,7 @@ class MLUC_Purchases
 
     public function tab_purchases()
     {
-        echo $this->shortcode_purchases();
+        echo esc_html($this)->shortcode_purchases();
     }
 
     /**

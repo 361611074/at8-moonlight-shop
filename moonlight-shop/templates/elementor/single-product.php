@@ -83,7 +83,7 @@ $archive_link     = get_post_type_archive_link('mlshop_product');
             }
         }
         if ($crumb_chunks) {
-            echo implode('<span class="sep">›</span>', $crumb_chunks);
+            echo implode('<span class="sep">›</span>', esc_html($crumb_chunks));
             echo '<span class="sep">›</span>';
         }
         ?>

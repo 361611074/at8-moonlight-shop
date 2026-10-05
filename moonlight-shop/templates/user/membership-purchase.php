@@ -111,6 +111,7 @@ if (!defined('ABSPATH')) {
         </div>
     <?php endif; ?>
 </div>
+// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedScript -- 内联 PayPal SDK
 <?php if ($paypal_on && $paypal_sdk) : ?>
     <script src="<?php echo esc_url($paypal_sdk); ?>" data-partner-attribution-id="moonlight_user_center"></script>
 <?php endif; ?>

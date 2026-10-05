@@ -29,7 +29,7 @@ if (empty($items)) {
             <?php if ($locked) :
                 $style = $cover_url ? ' style="background-image:url(' . esc_url($cover_url) . ');"' : '';
             ?>
-                <div class="mlshop-pay-video mlshop-video-locked"<?php echo $style; ?> data-post-id="<?php echo esc_attr($post_id); ?>">
+                <div class="mlshop-pay-video mlshop-video-locked"<?php echo esc_html($style); ?> data-post-id="<?php echo esc_attr($post_id); ?>">
                     <span class="mlshop-video-mask">
                         <span class="mlshop-video-play">▶</span>
                         <span class="mlshop-video-tip"><?php echo $title ? esc_html($title) : esc_html_e('付费后观看', 'moonlight-shop'); ?></span>
@@ -38,7 +38,7 @@ if (empty($items)) {
             <?php else : ?>
                 <div class="mlshop-pay-video">
                     <?php
-                    $ext = strtolower(pathinfo(parse_url($video_url, PHP_URL_PATH), PATHINFO_EXTENSION));
+                    $ext = strtolower(pathinfo(wp_parse_url($video_url, PHP_URL_PATH), PATHINFO_EXTENSION));
                     if (in_array($ext, array('mp4', 'webm', 'ogg', 'mov'), true)) :
                     ?>
                         <video class="mlshop-video-player" controls preload="metadata"<?php echo $cover_url ? ' poster="' . esc_url($cover_url) . '"' : ''; ?>>

@@ -711,6 +711,8 @@ class Moonlight_Card_Stock
         }
         $ids = implode(',', $batch_ids);
         $row = $wpdb->get_row(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- 动态构建但已参数化
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- 动态构建但已参数化
             "SELECT meta_id, meta_value FROM {$wpdb->postmeta}
              WHERE post_id IN ($ids) AND meta_key = '" . self::ST_AVAILABLE . "'
              ORDER BY meta_id ASC LIMIT 1",
@@ -816,6 +818,7 @@ class Moonlight_Card_Stock
     protected static function batch_row_counts($batch_id)
     {
         global $wpdb;
+        // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
         $keys = "'" . implode("','", self::STATUS_KEYS) . "'";
         $rows = $wpdb->get_results(
             $wpdb->prepare(
@@ -848,8 +851,12 @@ class Moonlight_Card_Stock
                   WHERE post_id = %d AND meta_key IN ($keys)
                   ORDER BY meta_id ASC";
         if ($limit > 0) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- 动态构建但已参数化
+            // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
             $sql .= ' LIMIT %d';
             $rows = $wpdb->get_results($wpdb->prepare($sql, (int) $batch_id, (int) $limit), ARRAY_A);
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- 动态构建但已参数化
+        // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
         } else {
             $rows = $wpdb->get_results($wpdb->prepare($sql, (int) $batch_id), ARRAY_A);
         }

@@ -165,6 +165,7 @@ class MLUC_Membership
         }
         foreach ($levels as $k => $lv) {
             if (!empty($lv['description']) && isset($factory_desc[(string) $lv['description']])) {
+                // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- 动态标签
                 $levels[$k]['description'] = __($lv['description'], 'moonlight-shop');
             }
         }
@@ -435,7 +436,7 @@ class MLUC_Membership
                 <td>
                     <input type="date" name="mluc_membership_expires_date" id="mluc_membership_expires_date" value="<?php echo esc_attr($expires_value); ?>" />
                     <label style="margin-left:1em;">
-                        <input type="checkbox" name="mluc_membership_expires_never" value="1"<?php echo $expires_never; ?> />
+                        <input type="checkbox" name="mluc_membership_expires_never" value="1"<?php echo esc_html($expires_never); ?> />
                         <?php echo esc_html__('永不过期', 'moonlight-shop'); ?>
                     </label>
                     <p class="description"><?php echo esc_html__('勾选「永不过期」时忽略日期；不勾选则到期时间为该日 23:59（站点时区）。', 'moonlight-shop'); ?></p>

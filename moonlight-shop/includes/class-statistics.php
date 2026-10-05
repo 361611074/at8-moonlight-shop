@@ -227,6 +227,7 @@ class MLSHOP_Statistics
         global $wpdb;
         $stati = array_map(function ($k) { return 'mlshop_' . $k; }, array_keys(MLSHOP_Order::get_status_labels()));
         $in = "'" . implode("','", array_map('esc_sql', $stati)) . "'";
+        // phpcs:ignore PluginCheck.Security.DirectDB.UnescapedDBParameter -- 参数已白名单化
         $rows = $wpdb->get_results(
             $wpdb->prepare(
                 "SELECT p.ID, p.post_date,

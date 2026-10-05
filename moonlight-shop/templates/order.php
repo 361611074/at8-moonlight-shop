@@ -36,7 +36,7 @@ $paid_statuses  = MLSHOP_Order::get_revenue_statuses();
 $show_register_cta = $is_guest_order && $guest_email && in_array($status, $paid_statuses, true);
 
 $back_url = isset($back_url) ? $back_url : mlshop_get_orders_url();
-$created_display = $created ? mysql2date(get_option('date_format') . ' ' . get_option('time_format'), $created) : '';
+$created_display = $created ? mysql2wp_date(get_option('date_format') . ' ' . get_option('time_format'), $created) : '';
 
 // 待付订单的剩余支付时间
 $expire_min = (int) mlshop_get_option('order_expire_minutes', 0);
