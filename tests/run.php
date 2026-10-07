@@ -1205,7 +1205,7 @@ check('旧 Pro 激活 → 新产品激活仍判定激活', MLPRO_License_Client:
 check('旧 Pro 激活 → product_status 返回空（授权页不展示双产品行）', MLPRO_License_Client::product_status() === array());
 
 echo "== Phase D：Pro 主文件门禁与共存检测（源级断言） ==\n";
-$__mlpro_main = (string) file_get_contents(__DIR__ . '/../moonlight-shop-pro/moonlight-shop-pro.php');
+$__mlpro_main = (string) file_get_contents(__DIR__ . '/../at8-moonlight-shop-pro/at8-moonlight-shop-pro.php');
 check('主文件门禁不变（缺 MLSHOP_VERSION / MLSHOP_Order 不启动）', false !== strpos($__mlpro_main, "!defined('MLSHOP_VERSION') || !class_exists('MLSHOP_Order')"));
 check('主文件含旧 Pro 共存检测（MLUCP_VERSION / MLUCP_License_Client）', false !== strpos($__mlpro_main, "defined('MLUCP_VERSION')") && false !== strpos($__mlpro_main, "class_exists('MLUCP_License_Client', false)"));
 check('主文件在旧 Pro 激活时不引入收编组件（让位分支）', false !== strpos($__mlpro_main, 'if (!$mlpro_legacy_pro)'));
@@ -2191,7 +2191,7 @@ foreach (array('mluc.js', 'mluc-admin.js', 'mluc-pw-admin.js', 'mluc-tinymce.js'
 foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
     // 语言包完整性（i18n 编译器四连 bug 修复后的回归，见 CHANGELOG 3.2.1）：
     // .po 为唯一权威源；.mo 必须存在且为 PHP 可读的小端序（de 12 04 95）。
-    foreach (array('moonlight-shop', 'moonlight-user-center') as $__dom) {
+    foreach (array('at8-moonlight-shop') as $__dom) {
         $__po = __DIR__ . "/../moonlight-shop/languages/{$__dom}-{$__loc}.po";
         $__mo = __DIR__ . "/../moonlight-shop/languages/{$__dom}-{$__loc}.mo";
         $__ok = file_exists($__po);
@@ -2203,16 +2203,16 @@ foreach (array('en_US', 'zh_CN', 'zh_HK', 'zh_TW') as $__loc) {
 // 关键界面词条必须有非空译文（entry 级精确匹配；此前 zh_TW 站设置页导航露出简体，
 // 且 .mo 编译器四 bug 导致所有翻译死码——见 CHANGELOG 3.2.1）
 foreach (array(
-    array('moonlight-user-center-zh_TW.po', '常规设置'),
-    array('moonlight-user-center-zh_TW.po', '积分与签到'),
-    array('moonlight-user-center-zh_TW.po', '会员等级定义'),
-    array('moonlight-user-center-zh_TW.po', '页面导航'),
-    array('moonlight-user-center-zh_CN.po', '常规设置'),
-    array('moonlight-user-center-zh_CN.po', '积分与签到'),
-    array('moonlight-shop-zh_TW.po', '允许订单使用积分支付'),
-    array('moonlight-shop-zh_TW.po', '每日签到'),
-    array('moonlight-shop-zh_CN.po', '商城設定'),
-    array('moonlight-shop-zh_CN.po', '每日签到'),
+    array('at8-moonlight-shop-zh_TW.po', '常规设置'),
+    array('at8-moonlight-shop-zh_TW.po', '积分与签到'),
+    array('at8-moonlight-shop-zh_TW.po', '会员等级定义'),
+    array('at8-moonlight-shop-zh_TW.po', '页面导航'),
+    array('at8-moonlight-shop-zh_CN.po', '常规设置'),
+    array('at8-moonlight-shop-zh_CN.po', '积分与签到'),
+    array('at8-moonlight-shop-zh_TW.po', '允许订单使用积分支付'),
+    array('at8-moonlight-shop-zh_TW.po', '每日签到'),
+    array('at8-moonlight-shop-zh_CN.po', '商城設定'),
+    array('at8-moonlight-shop-zh_CN.po', '每日签到'),
 ) as $__t) {
     $__raw = str_replace("\r\n", "\n", (string) file_get_contents(__DIR__ . '/../moonlight-shop/languages/' . $__t[0])) . "\n";
     // 独立条目 + 非空 msgstr（避免 strstr 撞上其它含同样子串的长文案）
@@ -2222,12 +2222,12 @@ foreach (array(
 // 单插件形态：不再有独立用户中心插件，改验「并入模块自带让位守卫」——
 // 引擎缺席时商城补齐 MLUC_* 常量与加载器，存在旧插件时才让位。
 check('商城主文件含并入让位守卫 mlshop_mluc_legacy_active / mlshop_user_modules_should_boot',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'mlshop_register_mluc_compat')
-    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'mlshop_user_modules_should_boot'));
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'), 'mlshop_register_mluc_compat')
+    && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'), 'mlshop_user_modules_should_boot'));
 check('商城主文件注册 MLUC_ → includes/user/ 自动加载',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "includes/user/class-"));
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'), "includes/user/class-"));
 check('商城主文件含启动守卫 mlshop_user_modules_should_boot',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), 'function mlshop_user_modules_should_boot'));
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'), 'function mlshop_user_modules_should_boot'));
 // 单插件形态（2026-10 起）：商城 + 用户中心合并为一个插件分发。
 // 已并入：已购教材 / 每日签到 / 余额钱包（此前只在独立插件里，单装商城会缺失）。
 check('并入模块含已购教材 / 签到 / 钱包三个类',
@@ -2235,7 +2235,7 @@ check('并入模块含已购教材 / 签到 / 钱包三个类',
     && file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-checkin.php')
     && file_exists(__DIR__ . '/../moonlight-shop/includes/user/class-wallet.php'));
 check('商城主文件启动并入的三个模块',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'), "array('MLUC_Purchases', 'MLUC_Checkin', 'MLUC_Wallet')"));
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'), "array('MLUC_Purchases', 'MLUC_Checkin', 'MLUC_Wallet')"));
 check('合并层补齐积分/钱包依赖函数（credit_enabled / balance_enabled / credit_name / atomic_*）',
     false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_credit_enabled')
     && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/functions.php'), 'function mluc_atomic_decrement_user_meta'));
@@ -2269,7 +2269,7 @@ check('账户中心积分 Tab 含签到入口（模板 + tab_credit 传参）',
     && false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/includes/class-credit-ui.php'), 'checkin_on'));
 // 客户分发包剔除 class-license-admin.php 后 boot 不得 Fatal，且实例化仅限授权方自用站
 check('boot 对 License_Admin 有常量 + class_exists 双重守卫',
-    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/moonlight-shop.php'),
+    false !== strpos((string) file_get_contents(__DIR__ . '/../moonlight-shop/at8-moonlight-shop.php'),
         "defined('MLUC_LICENSE_LOCAL_MODE') && class_exists('MLUC_License_Admin')"));
 // 卸载时接管并入的会员中心数据清理（独立插件卸载脚本已随目录移除），且双插件站不越权清理
 $__uninstall_src = (string) file_get_contents(__DIR__ . '/../moonlight-shop/uninstall.php');

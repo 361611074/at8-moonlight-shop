@@ -55,7 +55,7 @@ if (!function_exists('wp_doing_ajax')) {
 /* ---------- 2) 商城主文件：MLUC_ 自动加载器（includes/user/）+ merged helpers ----------
  * v3.0.1 起加载器改在 plugins_loaded 注册（事故修复），测试进程需手动触发，
  * 且必须在 wp-stubs 之前——让真实 MLUC_Membership 先于同名桩被解析。 */
-require __DIR__ . '/../moonlight-shop/moonlight-shop.php';
+require __DIR__ . '/../moonlight-shop/at8-moonlight-shop.php';
 mlshop_register_mluc_compat();
 
 /* ---------- 3) WP 桩（真实 MLUC_Membership 经自动加载器加载后，同名测试桩让位） ---------- */
@@ -651,9 +651,9 @@ foreach (array(
     class_exists($__cls) || interface_exists($__cls); // 触发商城侧自动加载器
     check("{$__cls} 类已加载", class_exists($__cls, false) || interface_exists($__cls, false));
     $__path = str_replace('\\', '/', (string) (new ReflectionClass($__cls))->getFileName());
-    check("{$__cls} 来自 moonlight-shop/includes/user/{$__file}", false !== strpos($__path, '/moonlight-shop/includes/user/' . $__file));
+    check("{$__cls} 来自 moonlight-shop/includes/user/{$__file}", false !== strpos($__path, '/at8-moonlight-shop/includes/user/' . $__file));
 }
-check('不并入的 MLUC_Payments 不在商城 includes/user/', !file_exists(dirname(__DIR__) . '/moonlight-shop/includes/user/class-payments.php'));
+check('不并入的 MLUC_Payments 不在商城 includes/user/', !file_exists(dirname(__DIR__) . '/at8-moonlight-shop/includes/user/class-payments.php'));
 
 /* ==========================================================================
  * Phase E（迁移状态页 + 退役提示基础）——非让位分支用例。

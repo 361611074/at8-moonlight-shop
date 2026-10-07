@@ -1,0 +1,282 @@
+<?php
+/**
+ * 虚拟商品交付：下载文件 + 卡密分配。
+ *
+ * @package Moonlight_Shop
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class MLSHOP_Download
+{
+    private static $instance;
+
+    public static function get_instance()
+    {
+        if (!self::$instance) {
+            self::$instance = new self();
+        }
+        return self::$instance;
+    }
+
+    private function __construct()
+    {
+        add_action('mlshop_order_paid', array($this, 'deliver'));
+        // 貨到付款(COD)訂單不經 paid，管理員標 completed 後才觸發交付，確保虛擬/卡密商品也能發貨
+        add_action('mlshop_order_completed', array($this, 'deliver'));
+        add_action('init', array($this, 'handle_download'));
+        add_shortcode('mlshop_downloads', array($this, 'shortcode_downloads'));
+    }
+
+    /**
+     * 订单支付完成后交付虚拟商品 / 分配卡密。
+     */
+    public function deliver($order_id)
+    {
+        // 幂等：線上付款(paid)與貨到付款(completed)可能雙重觸發，已交付過則跳過，
+        // 避免重複發貨、重複彈出卡密（卡密一旦彈出即扣庫存，重複將造成超賣）
+        $delivered = get_post_meta($order_id, '_mlshop_delivery', true);
+        if (is_array($delivered) && !empty($delivered)) {
+            return;
+        }
+        // 付费内容订单由 MLSHOP_Pay_Access 负责解锁与下载按钮，不在此重复发货
+        if (get_post_meta($order_id, '_mlshop_paywall_post', true)) {
+            return;
+        }
+        // 积分充值订单无实物交付，由 MLSHOP_Credit_UI 负责入账
+        if ('recharge' === get_post_meta($order_id, '_mlshop_type', true)) {
+            return;
+        }
+        // 会员升级订单无实物交付，由 MLSHOP_Membership_UI 负责授予等级
+        if ('membership' === get_post_meta($order_id, '_mlshop_type', true)) {
+            return;
+        }
+        // 原子交付抢占（审计 P1）：paid 与 completed 双触发 / 并发回调下
+        // check-then-act 会双份发货、双份弹卡密。只有抢先写入 claim 的请求
+        // 才能进入交付段；未产出交付内容时回滚，让后续触发可重试。
+        if (!add_post_meta($order_id, '_mlshop_delivery_claim', gmdate('Y-m-d H:i:s'), true)) {
+            return;
+        }
+        $items    = get_post_meta($order_id, '_mlshop_items', true);
+        $user_id  = (int) get_post_meta($order_id, '_mlshop_user_id', true);
+        if (!is_array($items)) {
+            delete_post_meta($order_id, '_mlshop_delivery_claim');
+            return;
+        }
+        $delivery = array();
+
+        foreach ($items as $item) {
+            $pid  = (int) $item['id'];
+            $type = get_post_meta($pid, '_mlshop_type', true);
+
+            if ($type === 'virtual') {
+                $file_id = (int) get_post_meta($pid, '_mlshop_file', true);
+                $limit   = (int) get_post_meta($pid, '_mlshop_download_limit', true);
+                $limit   = $limit > 0 ? $limit : 7;
+                // 下载次数上限（0 = 不限），交付时随 token 一起冻结进授权数据
+                $max_downloads = (int) get_post_meta($pid, '_mlshop_download_count', true);
+                if ($file_id) {
+                    $token = wp_generate_password(32, false);
+                    $expires = time() + $limit * DAY_IN_SECONDS;
+                    set_transient('mlshop_dl_' . $token, array(
+                        'order_id'   => $order_id,
+                        'product_id' => $pid,
+                        'user_id'    => $user_id,
+                        'file_id'    => $file_id,
+                        'max'        => $max_downloads, // 0 = 不限次数
+                        'used'       => 0,
+                        'expires'    => $expires,       // 刷新计数时用于保留原有效期
+                    ), $limit * DAY_IN_SECONDS);
+                    $delivery[] = array('product_id' => $pid, 'type' => 'download', 'token' => $token);
+                }
+            } elseif ($type === 'cardkey') {
+                $row = $this->pop_cardkey_row($pid, $order_id, $user_id);
+                if (is_array($row)) {
+                    // 安全不变量「明文不落库」：_mlshop_delivery 只存售出行引用
+                    // （sold_meta_id），展示 / 发信时按需解密；旧明文池（未迁移
+                    // 商品）回退存明文，meta_id = 0，迁移完成后不再发生。
+                    if ((int) $row['meta_id'] > 0) {
+                        $delivery[] = array('product_id' => $pid, 'type' => 'cardkey', 'sold_meta_id' => (int) $row['meta_id']);
+                    } else {
+                        $delivery[] = array('product_id' => $pid, 'type' => 'cardkey', 'key' => (string) $row['key']);
+                    }
+                }
+            }
+        }
+
+        if ($delivery) {
+            update_post_meta($order_id, '_mlshop_delivery', $delivery);
+        } else {
+            // 未产出任何交付内容：回滚抢占，让后续触发（如 completed）可重试。
+            delete_post_meta($order_id, '_mlshop_delivery_claim');
+        }
+    }
+
+    /**
+     * 弹出一条卡密并扣减库存计数器。
+     *
+     * 实际弹出逻辑委托 Moonlight_Card_Stock::pop（加密批次模型 + CAS 原子认领；
+     * 批次未迁移的旧商品自动回落到旧明文池 CAS 路径，行为兼容）。
+     *
+     * @param int $product_id 商品 ID。
+     * @param int $order_id   订单 ID（写入卡密售出记录）。
+     * @param int $user_id    购买用户 ID（写入卡密售出记录）。
+     * @return string|false 卡密明文。
+     */
+    private function pop_cardkey_row($product_id, $order_id = 0, $user_id = 0)
+    {
+        $row = Moonlight_Card_Stock::pop_row((int) $product_id, (int) $order_id, (int) $user_id);
+        if (!is_array($row)) {
+            return false;
+        }
+        // 计数器仍随批次发货扣减（冗余显示；真实库存以卡密池为准）。
+        $this->decrease_stock($product_id, 1);
+        return $row;
+    }
+
+    /**
+     * 扣减库存（原子）。_mlshop_stock 为空或 0 视为不限量。
+     *
+     * 卡密商品的真实库存是卡密库存池（Moonlight_Card_Stock 批次 + CAS 弹出保证不超发），
+     * 该计数器只是冗余显示：扣减失败（并发竞态）不「清零兜底」，保持原值即可，
+     * 由下单前的库存池预检拦截真实超卖。
+     */
+    private function decrease_stock($product_id, $qty)
+    {
+        $stock = (int) get_post_meta($product_id, '_mlshop_stock', true);
+        if ($stock <= 0) {
+            return;
+        }
+        mlshop_atomic_decrement_post_meta($product_id, '_mlshop_stock', (int) $qty);
+    }
+
+    /**
+     * 安全下载端点：?mlshop_download=TOKEN
+     */
+    public function handle_download()
+    {
+        if (empty($_GET['mlshop_download'])) {
+            return;
+        }
+        $token = sanitize_text_field($_GET['mlshop_download']);
+        $data  = get_transient('mlshop_dl_' . $token);
+        // 明确的 403 / 404 状态码：避免正常业务拦截被误判为服务器错误（wp_die 默认 500）
+        if (!$data) {
+            wp_die(esc_html(__('下载链接无效或已过期。', 'at8-moonlight-shop')), '', array('response' => 403));
+        }
+        // 归属校验：注册用户订单绑定 user_id；游客订单（user_id=0）凭订单访问令牌
+        // 放行——与订单页同一权限模型（下载链接由订单页构造，已携带 order + token）。
+        $order_user_id = (int) $data['user_id'];
+        if ($order_user_id > 0) {
+            if (!is_user_logged_in()) {
+                auth_redirect();
+            }
+            if (get_current_user_id() !== $order_user_id) {
+                wp_die(esc_html(__('下载链接无效或已过期。', 'at8-moonlight-shop')), '', array('response' => 403));
+            }
+        } elseif (!mlshop_verify_guest_token(
+            (int) $data['order_id'],
+            isset($_GET['token']) ? sanitize_text_field(wp_unslash($_GET['token'])) : ''
+        )) {
+            wp_die(esc_html(__('下载链接无效或已过期。', 'at8-moonlight-shop')), '', array('response' => 403));
+        }
+
+        $file_id = isset($data['file_id']) ? (int) $data['file_id'] : 0;
+        $file    = $file_id ? get_attached_file($file_id) : '';
+        if (!$file || !file_exists($file)) {
+            wp_die(esc_html(__('文件不存在。', 'at8-moonlight-shop')), '', array('response' => 404));
+        }
+
+        // 下载次数限制（Phase 4）：max=0 不限；超限拒绝并保留 token（未消耗本次）。
+        $max  = isset($data['max']) ? (int) $data['max'] : 0;
+        $used = isset($data['used']) ? (int) $data['used'] : 0;
+        if ($max > 0 && $used >= $max) {
+            wp_die(
+                /* translators: %d: 数量 */
+                sprintf(esc_html__('下载次数已达上限（%d 次）。如需重新获取请联系站长。', 'at8-moonlight-shop'), (int) $max),
+                '',
+                array('response' => 403)
+            );
+        }
+
+        // 计数累加（尽力而为：并发两次下载可能少计 1 次，不会多拒）。
+        $data['used'] = $used + 1;
+        $expires = isset($data['expires']) ? (int) $data['expires'] : 0;
+        $ttl = ($expires > time()) ? max(60, $expires - time()) : HOUR_IN_SECONDS;
+        set_transient('mlshop_dl_' . $token, $data, $ttl);
+
+        // 下载日志（订单侧留痕，白名单字段，不含敏感信息；token 仅记前 8 位用于关联）
+        $dl_log = get_post_meta((int) $data['order_id'], '_mlshop_download_log', true);
+        $dl_log = is_array($dl_log) ? $dl_log : array();
+        $dl_log[] = array(
+            'at'      => current_time('mysql'),
+            'user_id' => get_current_user_id(),
+            'product' => (int) $data['product_id'],
+            'token'   => substr($token, 0, 8),
+        );
+        update_post_meta((int) $data['order_id'], '_mlshop_download_log', array_slice($dl_log, -50));
+
+        header('Content-Type: application/octet-stream');
+        $download_name = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($file));
+        header('Content-Disposition: attachment; filename="' . $download_name . '"');
+        header('Content-Length: ' . filesize($file));
+
+        // 扩展点（计划书第十节）：服务器支持 X-Sendfile / X-Accel-Redirect 时，
+        // 由主题或服务器插件返回 true 并自行输出对应头（如 header('X-Accel-Redirect: ...')），
+        // 插件即不再用 PHP readfile 流式输出。
+        if (apply_filters('moonlight_download_sendfile', false, $file, $data)) {
+            exit;
+        }
+        readfile($file); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_readfile -- 下载流需要流式输出文件内容到 stdout
+        exit;
+    }
+
+    /**
+     * 当前用户的已交付下载列表。
+     */
+    public function shortcode_downloads()
+    {
+        // 缓存兼容：下载列表为用户态内容，禁止页面缓存（计划书第五十九节）
+        mlshop_no_cache();
+        if (!is_user_logged_in()) {
+            return '<p>' . esc_html__('请先登录。', 'at8-moonlight-shop') . '</p>';
+        }
+        $orders = MLSHOP_Order::get_user_orders(get_current_user_id(), 50);
+        ob_start();
+        echo '<div class="mlshop-downloads">';
+        $found = false;
+        foreach ($orders as $order) {
+            $delivery = get_post_meta($order->ID, '_mlshop_delivery', true);
+            if (!is_array($delivery)) {
+                continue;
+            }
+            foreach ($delivery as $d) {
+                if ($d['type'] !== 'download') {
+                    continue;
+                }
+                $found = true;
+                $product = get_post($d['product_id']);
+                $url = add_query_arg('mlshop_download', $d['token'], home_url());
+                echo '<div class="mlshop-download-item">';
+                echo '<span>' . esc_html($product ? $product->post_title : '') . '</span>';
+                // 剩余次数提示（max=0 不限）
+                $info = get_transient('mlshop_dl_' . $d['token']);
+                if (is_array($info) && (int) $info['max'] > 0) {
+                    $left = max(0, (int) $info['max'] - (int) $info['used']);
+                    /* translators: %d: 数量 */
+                    echo ' <small class="description">(' . esc_html(sprintf(__('剩余 %d 次', 'at8-moonlight-shop'), $left)) . ')</small>';
+                }
+                echo ' <a class="mlshop-btn" href="' . esc_url($url) . '">' . esc_html__('下载', 'at8-moonlight-shop') . '</a>';
+                echo '</div>';
+            }
+        }
+        if (!$found) {
+            echo '<p>' . esc_html__('暂无可下载内容。', 'at8-moonlight-shop') . '</p>';
+        }
+        echo '</div>';
+        return ob_get_clean();
+    }
+}
+
