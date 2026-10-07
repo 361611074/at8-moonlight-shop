@@ -1,7 +1,7 @@
 === AT8 Moonlight Shop ===
 
 Contributors: x361611074
-Tags: shop, ecommerce, cart, checkout, digital, download, cardkey, elementor, astra
+Tags: shop, ecommerce, cart, checkout, elementor
 Requires at least: 5.8
 Tested up to: 7.1
 Stable tag: 3.3.0

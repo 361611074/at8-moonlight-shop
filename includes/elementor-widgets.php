@@ -6,6 +6,10 @@
  * @package Moonlight_Shop
  */
 
+if (!defined('ABSPATH')) {
+    exit;
+}
+
 use Elementor\Widget_Base;
 use Elementor\Controls_Manager;
 use Elementor\Group_Control_Typography;
