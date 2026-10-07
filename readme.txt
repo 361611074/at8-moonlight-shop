@@ -17,6 +17,25 @@ A lightweight, theme-agnostic shop system with a built-in account center: physic
 
 AT8 Moonlight Shop is a lightweight, theme-agnostic e-commerce system for WordPress. It does not require WooCommerce, creates all needed pages on activation, and works with both shortcodes and Elementor widgets. Chinese, Simplified Chinese and English translations are bundled.
 
+The free version provides a complete core shopping experience. Optional premium extensions can add advanced features (webhooks, advanced reports, order export) without disabling any free functionality.
+
+== Features ==
+
+* Three product types: physical goods, downloadable virtual goods, card-key (license code) products
+* Session cart (guest friendly), guest checkout with e-mail + access token, coupons
+* Built-in payment gateways: Alipay, WeChat Pay v3 (Native QR / H5), PayPal, Stripe, wallet balance, credits, cash on delivery, offline transfer
+* Server-side pricing, verified payment callbacks with amount comparison and idempotency
+* Unified refunds: request → rule gate → full / partial refund with stock rollback and wallet / credit reimbursement
+* Card-key stock pool: AES-256-CBC encrypted batches, plaintext codes never stored, low-stock e-mail alerts
+* Secure time-limited download links with per-order download counters
+* Shipping templates (flat / per-item, free-shipping threshold), local pickup, address book, shipment management, Express100 tracking
+* Membership levels with member pricing and automatic expiry downgrade
+* Credits with configurable exchange rate, recharge packages and daily check-in rewards
+* Account center: overview, profile, membership, purchases, credit balance, orders, addresses, downloads, coupons
+* Front-end login / register / lost-password pages, OAuth social login (Google / GitHub / QQ / Apple / WeChat)
+* REST API (moonlight/v1) for products, cart, checkout, orders, downloads and account data
+* Admin dashboard with sales stats, card-key stock alerts and export tools
+
 **Products & Orders**
 
 * Custom product post type with three kinds: physical goods, downloadable virtual goods, and card-key (license code) products
@@ -100,6 +119,15 @@ This plugin connects to third-party services only when the site administrator en
 * Purpose: automatic license issuance for orders of mapped products (used by sites selling an optional Pro extension).
 * Data sent: order number, buyer e-mail and product / plan codes, sent to the license server URL the administrator configures.
 * When: only when the administrator configures a license server URL. The plugin never connects to the plugin author's servers.
+
+=== OAuth social login (optional) ===
+
+Google (accounts.google.com / oauth2.googleapis.com / www.googleapis.com), GitHub (github.com / api.github.com), QQ (graph.qq.com), Apple (appleid.apple.com) and WeChat Open Platform (open.weixin.qq.com / api.weixin.qq.com) are used for social login.
+
+* Purpose: user sign-in / account linking via the respective OAuth provider.
+* Data sent: the OAuth authorization code only; the provider returns the user's provider ID, e-mail and display name according to that provider's policy.
+* When: only when the administrator enables the provider and a visitor clicks the corresponding login button.
+* Terms / Privacy: as published by each provider (developers.google.com, docs.github.com, wiki.connect.qq.com, developer.apple.com, open.weixin.qq.com).
 
 == Privacy ==
 

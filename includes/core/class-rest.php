@@ -308,21 +308,28 @@ class Moonlight_REST
     }
 
     /**
-     * 订单路由 permission：登录 + 属主（管理员 / 所有者 / 游客令牌）。
+     * 订单路由 permission：属主（管理员 / 所有者 / 游客令牌）。
+     *
+     * 游客令牌请求不要求登录：直接走 current_order_owner（内部 hash_equals
+     * 校验令牌；登录订单对未登录访客一律 403），保证「游客凭合法令牌查看
+     * 自己订单」的既定权限模型在 REST 与前端订单页行为一致。
+     * 无令牌请求维持先登录再校验属主。
      *
      * @param WP_REST_Request $request
      * @return true|WP_Error
      */
     public function perm_order_owner($request)
     {
+        $token    = (string) $request->get_param('token');
+        $order_id = (int) $request->get_param('id');
+        if ('' !== $token) {
+            return Moonlight_Rest_Helpers::current_order_owner($order_id, $token);
+        }
         $login = Moonlight_Rest_Helpers::require_login();
         if (true !== $login) {
             return $login;
         }
-        return Moonlight_Rest_Helpers::current_order_owner(
-            (int) $request->get_param('id'),
-            (string) $request->get_param('token')
-        );
+        return Moonlight_Rest_Helpers::current_order_owner($order_id, '');
     }
 
     /**
