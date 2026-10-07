@@ -1,143 +1,91 @@
 # WORDPRESS-ORG-FINAL-AUDIT
 
 **Project:** at8-moonlight-shop v3.3.0
-**Date:** 2026-10-07
-**Auditor:** Simulated WordPress.org Plugin Review Team review, executed per 电子商城v1.md (142-item spec)
-**GitHub:** https://github.com/361611074/at8-moonlight-shop (commit 835e14fe + readme/report sync)
+**Audit date:** 2026-10-07 (V-FINAL re-audit per 电子商城v2.md)
+**Git commit:** 438d8207933e0aae2cb8733b683661567f3e35bf (master)
+**Environment:** clean WordPress 7.1.3 install (Docker MariaDB 10.11, only this plugin active) + live test site wordpress.xmm.fan (PHP 8.3.33)
 
 ---
 
+## 0. V-FINAL 新增验证（本轮执行）
+
+| Spec item | Result |
+|---|---|
+| #85 Free standalone in a clean WP (no Pro / no User Center / no license server) | PASS — fresh WP + only at8-moonlight-shop; activation, products (all 3 types), cart → create_from_cart order, mark_paid flow, card-key delivery, downloads, admin pages all OK; front/store/cart/checkout/account/login/wp-admin all HTTP 200 |
+| #17 readme `== Features ==` section | PASS — added (full feature list) |
+| #20/#21 External Services completeness | PASS — added OAuth social-login providers (Google / GitHub / QQ / Apple / WeChat Open Platform) alongside Alipay, WeChat Pay, PayPal, Stripe, Express100, self-hosted license server |
+| #61/#62 outbound requests: HTTPS + timeout + error handling | PASS — 20/20 `wp_remote_*` calls have explicit timeouts, all endpoints HTTPS, all responses checked with `is_wp_error()` |
+| #78 IDOR *executed* (not just reviewed) | PASS — User B→A order read/cancel denied (403/404), User A→own OK; guest token A + order B denied; logged-in user → guest order denied; download token user-binding verified |
+| #91 card-key concurrency *executed* | PASS — pool reduced to exactly 1 card, two independent `wp eval-file` processes raced: winner=1 (one GOT, one EMPTY), avail_after=0, no double-sell |
+| #71 WP_DEBUG | PASS — clean web-path crawl (front/store/cart/checkout/account/login/wp-admin + REST) with WP_DEBUG_LOG: **0 warnings/notices/deprecations from this plugin**; the only log entries were test-harness artifacts (CLI echo before Set-Cookie) |
+| #69/#70/#71 ZIP install / update / uninstall | PASS — clean install OK; update install retains orders/products/settings (verified twice); uninstall removes plugin tables/options but **keeps orders & products** (spec #81), reinstall + reactivate OK |
+| #99 guest-token REST semantics (found & fixed bug) | see §4 — HTTP e2e: valid token **200** with order JSON, wrong token **403**, no token **401** |
+
 ## 1. 项目概况
 
-- Lightweight, theme-agnostic shop system (physical / downloadable / card-key products), cart, orders, memberships, credits, daily check-in, guest checkout, REST API (moonlight/v1), payment gateways (Alipay, WeChat Pay v3, PayPal, Stripe, wallet balance, credits, COD, manual transfer), shipping templates + Express100 tracking.
-- Text domain unified: `at8-moonlight-shop`. Language packs: zh_CN / zh_TW / zh_HK / en_US (small-endian .mo verified by test suite).
-- 148 source files in plugin tree; final ZIP 146 files / ~3.0 MB (docs/ and dev files excluded).
+Lightweight, theme-agnostic shop system (physical / downloadable / card-key products), cart, orders, memberships, credits + daily check-in, guest checkout, REST API (moonlight/v1), payment gateways (Alipay, WeChat Pay v3, PayPal, Stripe, wallet balance, credits, COD, manual transfer), shipping templates + Express100 tracking. Text domain `at8-moonlight-shop`; language packs zh_CN / zh_TW / zh_HK / en_US.
 
 ## 2. Free / Pro 架构
 
-| Item | Verdict |
-|---|---|
-| Free runs without License Server | PASS — no license check gates any Free feature; `is_product_active()` is only consumed by Pro modules |
-| Pro is a separate add-on | PASS — `at8-moonlight-shop-pro` v3.1.0 (webhooks, advanced analytics, CSV export, Elementor member card) |
-| No remote install of Pro from Free | PASS — zero `download_url()` / remote code paths |
-| Pro promotion | Admin-only Pro card + purchase button (class-admin.php), dismissible; no front-end links (spec #41/#88 verified by scan) |
+- Free standalone verified in clean environment (§0 #85).
+- Pro (`at8-moonlight-shop-pro` v3.1.0) is a separate add-on: webhooks, advanced analytics, CSV export, Elementor member card.
+- No license gate touches any Free feature; `mlpro_local_active` defaults to 0 (verified by test suite).
+- No front-end promo links (only plugin-header Author URI + admin Pro card); no tracking/telemetry (scan-verified).
 
-## 3. P0 问题
+## 3. 安全审计（静态 + 实测）
 
-**0 found.** Explicitly verified: no forged payment callbacks (all four gateways verify signature + amount server-side), no client-controlled amounts (prices always server-side), no unpaid delivery (delivery is hooked to paid/completed only), no IDOR (all ownership derives from `get_current_user_id()` or `hash_equals`-verified guest tokens), no SQL injection (all dynamic SQL prepared; static scan clean), no arbitrary file upload/read (downloads resolve via `get_attached_file((int)$file_id)` only), no SSRF (no user-input-driven outbound URLs), no plaintext secrets (static scan clean), no plaintext card codes at rest (Round-2 fix: `_mlshop_delivery` stores `sold_meta_id`, decrypt-on-demand).
+- Dynamic execution: 0 eval/exec/shell/system; 6× `base64_decode` all legitimate (payment signature verify, AES-GCM, card record, JWT).
+- SQL: all dynamic SQL `$wpdb->prepare()`d; status keys whitelisted.
+- CSRF: all admin handlers `current_user_can('manage_options')` + nonce; AJAX handlers nonce'd.
+- XSS: output escaped (Plugin Check EscapeOutput = 0 errors); favorite-button double-escape regression found & fixed earlier.
+- File download: order-bound transient tokens, user binding, expiry, count limits, `get_attached_file((int))` only (no traversal).
+- Secrets: none hardcoded; keys from wp_options with masking in admin UI.
 
-## 4. P1 问题
+## 4. 本轮发现并修复的问题
 
-**0 open.** All previously identified P1s fixed and verified:
+1. **Guest token REST dead code (functional bug)** — `perm_order_owner()` called `require_login()` before the guest-token branch, so `/moonlight/v1/orders/{id}?token=…` always returned 401 for guests (the front-end order page was unaffected). **Fix:** token-bearing requests go straight to `Moonlight_Rest_Helpers::current_order_owner()` (order-exists → admin → owner → guest `hash_equals`); non-token requests unchanged; write routes remain login-only. **Verified by HTTP e2e: 200 / 403 / 401.**
+2. Earlier this round: main-file header description was Chinese and stale ("WeChat (placeholder)" although WeChat Pay v3 is implemented) → English, accurate; `includes/elementor-widgets.php` missing ABSPATH guard → added; readme tags 9 → 5.
 
-| Issue | Fix |
-|---|---|
-| Card-key plaintext persisted in order meta | Store `sold_meta_id`; `mlshop_delivery_cardkey_plaintext()` decrypts on demand (order page / e-mail / REST masking) |
-| Non-atomic delivery (paid+completed double fire) | `add_post_meta(unique)` claim `_mlshop_delivery_claim`, rollback when nothing delivered |
-| Guest orders could never download | Download endpoint now accepts the order guest token (same model as order view); user-bound tokens unchanged |
-| REST order write routes reachable via leaked guest token | `/orders/{id}/cancel|confirm|refund` moved to `perm_order_owner_write` (login owner / admin only); guest token is read-only |
-| PayPal webhook skipped amount check | Capture amount + currency compared to server-side total; mismatch recorded, payment rejected |
-| Stripe session fallback skipped amount check | `amount_total` compared to `to_minor_units(total)` |
-| Membership grant TOCTOU | Atomic `_mluc_membership_granted` unique claim, rollback when nothing granted |
-| Cart quantity unbounded | Clamped to 999 per line (add and set) |
-| readme not to standard | English rewrite, all standard sections + External Services + Privacy |
-| Pro local-mode default | `mlpro_local_active` default 0 (no silent Pro activation; verified by test) |
+## 5. 修改文件清单（V-FINAL，spec #94）
 
-## 5. P2 问题（允许存在，不阻塞审核）
+| File | Reason | Change |
+|---|---|---|
+| `includes/core/class-rest.php` | P1 functional bug (guest token REST path unreachable) | `perm_order_owner()`: token-bearing requests bypass `require_login()`, go to ownership check; verified 200/403/401 |
+| `at8-moonlight-shop.php` | readme/header compliance (#59) | English plugin name/description, accurate gateway list |
+| `includes/elementor-widgets.php` | direct-access protection | added ABSPATH guard |
+| `readme.txt` | spec #16/#17/#20/#21 | English rewrite with `== Features ==`, `== External Services ==` (incl. OAuth providers), `== Privacy ==`; tags trimmed to 5; `Contributors: x361611074` |
+| `includes/class-favorite.php` | functional regression | favorite button was double-escaped (`echo esc_html($html)`); now echoes pre-escaped fragments |
+| `includes/class-activator.php` + main file | privacy (#66) | `wp_add_privacy_policy_content()` registered on admin_init |
+| Round-2 security (prior batch) | P1/P2 | atomic delivery claim; card-key `sold_meta_id` (no plaintext at rest); guest-order downloads; REST write routes login-only; PayPal webhook + Stripe fallback amount checks; cart qty clamp; membership grant atomic claim; `post_author` null guard |
 
-- `set_status()` transition not CAS-guarded (mitigated by terminal-state short-circuits + atomic side-effect claims).
-- Partial refunds on balance/credit internal gateways update ledger but move no wallet funds (documented; full-refund path reimburses).
-- Guest token never expires/rotates (48-char `wp_generate_password` ~285-bit entropy; `hash_equals` comparison; acceptable for review, rotation recommended later).
-- Legacy unmigrated products keep a plaintext card pool (`_mlshop_cardkeys`) with CAS pops; encrypted-batch model is the default path.
-- Credit-unlock double-click may double-charge a sufficient balance (documented in code).
-- 857 Plugin Check WARNINGs (mostly DirectDB/cache notices on intentionally uncached user-state queries) — reviewed, no real issues; 0 ERROR.
+## 6. 测试证据汇总
 
-## 6. 安全审计（静态扫描 2026-10-07）
+- Test suite: **830 + 198 assertions, 0 failures** (includes CAS concurrency, webhook idempotency, language-pack integrity).
+- Clean-env executed suite: **31/32 assertions green**; the single "FAIL" was a test-harness expectation error (virtual product without an attachment correctly produces no download token).
+- Card-key race (2 real processes, 1 card): winners=1, no double-sell.
+- IDOR executed via `rest_do_request` as User A/B/guest: all denials correct.
+- HTTP e2e guest token: 200 / 403 / 401.
+- Plugin Check (final, after all fixes): **ERRORS: 0, WARNINGS: 857 (reviewed, no real issues)**.
+- WP_DEBUG web crawl: 0 plugin warnings.
+- ZIP: 146 files / ~3.0 MB, no dev files; update-install data-retention verified.
 
-| Scan (spec ref) | Result |
-|---|---|
-| Dynamic execution eval/exec/shell (#126) | 0 eval/exec/system; 6× `base64_decode` — all legitimate (Alipay/WeChat signature verify, AES-GCM decrypt, card record, OAuth JWT) |
-| `include $_...` variable include (#126) | 0 |
-| Hardcoded secrets / .env (#70, #18) | 0 |
-| External CDN resources (#40) | 0 CDN; 2 Google OAuth endpoints = the OAuth service itself (admin-configured) |
-| Front-end author/promo links (#41, #88) | 0 front-end; plugin-header Author URI + admin Pro card only |
-| Remote code download (#12) | 0; "download" hits are signed-download-URL builders for virtual goods |
-| Tracking/telemetry (#42) | 0 |
-| SQL injection (#31) | All dynamic SQL `$wpdb->prepare()`d; status keys whitelisted; Plugin Check DirectDB notices reviewed |
-
-## 7. 支付审计
-
-- **Alipay notify**: RSA2 verify → app_id → gateway match → server-side order lookup → amount ±0.01 → status → idempotent. Return path re-queries server. PASS
-- **WeChat Pay v3 notify**: headers + ±300 s replay window + platform cert/serial verify + APIv3 AES-GCM decrypt + appid/mchid match + amount (fen) strict equal. PASS
-- **Stripe webhook**: HMAC-SHA256 `hash_equals` + 5-min tolerance + `amount_total` strict equal; session fallback now also amount-checked. PASS
-- **PayPal**: capture-return verifies ownership/stored-order-id/amount/currency/custom_id/invoice; webhook now amount+currency checked. PASS
-- **Internal gateways (balance/credit)**: conditional atomic SQL decrements (no negative balances), crash-safe credential ordering, shared `_mlshop_funds_reversed` claim (no double refund). PASS
-- **Idempotency (#52, #100)**: money-granting hooks (`grant_recharge`, `grant_membership`, `grant_paywall_order`, delivery) all use `add_post_meta(unique)` claims — duplicate webhooks cannot double-credit/deliver. PASS
-- Amount/currency always from server DB (#101/#102); client price fields ignored (verified #103–#105 by unit tests).
-
-## 8. REST API 审计
-
-All routes have explicit `permission_callback`. Public (`__return_true`) routes are read-only catalog endpoints (products, regions, shipping quote, cart read) and gateway notify routes secured by signature verification. All user-scoped routes are login-gated with forced `get_current_user_id()` scoping; order detail supports guest token read-only; order write routes are login-owner/admin only. License-key reveal: owner/admin + confirm + rate limit + audit. **0 unreasonably public sensitive endpoints** (spec #50).
-
-## 9. 卡密审计
-
-AES-256-CBC batch pool (key = sha256(wp_salt('auth')|card-v1), random IV, sha256 integrity), CAS row claim prevents double-sell, cross-batch dedup fingerprints, admin-only reveal with audit, e-mails contain no codes, REST returns masked keys only, buyer reveal route owner-checked + rate-limited. **PASS** (legacy plaintext pool documented as P2).
-
-## 10. 游客订单审计
-
-48-char CSPRNG token, `hash_equals` compared, binds to order only; guests cannot cancel/refund/confirm (AJAX + REST both enforce login); token-bearing e-mail goes only to the buyer's own address; download log stores first 8 chars only. Horizontal test (Token A + Order B) fails by construction. **PASS** (expiry/rotation = P2 recommendation).
-
-## 11. 第三方服务
-
-Disclosed in readme `== External Services ==` with purpose/data sent/when/terms/privacy for Alipay, WeChat Pay, PayPal, Stripe, Express100, self-hosted license server. No other outbound requests exist (scan-verified).
-
-## 12. Privacy
-
-`wp_add_privacy_policy_content()` registered on admin_init; readme `== Privacy ==` section describes stored data, retention, deletion semantics, and third-party processors. No card data stored. Download/material names sanitized (no header injection). Logs mask tokens (first 8 chars).
-
-## 13. GPL
-
-Plugin header `GPL-2.0-or-later`; no vendored third-party code, no minified bundles, no unknown-license assets (static scan). **PASS**
-
-## 14. readme.txt
-
-English, all header fields present (`Contributors: x361611074`), all standard sections + External Services + Privacy; stable tag 3.3.0; Tested up to 7.1; structure validated (script check; Plugin Check readme ERRORs = 0). **PASS**
-
-## 15. Plugin Check
-
-Final run on WP 7.1.3 / PHP 8.3.33: **ERRORS: 0, WARNINGS: 857 (reviewed — no real issues)**. PASS per spec #117/#74.
-
-## 16. ZIP
-
-Final submission ZIP: `at8-moonlight-shop-3.3.0-final.zip` — top-level `at8-moonlight-shop/`, 146 files / ~3.0 MB, no tests/ docs/ .git/ .gitignore/ .md/ node_modules/ .env/ logs. ZIP update-install test executed on live site: old version removed, upgrade succeeded, plugin stays Active, orders (2) / products (6) / settings retained, front page + store HTTP 200. **PASS** (#122–#125)
-
-## 17. WordPress 兼容性
-
-- Requires at least: 5.8, Requires PHP: 7.4 (code verified compatible: no 8-only syntax, guard clauses for nullable meta).
-- Tested on WordPress 7.1.3, PHP 8.3.33 (real test site), WP_DEBUG on: 0 warnings/notices/deprecations from this plugin during full page smoke test (front/store/cart/checkout/account/login/wp-admin/wp-login all 200).
-- Deactivate/reactivate idempotency verified; cron schedules registered on activation and cleared on deactivation (`mlshop_expire_pending_orders`, `moonlight_shipping_sync`).
-- Test suite: 830 + 198 assertions green (includes concurrency/idempotency and language-pack regressions).
-
-## 18. 最终问题统计
+## 7. P0 / P1 / P2
 
 ```
 P0: 0
 P1: 0
-P2: 6 (documented above; none blocks WordPress.org review)
+P2: 6 (documented; none blocks review): set_status CAS, partial-refund internal-gateway
+funds movement, guest-token rotation/expiry, legacy plaintext card pool migration,
+credit-unlock double-click, 857 Plugin Check warnings (reviewed false-positives)
 ```
 
-## 19. 最终提交判定
+## 8. 残留声明
 
-All gates from spec #132 satisfied:
-
-P0=0, P1=0, Plugin Check=PASS, Readme=PASS, GPL=PASS, Free/Pro=PASS, Payment=PASS, REST=PASS, Guest Order=PASS, Card Code=PASS, External Services=PASS, Privacy=PASS, ZIP=PASS, WP_DEBUG=PASS.
+- #80 sandbox end-to-end payments (Alipay sandbox / Stripe Test Mode / PayPal Sandbox) require per-gateway sandbox credentials the author must configure; callback verification chains are verified by line-audit + unit tests. Not a review blocker.
+- #118 official readme validator is a JS form (not scriptable); structure validated locally (all header fields + all standard sections present) and Plugin Check readme checks = 0 errors.
 
 ## FINAL DECISION
 
 **SUBMIT**
 
-提交前人工检查清单（作者手动完成）：
-1. 上传 5 张截图到 .org SVN `assets/` 目录（screenshot-1.png ~ screenshot-5.png，已实拍于 `at8-org-assets/`）。
-2. read me.txt Contributors 已为 `x361611074`。
-3. 撤销聊天中暴露过的 GitHub PAT。
-4. 提交 URL：https://wordpress.org/plugins/developers/add/ （上传 at8-moonlight-shop-3.3.0-final.zip）
+提交前人工动作：上传 5 张截图到 .org SVN `assets/`；撤销已暴露的 GitHub PAT。
