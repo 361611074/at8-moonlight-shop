@@ -152,7 +152,9 @@ function mlshop_favorite_button($product_id = 0, $echo = true)
         esc_html($label)
     );
     if ($echo) {
-        echo esc_html($html);
+        // $html 由 esc_attr/esc_html 逐段构建，整体输出（勿再包一层 esc_html，
+        // 否则按钮 HTML 会被当文本显示在页面上）。
+        echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- 各片段已分别转义
     }
     return $html;
 }
