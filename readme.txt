@@ -1,6 +1,6 @@
 === AT8 Moonlight Shop ===
 
-Contributors: at8fun
+Contributors: x361611074
 Tags: shop, ecommerce, cart, checkout, digital, download, cardkey, elementor, astra
 Requires at least: 5.8
 Tested up to: 7.1
@@ -49,13 +49,61 @@ AT8 Moonlight Shop is a lightweight, theme-agnostic e-commerce system for WordPr
 
 **Third-party services**
 
-This plugin does not send any data to the plugin author. Outbound requests happen only in these cases:
+This plugin does not send any data to the plugin author. Outbound requests happen only when an administrator enables the corresponding integration — see the "External Services" section below.
 
-* Payment gateways: Alipay / WeChat Pay / PayPal / Stripe receive order number, amount and product title as required to process payments (configured by the site administrator);
-* Express100 tracking (optional): after configuring a key, tracking numbers are sent to Express100 to query shipment status;
-* License server (optional, only for sites selling a Pro license): orders for mapped products can send order number, buyer e-mail and product / plan codes to your own license server for automatic license issuance.
+== External Services ==
 
-The plugin does not collect or upload any other data.
+This plugin connects to third-party services only when the site administrator enables the corresponding integration. No data is sent to the plugin author.
+
+=== Alipay ===
+
+* Purpose: processing Alipay payments.
+* Data sent: order number, amount, currency and product title required to create and verify a payment.
+* When: only when the administrator enables the Alipay gateway and a customer initiates payment.
+* Terms: https://global.alipay.com/
+* Privacy: https://global.alipay.com/
+
+=== WeChat Pay ===
+
+* Purpose: processing WeChat Pay payments (Native QR and H5).
+* Data sent: order number, amount and product title required to create and verify a payment.
+* When: only when the administrator enables the WeChat Pay gateway and a customer initiates payment.
+* Terms: https://pay.weixin.qq.com/
+* Privacy: https://pay.weixin.qq.com/
+
+=== PayPal ===
+
+* Purpose: processing PayPal payments.
+* Data sent: order number, amount, currency and product title required to create and verify a payment.
+* When: only when the administrator enables the PayPal gateway and a customer initiates payment.
+* Terms: https://www.paypal.com/legalhub/
+* Privacy: https://www.paypal.com/privacy/
+
+=== Stripe ===
+
+* Purpose: processing card and other Stripe-supported payments.
+* Data sent: payment and order information required to process the transaction.
+* When: only when the administrator enables the Stripe gateway and a customer initiates payment.
+* Terms: https://stripe.com/legal
+* Privacy: https://stripe.com/privacy
+
+=== Express100 (Kuaidi100) shipping tracking ===
+
+* Purpose: querying shipment tracking status for physical orders.
+* Data sent: the tracking number and courier company code.
+* When: only when the administrator configures an Express100 key and shipment tracking is used (optional feature).
+* Terms: https://www.kuaidi100.com/
+* Privacy: https://www.kuaidi100.com/
+
+=== License server (optional, self-hosted) ===
+
+* Purpose: automatic license issuance for orders of mapped products (used by sites selling an optional Pro extension).
+* Data sent: order number, buyer e-mail and product / plan codes, sent to the license server URL the administrator configures.
+* When: only when the administrator configures a license server URL. The plugin never connects to the plugin author's servers.
+
+== Privacy ==
+
+This plugin stores order data (e-mail, shipping name, phone and address for physical goods) in the site database to fulfil orders and handle after-sales requests. Registered users additionally have profile data, credit ledger entries, saved addresses and purchase records. Deleting an order removes its data; the guest access token becomes invalid together with the order. No card numbers or other sensitive payment credentials are stored by this plugin — payments are processed by the respective payment gateways. A machine-readable privacy policy statement is provided via wp_add_privacy_policy_content.
 
 == Installation ==
 
